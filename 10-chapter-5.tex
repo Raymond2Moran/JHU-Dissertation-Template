@@ -1,26 +1,38 @@
-\chapter{Chapter title goes here} \label{chap:chap-5}
+\chapter{Power Planning and Transfer Case Study} \label{chap:power_transfer}
 
+\section{Prediction-Powered Power and Sample-Size Planning}
 
-%% remove the following and add your chapter text here
-\section{Introduction}
-\blindtext \parencite{knuth-fa}
+Using validation-derived pilot metrics, we estimate required labeled sample sizes under both vanilla PPI and oracle-lambda PPI++.
 
-%% this is an example table
-\begin{table}[h!]
+\begin{figure}[ht]
 \centering
-\begin{tabular}{c c c c} 
-\toprule \toprule
-Col1 & Col2 & Col2 & Col3 \\ 
-\toprule \toprule
-1 & 6 & 87837 & 787 \\ 
-2 & 7 & 78 & 5415 \\
-3 & 545 & 778 & 7507 \\
-4 & 545 & 18744 & 7560 \\
-5 & 88 & 788 & 6344 \\ 
-\bottomrule
-\end{tabular}
-\caption{Table to test captions and labels taken from Overleaf.}
-\label{table:1}
-\end{table}
+\includegraphics[width=0.92\textwidth]{chap5_required_n.png}
+\caption{Required labeled sample size by effect size and estimator mode (vanilla vs oracle).}
+\label{fig:chap5_required_n}
+\end{figure}
 
-\Blindtext[2]
+Figure~\ref{fig:chap5_required_n} quantifies expected label-efficiency gains and provides a practical guide for future data-collection planning.
+
+\section{LLM-as-a-Judge Transfer Study}
+
+To assess methodological portability, we apply the same budgeted-estimator framework to LLM-as-a-judge prevalence estimation.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.95\textwidth]{chap5_llm_transfer_summary.png}
+\caption{Transfer-case estimator comparison across labeled budgets.}
+\label{fig:chap5_llm_transfer}
+\end{figure}
+
+The transfer study reproduces the key pattern: prediction-powered methods improve bias/variance trade-offs relative to naive plug-in estimates, especially at moderate calibration budgets.
+
+\section{Synthesis}
+
+The results connect three layers of evidence:
+\begin{enumerate}
+    \item Protein prediction performance comparisons.
+    \item Valid uncertainty quantification with limited labels.
+    \item Prospective planning via sample-size analysis.
+\end{enumerate}
+
+Taken together, they support a practical thesis message: efficient, uncertainty-aware biological prediction is achievable when strong surrogates are paired with principled prediction-powered inference.

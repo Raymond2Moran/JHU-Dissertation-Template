@@ -1,10 +1,31 @@
-\chapter{Chapter title goes here} \label{chap:chap-1}
+\chapter{Introduction and Problem Setup} \label{chap:introduction}
 
-% if you want a short header you can use the following command
-% \chapter[short-header-name]{chapter-title} \label{chap:chap-1}
+Protein--protein interaction (PPI) edge prediction is central to network biology, disease mechanism discovery, and downstream pathway analysis. Modern protein language models generate powerful representations for proteins, but practical studies still face a persistent bottleneck: obtaining high-quality labeled edges is expensive, while unlabeled candidate edges are abundant.
 
+This thesis studies how to combine strong sequence/text predictors with prediction-powered inference (PPI/PPI++) so that we can report statistically valid uncertainty with limited labeled data. The work integrates two lines of prior research: (i) protein edge prediction pipelines based on pretrained biological embeddings, and (ii) debiased inference and power planning under prediction-powered frameworks \parencite{ppi_framework,ppi_pp,pppower_pkg}.
 
-%% add your chapter text here
-\blindtext \cite{dirac}
+\section{Research Questions}
 
-\Blindtext[3]
+The thesis focuses on the following questions:
+\begin{enumerate}
+    \item How do ProtBERT and ESM2 embeddings compare for PPI edge prediction under leakage-aware train/validation/test splits?
+    \item How much does adding text-description embeddings improve performance and robustness on an external dataset?
+    \item Can prediction-powered estimators provide stable point estimates and confidence intervals for key metrics when only 5\%, 10\%, or 20\% of edges are labeled?
+    \item How do PPI and PPI++ affect labeled sample-size requirements under realistic pilot metrics?
+    \item Are the same inference principles portable to an LLM-as-a-judge prevalence setting?
+\end{enumerate}
+
+\section{Main Contributions}
+
+This thesis makes the following contributions:
+\begin{enumerate}
+    \item A reproducible end-to-end workflow that unifies data preparation, embedding generation, model training, uncertainty quantification, and thesis artifact export.
+    \item A comparative analysis across ProtBERT, ESM2-650M, and ESM2-3B, with and without text-feature fusion.
+    \item A prediction-powered inference study for prevalence, accuracy, confusion components, and derived metrics under explicit labeled-budget constraints.
+    \item A power/sample-size analysis that operationalizes planning with \texttt{n\_required\_ppi\_pp()}.
+    \item A transfer case study showing methodological portability to LLM-as-a-judge debiasing tasks.
+\end{enumerate}
+
+\section{Thesis Organization}
+
+Chapter~\ref{chap:methods} introduces models, estimands, and inference procedures. Chapter~\ref{chap:protein_main} presents the main protein experiments on the Intra splits. Chapter~\ref{chap:robustness} extends the analysis with text features and an external BIOGRID-human robustness dataset. Chapter~\ref{chap:power_transfer} reports power planning and the transfer case study. Chapter~\ref{chap:conclusion} concludes with discussion and future work.

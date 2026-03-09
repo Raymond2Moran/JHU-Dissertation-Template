@@ -1,0 +1,38 @@
+\chapter{Conclusion and Discussion} \label{chap:conclusion}
+
+\section{Conclusion}
+
+This thesis developed and implemented a full analysis workflow that integrates protein edge prediction with prediction-powered inference and sample-size planning. By combining pretrained biological representations with calibration-budget-aware estimators, the framework supports both practical model comparison and statistically valid uncertainty reporting.
+
+\section{Key Findings}
+
+The empirical and inferential results support four major conclusions:
+\begin{enumerate}
+    \item Representation choice materially impacts both predictive accuracy and downstream uncertainty efficiency.
+    \item Adding text-derived features can improve robustness, but gains are data- and split-dependent.
+    \item PPI and PPI++ provide useful uncertainty control under constrained labeled budgets, with PPI++ often showing efficiency advantages.
+    \item The same inference principles transfer to non-biological AI-evaluation contexts (LLM-as-a-judge), suggesting broad applicability.
+\end{enumerate}
+
+\section{Limitations}
+
+Several limitations remain:
+\begin{enumerate}
+    \item External dataset preparation depends on mapping quality and negative-edge construction assumptions.
+    \item Confidence-interval behavior for derived nonlinear metrics may be sensitive in low-prevalence settings.
+    \item High-capacity embedding models increase compute cost and can constrain repeated calibration experiments.
+\end{enumerate}
+
+\section{Future Work}
+
+Future directions include:
+\begin{enumerate}
+    \item Extending inference targets to additional network-level functionals.
+    \item Improving external benchmark harmonization across curated PPI resources.
+    \item Exploring adaptive labeling strategies guided by prediction-powered variance diagnostics.
+    \item Integrating biologically informed priors from structured knowledge bases and literature-guided models.
+\end{enumerate}
+
+\section{Final Remarks}
+
+A central practical outcome of this work is reproducibility: all major analyses are script-driven, unified by a single notebook interface, and directly connected to thesis-ready tables and figures. This workflow is intended to be reusable for subsequent biological studies where labeled data are limited but predictive surrogates are available at scale.

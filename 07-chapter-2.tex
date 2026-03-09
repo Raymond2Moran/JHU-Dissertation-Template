@@ -1,21 +1,58 @@
-\chapter{Chapter title goes here} \label{chap:chap-2}
+\chapter{Methods: Prediction Models and Prediction-Powered Inference} \label{chap:methods}
 
-%%%% OPTIONAL EPIGRAPH EXAMPLE
-\epigraph{Do not believe everything you see on the internet.}{-- Albert Einstein}
+\section{Data Structure and Splits}
 
+Each edge is represented as a tuple \((u, v, y)\), where \(u\) and \(v\) are UniProt proteins and \(y \in \{0,1\}\) indicates non-interaction/interaction. The primary benchmark uses Intra1 (train), Intra0 (validation), and Intra2 (test). A secondary robustness analysis uses a BIOGRID-human physical-interaction dataset with protein-disjoint train/validation/test splits.
 
-%%%% MUST: if the chapter is a reprint or submitted paper, you must declare it
-%% you can use enumerate or itemize environment if you have more than one paper 
-%% \mybibexclude{} will exclude this citation from the final bibliography
-%% if this paper appears somewhere else then remove \mybibexclude{} command
+\section{Feature Construction}
 
-\begin{singlespace}         % you can also use `onehalfspace` to relax the spacing
-    This chapter is adapted from the following article with permission from <publisher>
-    
-    \fullcite{einstein}. \mybibexclude{einstein}
-\end{singlespace} 
+\subsection{Sequence Embeddings}
 
+For each protein, we extract sequence embeddings using ProtBERT and ESM2 variants (650M and 3B). Pair-level sequence features are formed by summing endpoint embeddings.
 
-%%%% remove the following and add your chapter text here
-\section{Introduction}
-\Blindtext[2]
+\subsection{Text Embeddings}
+
+For each protein, we embed UniProt description text using a sentence-transformer backbone. Pair-level text features are formed by summing endpoint text embeddings.
+
+\subsection{Feature Sets}
+
+Three feature sets are evaluated:
+\begin{enumerate}
+    \item Sequence-only.
+    \item Text-only.
+    \item Concatenated sequence+text.
+\end{enumerate}
+
+\section{Classifier and Threshold Policy}
+
+A supervised binary classifier is trained on the Intra1 split. The decision threshold is tuned only on Intra0 using F1-optimal validation and then frozen for Intra2 and external-set evaluation. This prevents test-time threshold leakage.
+
+\section{Estimands and Inference}
+
+\subsection{Primary Mean-Based Estimands}
+
+For each model and split, we estimate:
+\begin{enumerate}
+    \item Prevalence of positives.
+    \item Accuracy.
+    \item Confusion-component rates (TP, FP, TN, FN).
+    \item Brier-style squared error summary.
+\end{enumerate}
+
+Under labeled budget \(m\), a calibration subset \(L\) is observed with gold labels and an unlabeled subset \(U\) contributes surrogate predictions.
+
+\subsection{Prediction-Powered Estimators}
+
+Let \(Y\) be a target per-edge quantity and \(f(X)\) a surrogate. We use PPI and PPI++ point estimators with confidence intervals, leveraging implementations adapted from prior package work \parencite{ppi_framework,ppi_pp,debias_pkg}.
+
+\subsection{Secondary AUC Uncertainty}
+
+ROC AUC and PR AUC are reported with stratified bootstrap confidence intervals to complement the primary mean-based inference targets.
+
+\section{Power and Sample-Size Planning}
+
+We use pilot metrics from validation predictions and \texttt{n\_required\_ppi\_pp()} to estimate labeled-sample requirements at fixed unlabeled pool size \parencite{pppower_pkg}.
+
+\section{Transfer Case Study}
+
+To evaluate methodological portability, the same calibration-budget analysis is applied to LLM-as-a-judge prevalence inference, comparing naive, PPI, PPI++, EIF, Rogan--Gladen, and joint MLE estimators \parencite{debias_pkg,rogan_gladen,eif_ref}.

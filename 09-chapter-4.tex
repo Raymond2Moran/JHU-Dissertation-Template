@@ -1,23 +1,32 @@
-\chapter{A long chapter title test the distance to the quote} \label{chap:chap-4}
+\chapter{Text Features and External Robustness Analysis} \label{chap:robustness}
 
+\section{Text-Feature Augmentation}
 
-\begin{singlespace}
-    \epigraph{This is a large quote placed with \\ 
-    single spacing over two lines}{-- Unknown Author}
-\end{singlespace}
+This chapter evaluates whether adding UniProt description embeddings improves edge prediction and inferential stability relative to sequence-only models. Pair-level text vectors are combined with sequence vectors in a concatenated feature representation.
 
+\section{External Dataset Construction}
 
-%% remove the following and add your chapter text here
-\section{A long section heading to test the distance before this}
+A BIOGRID-human physical-interaction dataset is built with UniProt-mapped proteins, matched negative sampling, and protein-disjoint splits to reduce leakage through shared nodes. This external test assesses transportability beyond the original benchmark partitions.
 
-\blindtext
+\section{AUC Uncertainty Under Distribution Shift}
 
 \begin{figure}[ht]
-\begin{center}
-    \includegraphics[width=\textwidth, trim={6cm 5cm 6cm 5cm},clip,page=1] {chap4.pdf}
-    \caption{Here are some photos of ducks to make you feel happy in tough times.}
-    \label{fig:ducks}
-\end{center}
+\centering
+\includegraphics[width=0.95\textwidth]{chap4_auc_bootstrap_ci.png}
+\caption{ROC AUC with 90\% bootstrap confidence intervals across datasets and splits.}
+\label{fig:chap4_auc}
 \end{figure}
 
-\Blindtext[2]
+Figure~\ref{fig:chap4_auc} summarizes uncertainty for ranking metrics across in-domain and external settings. Wider intervals on external data reflect distributional shift and reduced effective calibration quality.
+
+\section{Robustness Interpretation}
+
+The external analysis highlights two practical points:
+\begin{enumerate}
+    \item Improvements in point prediction do not always translate into equal uncertainty reduction under limited labels.
+    \item Feature fusion can provide gains, but robustness should be judged with confidence intervals and not only point metrics.
+\end{enumerate}
+
+\section{Chapter Summary}
+
+Text-augmented models provide an important extension to sequence-only pipelines, and external-set evaluation confirms the need for leakage-aware design and uncertainty-aware reporting.
