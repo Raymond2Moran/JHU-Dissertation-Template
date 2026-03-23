@@ -1,0 +1,70 @@
+url: https://yiqunchen.github.io/pppower/
+
+template:
+  bootstrap: 5
+
+navbar:
+  structure:
+    left: [home, calculator, calculator2x2, basics, variance, samplesize, reference]
+  components:
+    basics:
+      text: "Basics"
+      href: articles/intro-ppi.html
+    variance:
+      text: "Variance & Metrics"
+      href: articles/deep-dive-math.html
+    samplesize:
+      text: "Sample Size"
+      href: articles/ppi-sample-size.html
+    calculator:
+      text: "Calculator"
+      href: articles/sample-size-calculator.html
+    calculator2x2:
+      text: "2x2 Calculator"
+      href: articles/calculator-2x2.html
+reference:
+  - title: "Core power & sample size"
+    contents:
+      - power_ppi_mean
+      - power_ppi_ttest
+      - power_ppi_paired
+      - power_ppi_ttest_binary
+      - power_ppi_paired_binary
+      - power_ppi_regression
+      - power_ppi_2x2
+  - title: "Simulation helpers"
+    contents:
+      - simulate_ppi_mean
+      - simulate_ppi_ttest_binary
+      - simulate_crossfit_data
+  - title: "Curves & plotting"
+    contents:
+      - power_curve_mean
+      - power_curve_mean_dgp
+      - type1_error_curve_mean
+      - type1_error_curve_mean_dgp
+      - plot_type1_error_curve
+  - title: "Utilities"
+    contents:
+      - binary_moments_from_sens_spec
+      - resolve_ppi_variances
+      - compute_ppi_blocks
+      - theme_pppower
+      - save_pppower_figure
+      - ppi_mean_test
+      - ppi_paired_test
+      - ppi_ttest
+  - title: "Deprecated"
+    desc: "Soft-deprecated shims; use the renamed functions above."
+    contents:
+      - power_ppi_pp_mean
+      - power_ppi_pp_ttest
+      - power_ppi_pp_paired
+      - power_ppi_pp_ttest_binary
+      - power_ppi_pp_paired_binary
+      - n_required_ppi_pp
+      - n_required_ppi_pp_paired
+      - simulate_power
+      - simulate_power_ppi_mean
+      - simulate_power_ppiplus_mean
+      - simulate_power_ppi_pp_ttest_binary

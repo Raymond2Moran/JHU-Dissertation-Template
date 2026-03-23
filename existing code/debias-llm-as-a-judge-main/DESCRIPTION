@@ -1,0 +1,35 @@
+Package: debiasLLMReporting
+Type: Package
+Title: Debiased Inference for LLM-as-a-Judge Evaluations
+Version: 0.0.1
+Authors@R: c(
+    person(given = "Yiqun", family = "Chen", email = "yiqun.t.chen@gmail.com",
+           role = c("aut", "cre")),
+    person(given = "Moran", family = "Guo",
+           role = "aut"))
+Description: Methods to correct for measurement error when using LLM judges to
+    evaluate model outputs. Implements PPI, PPI++, Rogan-Gladen, EIF, and MLE
+    estimators for debiased prevalence estimation with confidence intervals.
+License: MIT + file LICENSE
+URL: https://yiqunchen.github.io/debias-llm-as-a-judge
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+Imports:
+    stats,
+    ggplot2,
+    grid,
+    numDeriv,
+    rlang,
+    scales
+Suggests:
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown,
+    jsonlite,
+    dplyr,
+    mgcv,
+    randomForest,
+    rpart
+Config/testthat/edition: 3
+VignetteBuilder: knitr
+RoxygenNote: 7.3.2

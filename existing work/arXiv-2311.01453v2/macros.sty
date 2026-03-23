@@ -1,0 +1,374 @@
+\usepackage{rotating}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{amssymb}
+\usepackage{amsbsy}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{mathtools}
+\usepackage{xcolor}
+\usepackage{bbm}
+\usepackage{xspace}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\usepackage{subcaption}
+\usepackage{xifthen}
+
+\definecolor{darkblue}{rgb}{0,0,.5}
+\def\bluehyperref{%
+  \usepackage[colorlinks=true,allcolors=darkblue]{hyperref}
+}
+
+\def\usebiggeometry{%
+  \usepackage[top=2.54cm,left=2.54cm,right=2.54cm,bottom=2.54cm]{geometry}}
+\def\usemedgeometry{%
+  \usepackage[top=2.54cm,left=3.0cm,right=3.0cm,bottom=2.54cm]{geometry}}
+
+% \usepackage[T4]{fontenc}
+
+%% \usepackage[
+%%     backend=biber,
+%%     style=ieee,
+%%     citestyle=numeric-comp,
+%% %    sortcites,
+%%     sorting=none,
+%%     giveninits=true,
+%%     natbib,
+%%     hyperref,
+%%     maxbibnames=99,
+%%     doi=false,isbn=false,url=false,eprint=false
+%% ]{biblatex}
+
+%% \addbibresource{bibliography.bib}
+
+
+\usepackage[normalem]{ulem}
+%% \usepackage{soul}
+
+%%% New version of \caption puts things in smaller type, single-spaced 
+%%% and indents them to set them off more from the text.
+\makeatletter
+\long\def\@makecaption#1#2{
+  \vskip 0.8ex
+  \setbox\@tempboxa\hbox{\small {\bf #1:} #2}
+  \parindent 1.5em  %% How can we use the global value of this???
+  \dimen0=\hsize
+  \advance\dimen0 by -3em
+  \ifdim \wd\@tempboxa >\dimen0
+  \hbox to \hsize{
+    \parindent 0em
+    \hfil 
+    \parbox{\dimen0}{\def\baselinestretch{0.96}\small
+      {\bf #1.} #2
+      %%\unhbox\@tempboxa
+    } 
+    \hfil}
+  \else \hbox to \hsize{\hfil \box\@tempboxa \hfil}
+  \fi
+}
+\makeatother
+
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma} 
+\newtheorem{prop}{Proposition}
+\newtheorem{proposition}[prop]{Proposition}
+\newtheorem{cor}{Corollary} %[section]
+\newtheorem{corollary}[cor]{Corollary} %[section]
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
+
+\numberwithin{definition}{section}
+
+\newtheorem{assumption}{Assumption}
+
+\newcounter{example}
+\numberwithin{example}{section}
+
+\makeatletter  % Make example environment indented as a list, about 1em
+\newenvironment{example}[1][]{
+  \refstepcounter{example}
+  \ifthenelse{\isempty{#1}}{%
+    \list{}{%
+      \itemindent\parindent
+      \leftmargin1em  % Indentation amount on each side
+      \rightmargin\leftmargin
+      \parsep\z@\@plus\p@
+    }%
+  \item\relax % No number on the item
+    \noindent \textbf{Example \theexample:}\hspace*{.05em}
+    % There is no text to display in the example
+  }{%
+    \list{}{%
+      \itemindent\parindent
+      \leftmargin1em
+      \rightmargin\leftmargin
+      \parsep\z@\@plus\p@
+    }%
+  \item\relax % No number on the item
+    \noindent \textbf{Example \theexample} ({#1})\textbf{:}\hspace*{.05em}
+    % There is no text to display in the example
+  }
+}{%
+  $\Diamond$ \endlist
+}
+\makeatother
+
+\renewcommand{\theassumption}{A\arabic{assumption}}
+
+%change theorem numbering in appendix
+\usepackage{chngcntr}
+\usepackage{apptools}
+\AtAppendix{\counterwithin{theorem}{section}}
+\AtAppendix{\counterwithin{prop}{section}}
+\AtAppendix{\counterwithin{cor}{section}}
+\AtAppendix{\counterwithin{lemma}{section}}
+
+\usepackage{mathtools}
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+
+%commands for algorithmx
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+
+\usepackage{multicol}
+%% \mdfdefinestyle{MyFrame}{%
+%%     linecolor=black,
+%%     outerlinewidth=0.5pt,
+%%     %roundcorner=20pt,
+%%     innertopmargin=4pt,
+%%     innerbottommargin=4pt,
+%%     innerrightmargin=2pt,
+%%     innerleftmargin=2pt,
+%%         leftmargin = 0pt,
+%%         rightmargin = 0pt
+%%     %backgroundcolor=gray!50!white}
+%% }
+
+%stephen's macros
+\def\Ical{\mathcal{I}}
+\def\I{\mathbb{I}}
+\def\betadist{\textsc{Beta}}
+\newcommand{\coverage}[1]{\textsc{Coverage}(#1)}
+\def\R{\mathbb{R}}
+\def\E{\mathbb{E}}
+\def\bQ{\mathbb{Q}}
+\def\bP{\mathbb{P}}
+\def\N{\mathbb{N}}
+\def\Tau{\mathcal{T}}
+\def\errbar{\overline{\mathrm{err}}}
+\newcommand{\Y}{\mathcal{Y}}
+\newcommand{\X}{\mathcal{X}}
+\newcommand{\K}{\mathcal{K}}
+\newcommand{\Khat}{\widehat{\mathcal{K}}}
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\C}{\mathcal{C}}
+\newcommand{\T}{\mathcal{T}}
+\newcommand{\G}{\mathcal{G}}
+\newcommand{\sgn}[1]{\mathrm{sign}\left\{ #1 \right\}}
+\newcommand{\Rej}{\mathcal{R}}
+\newcommand{\Tlam}{\mathcal{T}_{\lambda}}
+\newcommand{\Hlam}{\mathcal{H}_{\lambda}}
+\renewcommand{\S}{\mathcal{S}}
+\newcommand{\bI}{\mathbb{I}}
+\newcommand{\ccal}{\textnormal{ccal}}
+\newcommand{\lhat}{\hat{\lambda}}
+\newcommand{\Lhat}{\widehat{\Lambda}}
+\newcommand{\Rhat}{\widehat{R}}
+\newcommand{\ind}[1]{\mathbbm{1}\left\{#1\right\}}
+\newcommand{\aacomment}[1]{\textcolor{red}{[#1]}}
+\renewcommand{\triangleq}{\stackrel{\triangle}{=}}
+\newcommand{\Ho}{\mathcal{H}_0}
+\newcommand{\fdr}{\mathrm{FDR}}
+\newcommand{\pfdr}{\mathrm{pFDR}}
+\newcommand{\fdp}{\mathrm{FDP}}
+\newcommand{\cR}{\mathcal{R}}
+\newcommand{\iou}{\mathrm{IOU}}
+\renewcommand{\P}{\mathbb{P}}
+\newcommand{\A}{\mathcal{A}}
+\newcommand{\Q}{\mathbb{Q}}
+
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\Varhat}{\widehat{\mathrm{Var}}}
+\newcommand{\Pmu}{Q}
+\newcommand{\lb}{\left(}
+\newcommand{\rb}{\right)}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\td}[1]{\tilde{#1}}
+\newcommand{\eps}{\epsilon}
+\newcommand{\cZ}{\mathcal{Z}}
+\newcommand{\kk}{{(k)}}
+\newcommand{\kone}{{(1)}}
+\newcommand{\ktwo}{{(2)}}
+\newcommand{\ma}{{\textnormal{MA}}}
+\newcommand{\muhat}{\hat\mu}
+
+\newcommand{\tX}{\widetilde{X}}
+\newcommand{\tY}{\widetilde{Y}}
+\newcommand{\ty}{\widetilde{y}}
+\newcommand{\tx}{\widetilde{x}}
+\newcommand{\tf}{\tilde{f}}
+\newcommand{\Xa}{X}
+\newcommand{\Xt}{\widetilde X}
+\newcommand{\Ya}{Y}
+\newcommand{\Yt}{\tidetilde Y}
+
+\newcommand{\bigI}{\mbox{\normalfont\Large \: I}}
+\newcommand{\bigzero}{\mbox{\normalfont\Large \: 0 \:}}
+
+\newcommand\qmark[1]{\accentset{?}{#1}}
+\newcommand\whatever[1]{\accentset{\emptyset}{#1}}
+
+\providecommand{\wt}[1]{\widetilde{#1}}
+\providecommand{\indic}[1]{\mathbf{1}\!\left\{#1\right\}}
+
+\newcommand{\thetaoracle}{\tilde{\theta}}
+\newcommand{\thetaclass}{\hat{\theta}^{\mathrm{class}}}
+\newcommand{\thetaf}{\tilde{\theta}^{f}}
+\newcommand{\thetaflimit}{\theta^f}
+\newcommand{\thetaPP}{\hat{\theta}^{\mathrm{PP}}}
+\newcommand{\rec}{\mathbf{\Delta}^f}
+\newcommand{\recw}{\mathbf{\Delta}^{f,w}}
+\newcommand{\rechat}{\hat{\mathbf{\Delta}}^f}
+\newcommand{\Crec}{\mathcal{C}^{\mathrm{rec}}}
+\newcommand{\CPP}{\mathcal{C}^{\mathrm{PP}}}
+
+\newcommand{\LPP}{L^{\mathrm{PP}}}
+
+\newcommand{\jupyter}[1]{\href{#1}{\begingroup
+\setbox0=\hbox{\includegraphics[height=1.5em]{figures/jupyter-logo.pdf}}%
+\parbox{\wd0}{\box0}\endgroup}}
+
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+\def\independenT#1#2{\mathrel{\rlap{$#1#2$}\mkern2mu{#1#2}}}
+\newcommand\independent{\protect\mathpalette{\protect\independenT}{\perp}}
+\def\eqd{\,{\buildrel d \over =}\,} 
+
+
+\makeatletter
+\def\blfootnote{\xdef\@thefnmark{}\@footnotetext}
+\makeatother
+
+%%% Some commands for this paper %%%
+
+\newcommand{\Px}{\P_X}  % Marginal distribution on X.
+\newcommand{\loss}{\ell}
+
+\newcommand{\Sigmahat}{\widehat{\Sigma}}
+\newcommand{\VhatDelta}{\widehat{V}_\Delta}
+\newcommand{\Vhatf}{\widehat{V}_f}
+
+\newcommand{\ratio}{r}  % The ratio of n / N
+\newcommand{\Tr}{\mathrm{Tr}}
+\newcommand{\GG}{\mathbb{G}}
+
+
+% Symbol formats
+\newcommand{\mc}[1]{\mathcal{#1}}
+\newcommand{\mbf}[1]{\mathbf{#1}}
+\newcommand{\mrm}[1]{\mathrm{#1}}
+\newcommand{\mbi}[1]{\boldsymbol{#1}} % Bold and italic (math bold italic)
+\newcommand{\what}[1]{\widehat{#1}}
+
+\newcommand{\half}{\frac{1}{2}}
+\newcommand{\zeros}{\mathbf{0}}
+\newcommand{\ones}{\mathbf{1}}
+\newcommand{\<}{\langle}
+\renewcommand{\>}{\rangle}
+
+\newcommand{\opt}{^\star}
+\newcommand{\subopt}{_\star}
+\newcommand{\defeq}{:=}
+
+% Norms for convenience, along with sizes
+\newcommand{\norm}[1]{\left\|{#1}\right\|} % A norm with 1 argument
+\newcommand{\lone}[1]{\norm{#1}_1} % l1 norm
+\newcommand{\ltwo}[1]{\norm{#1}_2} % l2 norm
+\newcommand{\linf}[1]{\norm{#1}_\infty} % l-infinity norm
+\newcommand{\lzero}[1]{\norm{#1}_0} % l0 norm
+\newcommand{\dnorm}[1]{\norm{#1}_*} % Dual norm
+\newcommand{\lfro}[1]{\left\|{#1}\right\|_{\rm Fr}} % Frobenius norm
+\newcommand{\matrixnorm}[1]{\left|\!\left|\!\left|{#1}
+  \right|\!\right|\!\right|} % Matrix norm with three bars
+\newcommand{\normbigg}[1]{\bigg\|{#1}\bigg\|} % A norm with 1 argument and bigg
+                                              % brackets.
+\newcommand{\normbig}[1]{\big\|{#1}\big\|} % A norm with 1 argument and big
+                                           % brackets.
+\newcommand{\normBig}[1]{\Big\|{#1}\Big\|} % A norm with 1 argument and Big
+                                           % brackets
+\newcommand{\dnormbigg}[1]{\bigg\|{#1}\bigg\|_*} % A norm with 1 argument and bigg
+                                              % brackets.
+\newcommand{\lonebigg}[1]{\normbigg{#1}_1} % l1 norm
+\newcommand{\ltwobigg}[1]{\normbigg{#1}_2} % l2 norm
+\newcommand{\ltwobig}[1]{\normbig{#1}_2} % l2 norm
+\newcommand{\ltwoBig}[1]{\normBig{#1}_2} % l2 norm
+\newcommand{\linfbigg}[1]{\normbigg{#1}_\infty} % l-infinity norm
+\newcommand{\norms}[1]{\|{#1}\|} % A norm with 1 argument and normal (small)
+                                 % brackets.
+\newcommand{\matrixnorms}[1]{|\!|\!|{#1}|\!|\!|} % Small matrix norm
+\newcommand{\matrixnormbigg}[1]{\bigg|\!\bigg|\!\bigg|{#1}\bigg|\!\bigg|\!\bigg|} % Small matrix norm
+\newcommand{\lones}[1]{\norms{#1}_1} % l1 norm with small brackets
+\newcommand{\ltwos}[1]{\norms{#1}_2} % l2 norm with small brackets
+\newcommand{\linfs}[1]{\norms{#1}_\infty} % l-infinity norm with small brackets
+\newcommand{\lzeros}[1]{\norms{#1}_0} % l0 norm with small brackets
+
+\newcommand{\opnorm}[1]{\matrixnorm{#1}_{\rm op}} % Operator norm with three bars
+\newcommand{\opnormbigg}[1]{\matrixnormbigg{#1}_{\rm op}} % Operator norm with three bars
+\newcommand{\opnorms}[1]{\matrixnorms{#1}_{\rm op}} % Small operator norm with three bars
+
+%%%% Probability symbols and associated distances %%%%
+\newcommand{\var}{{\rm Var}} % Variance
+\newcommand{\cov}{\textup{Cov}} % Covariance
+\newcommand{\simiid}{\stackrel{\rm iid}{\sim}}
+\newcommand{\openleft}[2]{\left({#1},{#2}\right]} % Interval open on left
+\newcommand{\openright}[2]{\left[{#1},{#2}\right)} % Interval open on right
+\newcommand{\tvnorm}[1]{\norm{#1}_{\rm TV}}
+\newcommand{\tvnorms}[1]{\norms{#1}_{\rm TV}}
+\newcommand{\fdiv}[2]{D_{f}\left({#1} |\!| {#2}\right)}
+\newcommand{\fdivs}[2]{D_{f}({#1} |\!| {#2})}
+\newcommand{\dkl}[2]{D_{\rm kl}\left({#1} |\!| {#2}\right)}
+\newcommand{\dkls}[2]{D_{\rm kl}({#1} |\!| {#2})}  % Small KL-divergence
+\newcommand{\dchi}[2]{D_{\chi^2}\left({#1} |\!| {#2}\right)}
+\newcommand{\dhel}{d_{\rm hel}}
+
+% Convergence of random variables
+\newcommand{\cd}{\mathop{\stackrel{d}{\rightarrow}}} % Convergences in
+                                                     % distribution
+\newcommand{\cas}{\mathop{\stackrel{a.s.}{\rightarrow}}} % Convergence a.s.
+\newcommand{\cp}{\stackrel{p}{\rightarrow}} % Convergence in probability
+\newcommand{\cltwo}{\stackrel{L_2}{\rightarrow}} % Convergence in ltwo
+\newcommand{\clp}[1]{\stackrel{L_{#1}}{\rightarrow}} % Convergence in Lp
+
+\newcommand{\normal}{\mathsf{N}}  % Normal distribution
+\newcommand{\poisson}{\mathsf{Poisson}}  % Normal distribution
+\newcommand{\expdist}{\mathsf{Exp}}  % Exponential distribution
+\newcommand{\uniform}{\mathsf{Uni}}  % Uniform distribution
+\newcommand{\gammadist}{\mathsf{Gamma}}  % Gamma distribution
+\newcommand{\laplace}{\mathsf{Lap}}  % Laplace distribution
+
+
+%commands for editingpromoters
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+
+\definecolor{innerboxcolor}{rgb}{.9,.95,1}
+\definecolor{outerlinecolor}{rgb}{.6,0,.2}
+\newcommand{\jcdcomment}[1]{\fcolorbox{outerlinecolor}{innerboxcolor}{
+    \begin{minipage}{.9\textwidth}
+      \red{\bf JCD Comment:} {#1}
+  \end{minipage}} \\
+}
+
+\definecolor{azinnerboxcolor}{HTML}{FCDE9C}
+\definecolor{azouterlinecolor}{HTML}{FFA552}
+\newcommand{\azcomment}[1]{\fcolorbox{azouterlinecolor}{azinnerboxcolor}{
+    \begin{minipage}{.9\textwidth}
+        \textcolor[HTML]{381D2A}{\bf AZ Comment:} {#1}
+  \end{minipage}} \\
+}
+
+\newcommand{\ana}[1]{{\color[rgb]{0.76,0.23,0.13}[AA: #1]}}
+\newcommand{\tijana}[1]{{\color{blue}[Tijana: #1]}}

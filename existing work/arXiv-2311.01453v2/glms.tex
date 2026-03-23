@@ -1,0 +1,254 @@
+% -*- Mode: latex -*- %
+
+\section{\ppipptitle~for generalized linear models}
+\label{sec:ppi++_glms}
+
+Generalized linear models (GLMs) make the benefits and approach of \ppipp
+clearest.  In the basic GLM case, the loss function takes the form
+\begin{equation}
+    \label{eq:glm-loss}
+    \loss_\theta(x,y) = -\log p_\theta(y \mid x)
+    = -y\theta^\top x + \psi(x^\top\theta),
+\end{equation}
+where $p_\theta(y \mid x) = \exp(y x^\top \theta - \psi(x^\top \theta))$ is
+the probability density of $y$ given $x$ and the log-partition function
+$\psi$ is convex and infinitely differentiable~\cite{Brown86}. 
+The setting~\eqref{eq:glm-loss} captures the familiar linear and logistic regression, where in the former case, we have $y \in \R$ and set $\psi(s) = \half s^2$, and in the latter, we have $y \in \{0, 1\}$ and $\psi(s) = \log (1+ e^{s})$.
+%Section~\ref{sec:general-expfam} gives the easy extension to more
+%general exponential family regression.
+
+For any loss of the form~\eqref{eq:glm-loss}, the key to computational
+efficiency is that $\LPP_{\lambda}(\theta)$ is convex for $\lambda \in [0, 1]$.
+Indeed,  $\lambda \wt{L}_N^f(\theta)$ is convex in $\theta$,
+while
+\begin{equation*}
+  L_n(\theta) - \lambda L_n^f(\theta)
+  = - \frac{1}{n}
+  \sum_{i=1}^n (Y_i - \lambda f(X_i))\theta^\top X_i
+  +  (1-\lambda) \frac{1}{n} \sum_{i=1}^n\psi(X_i^\top \theta)
+\end{equation*}
+consists of linear and convex components. 
+Thus, $\LPP_{\lambda}(\theta)$ is a sum of convex terms, and one can compute $\thetaPP_{\lambda}$ efficiently~\cite{BoydVa04}.
+In this setting, the following corollary of our forthcoming
+Theorem~\ref{theorem:normality} shows the asymptotic normality of the prediction-powered point estimate.
+
+\begin{corollary}
+  \label{cor:normality_glms}
+  Assume that $\hat\lambda = \lambda + o_P(1)$ for some limit $\lambda$,
+  $\frac{n}{N} \rightarrow r$ and that
+  $H_{\theta\opt}\defeq\E[\psi''(X^\top\theta\opt) X X^\top]$ is
+  nonsingular. Define the covariance matrices
+  \begin{align*}
+    V_{f,\theta\opt}^\lambda &\defeq \lambda^2 \cov\left( (\psi'(X^\top\theta\opt)-f(X)) X \right)\text{ and }\\
+    V_{\Delta,\theta\opt}^\lambda  &\defeq \cov\left( (1-\lambda)\psi'(X^\top\theta\opt)X
+    + ( \lambda f(X) - Y) X\right).
+  \end{align*}
+  Then for $\Sigma^{\lambda} \defeq H_{\theta\opt}^{-1} \left(r V_{f,\theta\opt}^\lambda  + V_{\Delta,\theta\opt}^\lambda \right) H_{\theta\opt}^{-1}$, we have the convergence
+  \begin{equation*}
+    \sqrt{n}(\thetaPP_{\hat\lambda} - \theta\opt) \cd \normal\left(0,
+    \Sigma^{\lambda} \right).
+  \end{equation*}
+\end{corollary}
+\noindent Corollary \ref{cor:normality_glms} allows the construction of confidence intervals around $\thetaPP_{\hat\lambda}$; see Algorithm \ref{alg:glms}.
+
+We develop results on the optimal choice of $\hat \lambda$ in Section
+\ref{sec:setting-lambda}. For now, a reasonable heuristic is to simply think
+of $\hat\lambda = 1$ when the predictive model $f$ is accurate and
+$\hat\lambda = 0$ when it is not.  When the model $f$ is good and
+$\hat\lambda = 1$, we expect $V_{\Delta,\theta\opt}^\lambda = \cov((f(X) -
+Y)X) \approx 0$, so that the asymptotic covariance $\Sigma^{\lambda}$ is
+proportional to $r = \frac{n}{N}$; a large unlabeled data size $N$ makes
+this covariance tiny.
+%
+Otherwise, when the model $f$ is bad and $\hat\lambda = 0$, the covariance
+reduces to the classical~\cite{VanDerVaart98, Efron22} sandwich-type GLM
+covariance
+\begin{equation*}
+  H_{\theta\opt}^{-1} \cov(\nabla \loss_{\theta\opt}(X, Y)) H_{\theta\opt}^{-1}.
+\end{equation*}
+
+Building on Corollary \ref{cor:normality_glms}, we construct confidence
+intervals for $\theta\opt$ using a plug-in estimator for
+$\Sigma^{\lambda}$. For concreteness, we provide the general
+confidence interval construction for GLMs in Algorithm~\ref{alg:glms};
+instatiations for particular choices of the loss~\eqref{eq:glm-loss}
+follow. In the algorithm, for any map $g$, we use $\widehat\Cov_n(g(X_i,Y_i))$
+to denote the empirical covariance of $g(X_i,Y_i)$ computed on the labeled
+data, and $\widehat\Cov_{N+n}(g(X_i))$ to denote the empirical covariance of
+$g(X_i)$ computed on the labeled and unlabeled data combined.
+The guarantees of Algorithm \ref{alg:glms} follow from
+Corollary~\ref{cor:normality_glms}.
+
+\begin{algorithm}[t]
+\setstretch{1.3}
+\caption{\ppipp: Prediction-powered inference for GLMs}
+\label{alg:glms}
+\begin{algorithmic}[1]
+  \Require labeled data $\{(X_i, Y_i)\}_{i=1}^n$, unlabeled data $\{\Xt_i\}_{i=1}^N$, predictive model $f$, error level $\alpha\in~(0,1)$, coefficient index
+  $j \in [d]$ of interest
+  \State Select tuning parameter $\hat\lambda$
+  \Comment{set tuning parameter}
+
+  \State $\thetaPP_{\hat\lambda} = \argmin_\theta \LPP_{\hat\lambda}(\theta)$ \Comment{prediction-powered point estimate}
+    \State $\widehat H = \frac{1}{N+n} (\sum_{i=1}^n \psi''(X_i^\top \thetaPP_{\hat\lambda}) X_iX_i^\top + \sum_{i=1}^N \psi''(\Xt_i^\top \thetaPP_{\hat\lambda}) \Xt_i \Xt_i^\top)$
+\State $\widehat V_f = \hat\lambda^2 \cdot \widehat\Cov_{N+n} (  (\psi'(X_i^\top \thetaPP_{\hat\lambda})-f(X_i)) X_i)$ 
+\State $\widehat V_\Delta = \widehat\Cov_{n} ( (1-\hat \lambda)\psi'(X_i^\top\thetaPP_{\hat\lambda}) + (\hat\lambda f(X_i) -Y_i)X_i)$ 
+\State $\widehat\Sigma = \widehat H^{-1}( \frac{n}{N} \widehat V_f + \widehat V_\Delta) \widehat H^{-1}$ \Comment{covariance estimate}
+\Ensure 
+prediction-powered confidence interval $\CPP_\alpha = \left(\thetaPP_{\hat\lambda, j} \pm z_{1-\alpha/2} \sqrt{\frac{\widehat\Sigma_{jj}}{n}} \right)$
+for coordinate $j$
+\end{algorithmic}
+\end{algorithm}
+
+
+
+\begin{corollary}
+  Let the conditions of Corollary~\ref{cor:normality_glms} hold.  Then, for
+  each coordinate $j \in [d]$, the prediction-powered confidence interval in
+  Algorithm \ref{alg:glms} has valid coverage:
+  \[\lim_{n} \P\left(\theta\opt_{j} \in \CPP_\alpha \right) = 1-\alpha.\]
+\end{corollary}
+
+Algorithm~\ref{alg:glms}'s efficient implementation separates
+it from the original PPI methodology~\cite{AngelopoulosBaFaJoZr23}, which in general
+requires performing a hypothesis test for each possible $\theta$. For
+example, their algorithm for logistic regression discretizes the parameter space
+and performs a hypothesis test for \emph{each} grid point, which is
+essentially non-implementable in more than two
+or three dimensions and prone to numerical inaccuracies.
+
+\begin{example}[Linear regression]
+  To obtain confidence intervals on the $j$th coefficient of a
+  $d$-dimensional linear regression, run Algorithm~\ref{alg:general_ppi}
+  with $\psi(s) = \frac{1}{2}s^2$, so $\psi'(s) = s$ and
+  $\psi''(s) \equiv 1$.
+  The Hessian  simplifies to $\widehat H = \frac{1}{N+n} (
+  \sum_{i=1}^n X_i X_i^\top + \sum_{i=1}^N \tX_i\tX_i^\top )$.
+\end{example}
+
+\begin{example}[Logistic regression]
+To obtain confidence intervals on the $j$th coefficient of a $d$-dimensional
+logistic regression, run Algorithm~\ref{alg:general_ppi} with $\psi(s) =
+\log(1 + e^{s})$.  Here, one substitutes $\psi'(s) =
+\frac{e^s}{1+e^s}$ and $\psi''(s) = \psi'(s)(1-\psi'(s))
+= \frac{e^s}{(1 + e^s)^2}$.
+\end{example}
+
+\begin{example}[Poisson regression]
+  A variable $Y \sim \poisson(\lambda)$ has
+  probability mass $p(y) = \frac{\lambda^y e^{-\lambda}}{y!}$;
+  the choice $\lambda = e^{x^\top \theta}$ gives GLM $p_\theta(y \mid x)
+  = \exp(y x^\top \theta - e^{-x^\top \theta} - \log(y!))$. Thus
+  one runs Algorithm~\ref{alg:general_ppi} with
+  $\psi(s) = e^{-s}$, $\psi'(s) = - e^{-s}$, and
+  $\psi''(s) = e^{-s}$.
+\end{example}
+
+%The computational efficiency of Algorithm \ref{alg:glms} comes at no
+%cost, and with tuning of $\lambda$ can yield benefits in terms of
+%statistical power. In particular, in Section \ref{sec:equivalence} we will
+%prove that the confidence sets obtained via Algorithm \ref{alg:glms} with
+%the particular choice $\lambda = 1$ are asymptotically equivalent to the
+%confidence sets obtained via \citeauthor{AngelopoulosBaFaJoZr23}'s
+%approach~\citep{AngelopoulosBaFaJoZr23}. Experimental evidence to come in
+%Section \ref{sec:experiments} will highlight the benefits of automatic
+%reweighting strategies we develop in the sequel.
+
+%% \subsection{Mean estimation}
+%% \label{sec:mean-estimation}
+
+%% The treatment simplifies considerably for mean estimation problems, where we
+%% wish to estimate a parameter $\theta\opt = \E[Y] = \argmin_\theta \E[(Y -
+%%   \theta)^2]$; as it serves as a clean example, we work through the details
+%% here. Evidently, this corresponds to the GLM loss
+%% \begin{equation*}
+%%   \loss_\theta(y) = -y \theta + \half \theta^2,
+%% \end{equation*}
+%% so $\psi(s) = \half s^2$ (so we essentially identify covariates with the
+%% constant $1$). In the PPI framework for mean estimation, we assume
+%% regressors $x$ and a predictor $f : \mc{X} \to \R$, where
+%% by defining $f_i = f(X_i)$ and $\wt{f}_i = f(\wt{X}_i)$, the PPI
+%% estimator minimizes
+%% \begin{align*}
+%%   \LPP_\lambda(\theta)
+%%   & = \frac{1}{n} \sum_{i = 1}^n \loss_\theta(Y_i)
+%%   + \lambda \left(\frac{1}{N} \sum_{i = 1}^N \loss_\theta(\wt{f}_i)
+%%   - \frac{1}{n} \sum_{i = 1}^n \loss_\theta(f_i)\right)
+%%   = \half \theta^2 +
+%%   \left(\frac{1}{n} 
+%%   \sum_{i = 1}^n (\lambda f_i - Y_i) 
+%%   - \frac{1}{N} \sum_{i = 1}^N \lambda \wt{f}_i\right) \theta.
+%% \end{align*}
+%% This is always convex in $\theta$ and has minimizer
+%% \begin{equation*}
+%%   \thetaPP_\lambda = \frac{1}{n} \sum_{i = 1}^n Y_i
+%%   + \lambda \left(\frac{1}{N} \sum_{i = 1}^N \wt{f}_i - \frac{1}{n}
+%%   \sum_{i = 1}^n f_i\right).
+%% \end{equation*}
+%% Specializing Algorithm~\ref{alg:glms} to this case yields
+%% Algorithm~\ref{alg:means}.
+%% \begin{algorithm}[ht]
+%%   \setstretch{1.3}
+%%   \caption{PPI++: Prediction-powered mean inference}
+%%   \label{alg:means}
+%%   \begin{algorithmic}[1]
+%%     \Require data sets $\{(X_i, Y_i)\}_{i=1}^n$
+%%     and $\{\Xt_i\}_{i=1}^N$, predictor $f$,
+%%     level $\alpha\in~(0,1)$, tuning parameter $\lambda$
+%%     \State $\thetaPP_{\lambda} = \E_n[Y] + \lambda (\E_N[f(\wt{X})]
+%%     - \E_n[f(X)])$ \Comment{prediction-powered point estimate}
+%%     \State $\widehat V_f = \lambda^2 \cdot
+%%     \what{\Cov}_{N+n}(\thetaPP_{\lambda} - f(X_i)) $
+%%     \State $\widehat V_\Delta =
+%%     \what{\Cov}_{n} ( (1 - \lambda) \thetaPP_\lambda
+%%     + (\lambda f(X_i) -Y_i))$ 
+%%     \State $\what{\sigma}^2 = \frac{n}{N} \widehat V_f + \widehat V_\Delta$
+%%     \Comment{variance estimate}
+%%     \Ensure 
+%%     prediction-powered confidence interval $\CPP_\alpha = \left(\thetaPP_\lambda
+%%     \pm z_{1-\alpha/2} \what{\sigma} / \sqrt{n} \right)$
+%% \end{algorithmic}
+%% \end{algorithm}
+
+
+\subsection{General exponential-family regression}
+\label{sec:general-expfam}
+
+The results of Section \ref{sec:ppi++_glms} immediately extend to
+exponential-family regression models with a general vector-valued sufficient
+statistic $T(x,y)$.  In this case, the conditional likelihood becomes
+\begin{equation*}
+  % \label{eq:exponential-family-likelihood}
+  p_{\theta}(y \mid x) = \exp\left( T(x,y)^\top \theta - \psi(\theta, x) \right),
+\end{equation*}
+where $\psi(\theta,x) = \log \int \exp(T(x,y)^\top \theta) d\nu(y \mid x)$
+for some carrier measure $\nu$ on $Y$.
+The log-partition $\psi(\theta, x)$ is $\mc{C}^\infty$
+and convex in $\theta$~\cite{Brown86}, and it 
+induces the convex loss
+\begin{equation}
+  \label{eq:exponential-family-loss}
+  \loss_\theta(x,y) = -T(x,y)^\top \theta + \psi(\theta,x).
+\end{equation}
+Taking $T(x,y)=y x$ recovers the GLM losses~\eqref{eq:glm-loss}.
+
+\begin{example}[Multiclass logistic regression]
+  In $k$-class multiclass logistic regression with covariates $x \in \R^d$,
+  the parameter vector $\theta$ is a $kd$-dimensional vector whose $y$th
+  block $\theta_y \in \R^d$ of components represent parameters for class $y
+  \in [k]$. The sufficient statistic is $T(x,y) = E_y x$, where $E_y$ is the
+  matrix $(\mathbf{0}_{d\times (y-1)d}, \mathbf{I}_{d \times d},
+  \mathbf{0}_{d\times (K-y)d})^\top$, and
+  \begin{equation*}
+    \loss_\theta(x, y)
+    = -x^\top \theta_y + \log\bigg(\sum_{y' = 1}^k \exp(x^\top \theta_{y'})\bigg).
+  \end{equation*}
+  Thus $\psi(\theta, x) = \log(\sum_{y' = 1}^k e^{x^\top \theta_{y'}})$ is the
+  log-partition function.
+\end{example}
+
+
+The linear plus convex representation of the exponential-family
+loss~\eqref{eq:exponential-family-loss} means
+it too admits the same computational efficiencies
+as the basic GLM approach.

@@ -1,0 +1,125 @@
+\section{Equivalence to confidence sets from testing}
+\label{sec:equivalence}
+
+As we discuss in the introduction, the original PPI
+algorithm~\cite{AngelopoulosBaFaJoZr23} constructs confidence sets by testing the null that $\nabla L(\theta) = 0$ individually for each $\theta \in \R^d$.
+%
+A few special cases, including means, one-dimensional quantiles, and linear
+regression coefficients, admit efficient implementations; however, the
+general algorithm is intractable. Algorithm~\ref{alg:general_ppi}, on the
+other hand, is computationally straightforward.
+%
+This computational efficiency comes at no cost in terms of statistical
+power: we show that the confidence sets from Theorem~\ref{theorem:normality}
+with $\lambda = 1$ are asymptotically equivalent to a careful choice of
+confidence sets~\eqref{eq:CPP-original} obtained by testing $\nabla
+L(\theta) = 0$.
+
+To conduct the comparison, we study the asymptotic distribution of the test
+statistics the two approaches rely on. Because the original
+prediction-powered inference only considers the unweighted variant ($\lambda
+= 1$), we focus on the estimate~\eqref{eq:ppi} and not~\eqref{eq:ppi-lambda}.
+Theorem~\ref{theorem:normality} suggests that
+given any estimate $\Sigmahat \cp \Sigma$, we consider the
+test statistic
+\begin{equation*}
+  T_n(\theta) \defeq \sqrt{n} \Sigmahat^{-1/2} (\thetaPP - \theta).
+\end{equation*}
+For the original approach~\eqref{eq:CPP-original}, letting
+$\VhatDelta(\theta) := \widehat\Var_n(\nabla \loss_{\theta} - \nabla
+\loss_{\theta}^f)$ and $\Vhatf(\theta) := \widehat\Var_{N} (\nabla
+\loss_{\theta}^f)$, the relevant test statistic is
+\begin{equation*}
+  U_n(\theta) \defeq \sqrt{n} \left(\VhatDelta(\theta) + \frac n N \Vhatf (\theta) \right)^{-1/2}
+  \nabla \LPP(\theta).
+\end{equation*}
+Both approaches leverage pivotal asymptotic normality; in particular,
+\begin{equation*}
+  T_n(\theta\opt) \cd \normal(0, I_d)
+  ~~ \mbox{and} ~~
+  U_n(\theta\opt) \cd \normal(0, I_d).
+\end{equation*}
+Therefore, each implies an asymptotically exact $\chi^2$-based
+$(1 - \alpha)$-confidence set
+\begin{equation*}
+\C_\alpha^{\mathrm{PP},T} \defeq \left\{\theta : \ltwo{T_n(\theta)}^2
+  \le \chi^2_{d,1-\alpha}\right\}
+  ~~ \mbox{and} ~~
+\C_\alpha^{\mathrm{PP},U} \defeq \left\{\theta : \ltwo{U_n(\theta)}^2 \le \chi^2_{d,1-\alpha}
+  \right\},
+\end{equation*}
+which satisfy $\lim_n \P(\theta\opt \in \C_\alpha^{\textup{PP},T}) = 1 -
+\alpha$ and $\lim_n \P(\theta\opt \in \C_\alpha^{\textup{PP},U}) = 1 -
+\alpha$. We remark in passing that $\C_\alpha^{\textup{PP},U}$ has
+asymptotically correct level $\alpha$, while the original PPI
+approach~\cite[Thm.~B.1]{AngelopoulosBaFaJoZr23} applies a union bound over
+the $d$ coordinates and is thus conservative, making $\C_\alpha^{\textup{PP},U}$
+tighter than the original PPI confidence set and the coming
+equivalence stronger.
+
+Theorem \ref{theorem:confidence-set-equivalence} shows the asymptotic
+equivalence of $\C_\alpha^{\textup{PP},T}$ and
+$\C_\alpha^{\textup{PP},U}$. For this, we require an additional condition
+beyond the losses $\ell_\theta$ being smooth enough
+(Definition~\ref{definition:smooth-enough}), which we term \emph{stochastic
+smoothness}. To avoid distracting technical definitions, we state it in
+Assumption~\ref{assumption:donsker} in
+Appendix~\ref{sec:proof-confidence-set-equivalence}, which includes the
+proof of Theorem~\ref{theorem:confidence-set-equivalence}. The condition
+holds if, for example, $\nabla \ell_{\theta}$ is locally Lipschitz in a
+neighborhood of $\theta\opt$, but can also hold for non-differentiable
+losses.
+
+%\begin{theorem}
+%  \label{theorem:confidence-set-equivalence}
+%  Let Assumption~\ref{ass:donsker} hold and
+%  assume that $\Theta = \R^d$, so that $\nabla L(\theta\opt) = 0$. Then
+%  $C_{0,n}$ and $C_{1,n}$ are asymptotically equivalent in that
+%  for any $c < \infty$, if $Z \sim \normal(0, I)$ then
+%  \begin{equation*}
+%    \limsup_n
+%    \sup_{\norm{h} \le c}
+%    \left|
+%    \P(\theta\opt + h/\sqrt{n} \in C_{a,n})
+%    - \P\big(\ltwobig{\Sigma^{-1/2} h + Z}^2
+%    \le \chi^2_{d,1-\alpha} \big) \right|
+%    = 0
+%  \end{equation*}
+%  for $a = 0, 1$.
+%\end{theorem}
+
+\begin{theorem}
+  \label{theorem:confidence-set-equivalence}
+  Let the loss functions $\loss_\theta$ be smooth enough
+  (Definition~\ref{definition:smooth-enough}) and
+  in addition assume they are stochastically smooth
+  (Assumption~\ref{assumption:donsker}).  Then $\C_\alpha^{\mathrm{PP},T}$
+  and $\C_\alpha^{\mathrm{PP},U}$ are asymptotically equivalent in that, for
+  any $c < \infty$,
+  \begin{equation*}
+    \limsup_n
+    \sup_{\norm{h} \le c}
+    \left|
+    \P(\theta\opt + h/\sqrt{n} \in \C_\alpha^{\mathrm{PP},T})
+    - \P(\theta\opt + h/\sqrt{n} \in \C_\alpha^{\mathrm{PP},U}) \right|
+    = 0.
+  \end{equation*}
+  Furthermore, for any $t_n \gg \frac{1}{\sqrt{n}}$ and $c>0$, $\limsup_n
+    \sup_{\norm{h} \ge c}
+    \P(\theta\opt + h t_n \in \C_\alpha^{\mathrm{PP},T})
+    = 0.$
+\end{theorem}
+
+In words, the probability of including any point within $\sim
+\frac{1}{\sqrt{n}}$ of $\theta\opt$ in the confidence set is the same for \ppipp (with no power tuning) and a sharper variant of the
+PPI proposal~\eqref{eq:CPP-original}
+based on point-wise testing.
+%
+Moreover, this neighborhood of $\theta\opt$ is
+the only relevant region of the parameter space: all points more than $\sim
+\frac{1}{\sqrt{n}}$ away from the optimum have vanishing probability of
+inclusion.
+%
+When we tune the parameter $\lambda$, as we consider in the next section,
+the confidence sets \ppipp yields are only smaller, yielding
+further improvements.

@@ -1,0 +1,212 @@
+% -*- mode: latex -*- %
+
+\section{Power tuning}
+\label{sec:setting-lambda}
+
+The last component of \ppipp is to adaptively tune the weighting parameter
+$\lambda$ and thus, in addition to computational benefits, to achieve
+statistical efficiency improvements over ``standard'' prediction-powered
+inference and classical inference.
+Towards this goal, we show how to optimally tune the weighting parameter
+$\lambda$.
+%
+Along the way we make a few theoretical remarks
+on the consequent statistical efficiency (see also the
+note~\cite{AngelopoulosDuZr23w}).
+%
+While we cannot expect \ppipp to guarantee
+full statistical efficiency for any distribution---this would require
+modeling assumptions that
+\ppipp explicitly avoids by providing a wrapper around black-box
+prediction models $f$---we demonstrate
+that it always improves over classical inference and in some cases is
+fully statistically efficient.
+
+\subsection{The optimal weighting parameter $\lambda$}
+
+Our first step is to derive the value $\lambda\opt$ of $\lambda$ minimizing
+the asymptotic variance $\Tr (\Sigma^\lambda)$ of the prediction-powered
+estimate, where we recall the asymptotic covariance
+\begin{equation*}
+  \Sigma^\lambda
+  = H_{\theta\opt}^{-1}
+  \left(r \lambda^2 \cov(\nabla \loss_{\theta\opt}^f)
+  + \cov(\nabla \loss_{\theta\opt} - \lambda \nabla \loss_{\theta\opt}^f)
+  \right) H_{\theta\opt}^{-1}
+\end{equation*}
+from definition~\eqref{eqn:sigma-lambda}. One could straightforwardly choose
+alternative scalarizations of $\Sigma^\lambda$, such as the maximum diagonal
+entry $\max_j \Sigma_{jj}^\lambda$, to yield different minimizing
+$\lambda$, but the principles remain the same.
+(See Appendix~\ref{sec:proof-optimal-lambda} for the quick proof.)
+
+%% We derive $\lambda\opt$ based on the expression for $\Sigma^\lambda$ from Theorem \ref{theorem:normality}. Since $\thetaPP_\lambda$ could be multidimensional, we define $\lambda\opt$ as the minimizer of the cumulative variance:
+%% \begin{equation}
+%% \label{eq:optimization_problem_lambda}  
+%% \lambda\opt = \argmin_{\lambda} \sum_{i=1}^d \Sigma_{ii}^\lambda.
+%% \end{equation}
+%% Analytically solving for $\lambda\opt$ in the problem \eqref{eq:optimization_problem_lambda} gives the optimal tuning. Below, $\Tr$ denotes the matrix trace.
+
+\begin{proposition}
+  \label{prop:optimal-lambda}
+  The prediction-powered estimate $\thetaPP_\lambda$ has minimal asymptotic
+  variance for
+  \begin{equation*}
+    \lambda\opt
+    \defeq \argmin_\lambda \Tr(\Sigma^\lambda)
+    = \frac{\Tr(H_{\theta\opt}^{-1}(
+      \Cov(\nabla \loss_{\theta\opt}, \nabla \loss_{\theta\opt}^f)
+      + \Cov(\nabla \loss_{\theta\opt}^f, \nabla \loss_{\theta\opt}))
+      H_{\theta\opt}^{-1})}{
+      2(1+r) \Tr(H_{\theta\opt}^{-1}\Cov(\nabla \loss_{\theta\opt}^f) H_{\theta\opt}^{-1} )}.
+  \end{equation*}
+\end{proposition}
+
+A few remarks are in order here; we defer discussion of empirical implications
+of this tuning to the next section and focus on analysis
+here.
+Substituting $\lambda\opt$ into the
+expression~\eqref{eqn:sigma-lambda} for $\Sigma^\lambda$ yields optimal
+asymptotic variance
+\begin{equation*}
+  \Tr(\Sigma^{\lambda\opt})
+  = \Tr(H_{\theta\opt}^{-1}\Cov\left(\nabla \loss_{\theta\opt}\right)
+  H_{\theta\opt}^{-1})
+  - \frac{\Tr(H_{\theta\opt}^{-1}(\Cov(\nabla \loss_{\theta\opt},
+    \nabla \loss_{\theta\opt}^f ) + \Cov(\nabla \loss_{\theta\opt}^f, \nabla \loss_{\theta\opt} ) )H_{\theta\opt}^{-1})^2}{4(1+r) \Tr(H_{\theta\opt}^{-1}\Cov(\nabla \loss_{\theta\opt}^f) H_{\theta\opt}^{-1} ) }.
+\end{equation*}
+The first term is the cumulative variance of the classical estimate, while
+the second term is non-negative. Therefore, we see that with the optimal
+choice of $\lambda$, \ppipp per
+Algorithm~\ref{alg:general_ppi} (asymptotically) dominates classical
+inference. Furthermore, the improvement over classical inference grows with
+the correlation of the true gradients and those with predicted labels. By the Cauchy-Schwarz inequality and the law of total variance,
+we have
+\begin{align*}
+  \Tr(\Sigma^{\lambda\opt})
+  & \ge \Tr\left(H_{\theta\opt}^{-1} \Cov(\nabla \loss_{\theta\opt})
+  H_{\theta\opt}^{-1}\right)
+  - \frac{1}{1 + r}
+  \Tr\left(H_{\theta\opt}^{-1} \Cov(\E[\nabla \loss_{\theta\opt} \mid X])
+  H_{\theta\opt}^{-1}\right) \\
+  & =
+  \frac{r}{1 + r}
+  \Tr\left(H_{\theta\opt}^{-1} \Cov(\nabla \loss_{\theta\opt}) H_{\theta\opt}^{-1}
+  \right)
+  + \frac{1}{1 + r} \Tr\left(H_{\theta\opt}^{-1}\E[\Cov(\nabla\loss_{\theta\opt} \mid X)]
+  H_{\theta\opt}^{-1}\right),
+\end{align*}
+with equality in the first step if and only if
+$\nabla \loss_{\theta\opt}(x, f(x)) = c\E[\nabla \loss_{\theta\opt}(x, Y)
+  \mid X = x]$ for some fixed $c \ge 0$. The last bound is
+the minimal asymptotic variance of \emph{any} estimator given
+both a labeled and unlabeled sample (see~\cite{AngelopoulosDuZr23w}).
+Essentially, \ppipp is always more efficient than classical estimators,
+and it \emph{can} achieve optimal statistical efficiency if the black-box prediction function $f$ is sufficiently strong.
+
+\subsection{A plug-in estimator and tuning procedure}
+
+In finite samples, $\lambda\opt$ admits the natural
+plug-in estimate
+\begin{equation}
+\label{eq:plugin_lambda}
+\hat \lambda = \frac{\Tr(\widehat H_{\thetaPP}^{-1}( \widehat \Cov_n(\nabla \loss_{\thetaPP}, \nabla \loss_{\thetaPP}^f ) + \widehat \Cov_n(\nabla \loss_{\thetaPP}^f, \nabla \loss_{\thetaPP} ) ) H_{\thetaPP}^{-1} )}{2(1+\frac n N) \Tr( \widehat H_{\thetaPP}^{-1}\widehat\Cov_{N+n}(\nabla \loss_{\thetaPP}^f) \widehat H_{\thetaPP}^{-1} ) },
+\end{equation}
+where $\thetaPP = \thetaPP_\lambda$ is any estimate obtained by taking a
+fixed $\lambda \in [0, 1]$, as each of these is $\sqrt{n}$-consistent
+(Theorem~\ref{theorem:normality}), and $\what{H}_\theta = \nabla^2
+L_n(\theta)$ is the empirical Hessian. The estimate $\hat\lambda$ is
+consistent, satisfying
+$\hat\lambda \cp \lambda\opt$, as (when the losses are smooth
+enough as in Definition~\ref{definition:smooth-enough}) each individual term
+consistently estimates its population counterpart.
+Theorem~\ref{theorem:normality} thus implies the following corollary.
+\begin{corollary}
+  \label{cor:clt_w_lambdahat}
+  Let $\hat\lambda$ be the estimate \eqref{eq:plugin_lambda} and
+  the conditions of Theorem~\ref{theorem:normality} hold. Then
+\[\sqrt{n}(\thetaPP_{\hat\lambda}- \theta\opt)\cd \normal(0,\Sigma^{\lambda\opt}).\]
+\end{corollary}
+
+The astute reader may notice that both $\lambda\opt$ and $\hat{\lambda}$ may
+fail to lie on the region $[0, 1]$, which is the only region in which we can
+guarantee convexity---and thus tractability of computing $\thetaPP_{\hat\lambda}$---even for GLMs. (This may occur, for example, if the
+predictions $f(X_i)$ are anti-correlated with the true outcomes $Y_i$;
+see Example~\ref{example:mean-tuning}.)  In
+this case, we can take one of two approaches: the first, naively, is to
+simply clip $\hat{\lambda}$ to lie in $[0, 1]$ in Algorithm~\ref{alg:glms}
+or \ref{alg:general_ppi}. The second is to use classical one-step
+estimators~\cite[e.g.][Chapter 5.7]{VanDerVaart98}. In this case, we
+recognize that Theorem~\ref{theorem:normality} implies that for any fixed
+$\lambda$, $\thetaPP_\lambda$ is $\sqrt{n}$-consistent, and take a single
+Newton step on $\LPP_{\hat\lambda}$,
+\begin{equation*}
+  \thetaPP_{\textup{os}}
+  \defeq \thetaPP_\lambda - \nabla^2 \LPP_{\hat{\lambda}}(
+  \thetaPP_\lambda)^{-1} \nabla \LPP_{\hat\lambda}(\thetaPP_\lambda).
+\end{equation*}
+We call $\thetaPP_{\textup{os}}$ and the resulting inferences ``one-step
+PPI.''
+%
+The difference between the one-step estimator and $\thetaPP_{\hat\lambda}$,
+where we clip $\hat\lambda$ to be in $[0, 1]$, is usually empirically
+immaterial; we explore this in Appendix~\ref{app:one-step-ppi}. We have the
+following corollary~\cite[Thm.~5.45]{VanDerVaart98}.
+\begin{corollary}
+\label{cor:one-step}
+  Let $\hat{\lambda}$ be the estimate~\eqref{eq:plugin_lambda}
+  and the conditions of Theorem~\ref{theorem:normality} hold. Then
+  \begin{equation*}
+    \sqrt{n} (\thetaPP_{\textup{os}} - \theta\opt)
+    \cd \normal(0, \Sigma^{\lambda\opt}).
+  \end{equation*}
+\end{corollary}
+Using the plug-in estimate \eqref{eq:plugin_lambda} thus yields a
+prediction-powered point estimate with minimal asymptotic variance, which in
+turn implies smaller confidence intervals than both PPI according to  problem~\eqref{eq:ppi} and classical inference.
+
+%% As a side note, we generally clip $\hat\lambda$ to be in $[0,1]$ to ensure that the final problem is convex.
+%% This is usually irrelevant, since $\hat\lambda < 0$ only when the predictions are far off from the true labels (in the sense that the corresponding gradients are anticorrelated).
+%% Furthermore, the clipping is not strictly necessary; we propose a version of the procedure in Section~\ref{app:one-step-ppi} that avoids this issue by taking only a single Newton step.
+
+\begin{example}[Optimal tuning for mean estimation]
+  \label{example:mean-tuning}
+  The mean-estimation objective with \ppipp is always
+  convex for any choice of $\lambda \in \R$, thus obviating the need
+  for clipping or one-step corrections.
+  Let $\theta\opt = \E[Y] = \argmin_\theta \E[\loss_\theta(Y)]$
+  for the loss $\loss_\theta(y) = (y-\theta)^2$.
+  Then for any $\lambda \in \R$, we have
+  $\thetaPP_\lambda = \frac{1}{n} \sum_{i = 1}^n Y_i
+  + \lambda(\frac{1}{N} \sum_{i = 1}^N f(\wt{X}_i) - \frac{1}{n}
+  \sum_{i = 1}^n f(X_i))$.
+  Substituting into the
+  expression for $\lambda\opt$ from Proposition \ref{prop:optimal-lambda}
+  gives
+  \begin{equation*}
+    \lambda\opt = \frac{\Cov(Y,f(X))}{(1+r)\Var(f(X))}.
+  \end{equation*}
+  We use the plug-in estimator
+  \begin{equation*}
+    \hat\lambda = \frac{\widehat\Cov_n(Y_i,f(X_i))}{(1+\frac n N )\widehat \Var_{N+n}(f(X_i))}
+  \end{equation*}
+   of $\lambda\opt$ in our experiments.
+\end{example}
+
+%% \subsection{On statistical efficiency}
+
+%% Finally, we turn to a brief discussion of asymptotic efficiency, where we
+%% must address a few subtleties. While our estimators are always guaranteed to
+%% be more statistically efficient than both classical M-estimators (without
+%% unlabeled data) and prediction-powered inference (PPI)---as these correspond
+%% to the choices $\lambda = 0$ and $\lambda = 0$, respectively---we do not
+%% achieve the full asymptotic statistical efficiency bounds allowed by more
+%% sophisticated semiparametric inference
+%% techniques~\cite[e.g.][Ch.~25]{VanDerVaart98}. Of course, the point of \ppipp
+%% is to provide a lightweight approach that automatically leverages black-box
+%% prediction models without sophisticated additional modeling or assumptions,
+%% so that we would not expect to achieve full semiparametric
+%% efficiency. Nonetheless, we present a few results highlighting what is
+%% possible and a few restricted efficiency guarantees.
+
+

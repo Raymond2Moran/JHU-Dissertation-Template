@@ -1,38 +1,82 @@
-\chapter{Power Planning and Transfer Case Study} \label{chap:power_transfer}
+\chapter{Protein Results, PPI/PPI++, and Dependence Sensitivity} \label{chap:protein_results}
 
-\section{Prediction-Powered Power and Sample-Size Planning}
+This chapter reports the protein-specific empirical results. The discussion is organized in three layers. First, it summarizes the predictive performance of the actual mainline surrogate. Second, it shows how the canonical exported predictions are passed into PPI/PPI++ estimation. Third, it examines power/sample-size planning under the published i.i.d. formulas and then adds a dependence-sensitive extension motivated by shared-protein edges.
 
-Using validation-derived pilot metrics, we estimate required labeled sample sizes under both vanilla PPI and oracle-lambda PPI++.
+\section{Prediction Layer: Mainline Performance}
 
-\begin{figure}[ht]
-\centering
-\includegraphics[width=0.92\textwidth]{chap5_required_n.png}
-\caption{Required labeled sample size by effect size and estimator mode (vanilla vs oracle).}
-\label{fig:chap5_required_n}
-\end{figure}
-
-Figure~\ref{fig:chap5_required_n} quantifies expected label-efficiency gains and provides a practical guide for future data-collection planning.
-
-\section{LLM-as-a-Judge Transfer Study}
-
-To assess methodological portability, we apply the same budgeted-estimator framework to LLM-as-a-judge prevalence estimation.
-
-\begin{figure}[ht]
-\centering
-\includegraphics[width=0.95\textwidth]{chap5_llm_transfer_summary.png}
-\caption{Transfer-case estimator comparison across labeled budgets.}
-\label{fig:chap5_llm_transfer}
-\end{figure}
-
-The transfer study reproduces the key pattern: prediction-powered methods improve bias/variance trade-offs relative to naive plug-in estimates, especially at moderate calibration budgets.
-
-\section{Synthesis}
-
-The results connect three layers of evidence:
+The strongest current surrogate in the repository is the sequence-plus-text ESM2-3B attention ensemble introduced in Chapter~\ref{chap:protein_pipeline}. Its performance on the two main test splits is:
 \begin{enumerate}
-    \item Protein prediction performance comparisons.
-    \item Valid uncertainty quantification with limited labels.
-    \item Prospective planning via sample-size analysis.
+    \item \textbf{Intra test}: PR-AUC 0.715 and ROC-AUC 0.722.
+    \item \textbf{BIOGRID-human test}: PR-AUC 0.799 and ROC-AUC 0.810.
+\end{enumerate}
+Relative to the best single attention seed, the ensemble improves stability and ranking performance; relative to the best MLP baseline, it provides a modest but consistent gain. The main empirical lesson is therefore not that attention radically changes the task, but that a strong prediction head plus seed averaging produces the most reliable surrogate for the downstream inference layer.
+
+This interpretation is consistent with the recent PPI-prediction literature. Deep sequence models and protein-language-model-based approaches can achieve strong within-dataset performance, but their apparent gains are strongly shaped by benchmark design, negative sampling, and leakage control \parencite{dscript2021, xcapt52024, park2012, bernett2024}. For that reason, the current thesis treats the predictive pipeline primarily as a source of a high-quality surrogate for downstream inference, not as a claim of universal state-of-the-art performance against every published PPI benchmark.
+
+\section{Inference Layer: Canonical Export and PPI/PPI++}
+
+All inference in this thesis is driven by the canonical prediction export rather than the raw training outputs. The handoff is:
+\begin{enumerate}
+    \item per-run \texttt{predictions.csv} from neural training,
+    \item ensemble-averaged predictions from \texttt{10\_ensemble\_predictions.py},
+    \item canonical export from \texttt{07\_export\_predictions.py}, and
+    \item R-based inference using \texttt{01\_run\_ppi\_estimators.R} and \texttt{02\_derive\_confusion\_metrics.R}.
 \end{enumerate}
 
-Taken together, they support a practical thesis message: efficient, uncertainty-aware biological prediction is achievable when strong surrogates are paired with principled prediction-powered inference.
+This separation mirrors the statistical distinction emphasized in the prediction-powered literature: prediction and inference are related, but they are not the same object \parencite{ppi_framework, ppi_pp, llmjudge_eif}. The predictor supplies a scalable surrogate, whereas the calibration set corrects the residual bias and enables uncertainty quantification.
+
+Figure~\ref{fig:chap5_ppi_budget} shows the main PPI/PPI++ summaries on the two test splits. Even at small calibration budgets, the estimated prevalence-, accuracy-, and error-type functionals remain close to the full-data references, which indicates that the frozen surrogate is strong enough to support stable correction with limited labels.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.93\textwidth]{chap5_ppi_metrics_test_only.png}
+\caption{Prediction-powered estimates on the Intra and BIOGRID test splits. Dashed horizontal lines are the full-data reference values. The curves are computed from the exported predictions of the frozen attention ensemble.}
+\label{fig:chap5_ppi_budget}
+\end{figure}
+
+Figure~\ref{fig:chap5_confusion} extends this view to nonlinear summaries derived from the prediction-powered confusion components. The overall pattern is similar: higher calibration budgets reduce variability, but the 5\%, 10\%, and 20\% budgets already produce estimates that track the truth closely for the main test splits.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.93\textwidth]{chap5_derived_confusion_metrics_test_only.png}
+\caption{Derived precision, recall, F1, specificity, and false-positive-rate summaries obtained from prediction-powered confusion-component estimates.}
+\label{fig:chap5_confusion}
+\end{figure}
+
+A notable empirical result is that PPI and PPI++ are close to one another in this frozen run. This does not imply that the tuning parameter is unimportant in general. Rather, it indicates that the current surrogate is already strong enough that the additional gain from tuning $\lambda$ is moderate for these mean-type targets, which is qualitatively in line with the theory behind PPI++ \parencite{ppi_pp, ppi_power}.
+
+\section{Planning Layer: I.I.D. Power and Sample-Size Baseline}
+
+The current thesis code uses the planning formulas from Chapter~\ref{chap:foundation_power} in their published i.i.d. form. In the present implementation, the planning target is a mean/proportion-type estimand rather than PR-AUC or ROC-AUC directly. Accordingly, the horizontal axis $\Delta$ in Figure~\ref{fig:chap5_power_iid} should be interpreted as a target absolute difference in a mean-like parameter.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.93\textwidth]{chap5_required_n_curves_zoom.png}
+\caption{I.i.d. prediction-powered planning curves for the frozen attention ensemble. The three lines correspond to vanilla PPI, estimated-lambda PPI++, and oracle-lambda PPI++. The inset highlights the right end of the curve near $\Delta = 0.10$.}
+\label{fig:chap5_power_iid}
+\end{figure}
+
+The i.i.d. planning results show the expected ordering. At $\Delta = 0.10$, the required labeled sample sizes are 286 for vanilla PPI, 186 for estimated-lambda PPI++, and 182 for oracle-lambda PPI++. At $\Delta = 0.05$, the corresponding values are 1155, 743, and 727. These numbers quantify the label-efficiency gains that come from using a strong surrogate in the published prediction-powered planning framework \parencite{ppi_power}.
+
+\section{Dependence Sensitivity for Shared-Protein Edges}
+
+The published formulas above assume independent observations. Protein-edge data, however, are naturally graph-structured. If two edges share a protein, then their features, predicted scores, and even validation labels can be correlated. To make that issue explicit, this thesis adds a dependence-sensitive extension rather than silently treating the published formulas as universally correct. The concern is not purely abstract: the pair-input evaluation literature repeatedly shows that dependence across constituent objects can distort performance estimation if the benchmark design ignores it \parencite{park2012, bernett2024}.
+
+Let an edge be indexed by $e = (i,j)$, and let $N(e)$ denote the set of other edges that share protein $i$ or $j$. For an edge-level influence contribution $\psi_e^{\lambda}$, the relevant large-sample variance under dependence is no longer purely diagonal. Cross-edge covariance terms need not vanish, and therefore the usual i.i.d. confidence intervals and sample-size calculations can be optimistic. In this first draft, I do not replace the published theorem. Instead, I report a sensitivity analysis based on a design effect,
+\[
+\mathrm{deff} \in \{1.00, 1.25, 1.50, 2.00\},
+\]
+which inflates the labeled-sample requirement relative to the i.i.d. baseline.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.93\textwidth]{chap5_required_n_dependence_curves.png}
+\caption{Dependence-sensitive planning curves obtained by inflating the i.i.d. labeled-sample requirement with a design effect. The design effect is used as a sensitivity parameter for shared-protein edge dependence, with \texttt{deff = 1.00} corresponding to the published i.i.d. baseline.}
+\label{fig:chap5_power_dependence}
+\end{figure}
+
+The substantive implication is straightforward. The i.i.d. formulas remain useful as a baseline, but they should be read as optimistic when shared-protein dependence is non-negligible. The stronger the local dependence, the less dramatic the apparent label savings from PPI/PPI++ become. This is the main protein-specific extension of the chapter: the point estimator is unchanged, but the variance interpretation and planning conclusions become dependence-sensitive.
+
+\section{Chapter Summary}
+
+The protein results support a coherent three-layer message. First, the attention-ensemble branch is the strongest current surrogate in the repository. Second, the exported predictions from that surrogate are good enough that PPI/PPI++ estimates remain stable under modest calibration budgets. Third, the published power formulas provide a useful baseline, but graph-induced dependence should be treated as a real caveat in PPI applications rather than ignored. Existing PPI-prediction papers are still useful points of comparison, but only when their evaluation protocols are interpreted with the same caution demanded by the pair-input benchmarking literature \parencite{lee2023, park2012, bernett2024}.

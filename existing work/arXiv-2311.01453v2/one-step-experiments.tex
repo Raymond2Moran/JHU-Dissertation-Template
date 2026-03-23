@@ -1,0 +1,41 @@
+% -*- Mode: latex -*- %
+
+\section{Experiments with one-step PPI}
+\label{app:one-step-ppi}
+
+We repeat the synthetic experiments from the main text
+(Section~\ref{sec:simulations}), but only compare PPI (with $\lambda=1$), power-tuned PPI
+(\ppipp) with clipping $\hat \lambda$ to $[0,1]$, and one-step PPI.  The figures below show the results in sequence;
+one-step PPI and power-tuned PPI overlap almost completely in all plots but
+one: Figure~\ref{fig:onestep-ppi-mean-anticorrelated}.  This figure shows
+results from a new experiment using anticorrelated predictions (the same
+setting as in Figure~\ref{fig:mean_estimation}, except that we take $f(X_i)
+= -Y_i + \epsilon$).  In this setting, one-step PPI outperforms PPI and
+power-tuned PPI because it allows $\hat\lambda$ to be negative.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth]{plots/onestep-ppi-mean.pdf}
+    \caption{Mean estimation with one-step PPI. The left panel shows coverage and the right shows width. The setup is the same as in Figure \ref{fig:mean_estimation}.}
+    \label{fig:onestep-ppi-mean}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth]{plots/onestep-ppi-mean-anticorrelated.pdf}
+    \caption{Mean estimation with one-step PPI and anticorrelated predictions. The left panel shows coverage and the right shows width. The setup is the same as in Figure \ref{fig:mean_estimation}, only we multiply the true outcomes by $-1$ when generating the predictions, $f(X_i) = -Y_i + \epsilon$.}
+    \label{fig:onestep-ppi-mean-anticorrelated}
+\end{figure}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth]{plots/onestep-ppi-ols.pdf}
+    \caption{Linear regression with one-step PPI. The left panel shows coverage and the right shows width. The setup is the same as in Figure \ref{fig:linear_regression}.}
+    \label{fig:onestep-ppi-linear}
+\end{figure}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.8\textwidth]{plots/onestep-ppi-logistic.pdf}
+    \caption{Logistic regression with one-step PPI. The left panel shows coverage and the right shows width. The setup is the same as in Figure \ref{fig:logistic_regression}.}
+    \label{fig:onestep-ppi-logistic}
+\end{figure}

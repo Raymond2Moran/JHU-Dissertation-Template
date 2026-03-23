@@ -1,0 +1,49 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+/doc/
+/Meta/
+
+# Local/agent-generated artifacts
+.DS_Store
+.claude/
+CHANGES_MADE.md
+DIAGNOSIS.md
+REFACTORING_PLAN.md
+REFACTORING_SUMMARY.md
+LICENSE.md
+
+# Simulation outputs (generated files)
+simulation_studies/*.pdf
+simulation_studies/*.png
+simulation_studies/*.csv
+
+# Downloaded data
+data/
+
+# Local manuscript artifacts
+write-up/PPI_Power_Analysis/
+write-up/PPI_Power_Analysis.zip
+
+# Local agent guidance
+AGENTS.md
+skills/
+
+# Legacy local plot outputs
+plots/
+
+# Local data / caches
+real_data_cache/
+
+# Package build artifacts
+pppower.Rcheck/
+pppower_*.tar.gz
+
+# Generated documentation previews
+README.html
+vignettes/*.html
+
+# Simulation scratch outputs
+simulation_studies/outputs/
+simulation_studies/*.log

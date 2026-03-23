@@ -1,31 +1,45 @@
-\chapter{Introduction and Problem Setup} \label{chap:introduction}
+\chapter{Introduction} \label{chap:introduction}
 
-Protein--protein interaction (PPI) edge prediction is central to network biology, disease mechanism discovery, and downstream pathway analysis. Modern protein language models generate powerful representations for proteins, but practical studies still face a persistent bottleneck: obtaining high-quality labeled edges is expensive, while unlabeled candidate edges are abundant.
+Protein--protein interactions (PPIs) are a basic organizing principle of cellular biology: they mediate signaling, complex formation, transcriptional regulation, immune recognition, and many disease mechanisms \parencite{vidal2011}. Because of that central role, large PPI maps have become core resources for systems biology and translational research. At the same time, experimentally determining whether two proteins truly interact remains difficult. Assays such as yeast two-hybrid, affinity-purification mass spectrometry, and related follow-up validation pipelines are informative but expensive, imperfect, and incomplete at scale \parencite{rao2014, luck2020}. Modern databases such as BioGRID aggregate many such findings, while knowledge resources such as UniProt provide additional annotation and textual descriptions that can help contextualize candidate edges \parencite{biogrid2019, uniprot2025}. The resulting scientific setting is therefore intrinsically data-imbalanced: candidate interaction pairs are abundant, but high-confidence labels are scarce.
 
-This thesis studies how to combine strong sequence/text predictors with prediction-powered inference (PPI/PPI++) so that we can report statistically valid uncertainty with limited labeled data. The work integrates two lines of prior research: (i) protein edge prediction pipelines based on pretrained biological embeddings, and (ii) debiased inference and power planning under prediction-powered frameworks \parencite{ppi_framework,ppi_pp,pppower_pkg}.
+That imbalance has made computational PPI prediction a long-running research area. Earlier sequence-based predictors relied on handcrafted features or shallower machine-learning pipelines, whereas more recent approaches use deep learning, cross-species transfer, and protein language model representations learned from large unlabeled corpora \parencite{sun2017, dscript2021, prottrans2022, xcapt52024}. Yet strong predictive performance alone is not the full statistical story. Reported metrics can be sensitive to train--test overlap, negative-sample construction, and leakage induced by pair-input evaluation protocols \parencite{park2012, bernett2024}. In other words, the field has two intertwined problems rather than one: a prediction problem and an inference problem. The prediction problem asks how to score protein pairs accurately; the inference problem asks how to report scientifically credible summaries when only a small subset of edges can be experimentally confirmed.
+
+This thesis studies that second problem through the lens of prediction-powered inference. The basic idea is to treat model-generated predictions as a scalable surrogate signal and then use a much smaller calibration set with gold-standard labels to correct bias and quantify uncertainty \parencite{ppi_framework, ppi_pp}. In the present thesis, the surrogate is a protein-edge predictor built from sequence and text embeddings; the calibration set is the experimentally labeled subset of edges; and the downstream goal is not only ranking performance but also corrected mean-type summaries, confidence intervals, and labeled-sample planning. This framing connects recent prediction-powered methodology to a concrete biostatistical application where graph structure, data leakage, and validation scarcity all matter.
+
+\section{Scientific and Methodological Context}
+
+Two streams of literature motivate the thesis. The first is the modern literature on surrogate-label correction. In biostatistics and epidemiology, related questions have long appeared as measurement-error or imperfect-diagnostic-test problems, where the observed label is not the true outcome of interest \parencite{rogan_gladen, eif_ref}. Recent prediction-powered methods recast that idea for machine-learning settings with abundant predictions and limited labels, emphasizing residual correction, semiparametric efficiency, and valid uncertainty after calibration \parencite{ppi_framework, ppi_pp, llmjudge_eif}. The second stream is the computational biology literature on PPI resources and prediction. Curated interaction maps such as BioGRID and the human reference interactome provide indispensable biological context, while deep sequence-based and language-model-based methods have become increasingly competitive for candidate edge scoring \parencite{biogrid2019, luck2020, dscript2021, lee2023}.
+
+These two streams are usually developed in separate communities. Prediction-powered inference is mostly presented as a general statistical tool for AI/ML-assisted studies, whereas PPI prediction papers are often centered on architecture design and benchmark accuracy. The core premise of this thesis is that the combination is scientifically useful. If one can build a strong protein-edge surrogate and then calibrate it with a smaller gold-labeled subset, the resulting workflow can scale like machine learning while retaining the inferential discipline expected in biostatistics.
+
+\section{Why Protein PPI Prediction Is a Good Test Case}
+
+The protein application is a useful stress test for prediction-powered ideas for three reasons. First, the labels are meaningfully expensive: even curated resources are incomplete and heterogeneous because they summarize many assays, organisms, and validation conditions \parencite{biogrid2019, vidal2011}. Second, the features are naturally multimodal. Protein sequences can be encoded by large protein language models such as ProtTrans or ESM-style models, while textual descriptions from UniProt provide an orthogonal annotation view \parencite{prottrans2022, lin2023, uniprot2025, sentence_bert2019, minilm2020}. Third, the units are not naturally i.i.d. in the strongest sense because two edges may share a protein, which creates a local graph dependence structure that is not part of the standard theory in current prediction-powered power-analysis work.
+
+The application is also a good warning case for evaluation methodology. Pair-input prediction problems are particularly vulnerable to overly optimistic assessment when train and test sets share constituent objects or when negative examples are generated without adequate controls \parencite{park2012, bernett2024}. That literature directly motivates the leakage-aware train/validation/test design used in this thesis. Rather than treating benchmark construction as a peripheral engineering detail, the thesis treats evaluation design as part of the statistical problem definition.
 
 \section{Research Questions}
 
-The thesis focuses on the following questions:
+The thesis is organized around four questions:
 \begin{enumerate}
-    \item How do ProtBERT and ESM2 embeddings compare for PPI edge prediction under leakage-aware train/validation/test splits?
-    \item How much does adding text-description embeddings improve performance and robustness on an external dataset?
-    \item Can prediction-powered estimators provide stable point estimates and confidence intervals for key metrics when only 5\%, 10\%, or 20\% of edges are labeled?
-    \item How do PPI and PPI++ affect labeled sample-size requirements under realistic pilot metrics?
-    \item Are the same inference principles portable to an LLM-as-a-judge prevalence setting?
+    \item How should modern prediction-powered methodology be framed when the cheap labels are themselves noisy or surrogate outcomes?
+    \item How does predictor quality enter power and sample-size planning in prediction-powered inference?
+    \item In protein--protein interaction prediction, what predictive pipeline performs best under leakage-aware splits and external validation?
+    \item Once a strong protein-edge surrogate is available, how stable are PPI/PPI++ estimates under small calibration budgets, and how sensitive are the usual i.i.d. planning formulas to shared-protein dependence?
 \end{enumerate}
 
 \section{Main Contributions}
 
-This thesis makes the following contributions:
+This thesis makes four main contributions.
 \begin{enumerate}
-    \item A reproducible end-to-end workflow that unifies data preparation, embedding generation, model training, uncertainty quantification, and thesis artifact export.
-    \item A comparative analysis across ProtBERT, ESM2-650M, and ESM2-3B, with and without text-feature fusion.
-    \item A prediction-powered inference study for prevalence, accuracy, confusion components, and derived metrics under explicit labeled-budget constraints.
-    \item A power/sample-size analysis that operationalizes planning with \texttt{n\_required\_ppi\_pp()}.
-    \item A transfer case study showing methodological portability to LLM-as-a-judge debiasing tasks.
+    \item It integrates two methodological foundations into one narrative: efficient correction of noisy surrogate labels \parencite{llmjudge_eif} and prediction-powered power analysis \parencite{ppi_power}.
+    \item It develops a protein-edge prediction workflow aligned with the actual thesis codebase: processed Intra and BIOGRID edge tables, per-protein sequence/text embeddings, pairwise feature construction, merged training-pool construction, neural edge predictors, and seed ensembling. The predictive design is informed by the modern literature on sequence-based PPI prediction, protein language modeling, and leakage-aware evaluation \parencite{dscript2021, prottrans2022, lin2023, park2012, bernett2024}.
+    \item It uses the frozen best surrogate, a sequence-plus-text ESM2-3B attention ensemble, as the default prediction layer for PPI/PPI++ estimation and labeled-budget analysis.
+    \item It adds a protein-specific dependence sensitivity analysis to the published i.i.d. power formulas, motivated by the fact that two PPI edges may share proteins and hence need not be independent.
 \end{enumerate}
 
-\section{Thesis Organization}
+\section{Thesis Roadmap}
 
-Chapter~\ref{chap:methods} introduces models, estimands, and inference procedures. Chapter~\ref{chap:protein_main} presents the main protein experiments on the Intra splits. Chapter~\ref{chap:robustness} extends the analysis with text features and an external BIOGRID-human robustness dataset. Chapter~\ref{chap:power_transfer} reports power planning and the transfer case study. Chapter~\ref{chap:conclusion} concludes with discussion and future work.
+Chapter~\ref{chap:foundation_llm} summarizes the preprint \emph{Efficient Inference for Noisy LLM-as-a-Judge Evaluation} \parencite{llmjudge_eif} and places it in the broader literature on surrogate-label correction, measurement error, and efficient estimation. Chapter~\ref{chap:foundation_power} summarizes the preprint \emph{Power Analysis for Prediction-Powered Inference} \parencite{ppi_power}, focusing on asymptotic variance, the role of $\lambda$, and labeled-sample planning under an i.i.d. design.
+
+Chapter~\ref{chap:protein_pipeline} then turns to the protein application and describes the actual predictive workflow implemented in this repository, including its relationship to existing PPI resources, protein language models, and evaluation pitfalls. Chapter~\ref{chap:protein_results} reports predictive results, exported-prediction handoff, PPI/PPI++ estimates, power curves, and a dependence-sensitive extension for shared-protein edges. Chapter~\ref{chap:conclusion} concludes with limitations and future directions.

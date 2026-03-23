@@ -1,38 +1,40 @@
 \chapter{Conclusion and Discussion} \label{chap:conclusion}
 
-\section{Conclusion}
+\section{What This Thesis Shows}
 
-This thesis developed and implemented a full analysis workflow that integrates protein edge prediction with prediction-powered inference and sample-size planning. By combining pretrained biological representations with calibration-budget-aware estimators, the framework supports both practical model comparison and statistically valid uncertainty reporting.
+This thesis connects two methodological foundations with one applied extension. The first foundation is that noisy or surrogate labels can be corrected efficiently with a small gold-standard calibration set \parencite{llmjudge_eif}. The second foundation is that prediction quality can be translated into labeled-sample planning through prediction-powered power analysis \parencite{ppi_power}. The applied extension is that these ideas remain useful in protein-protein interaction prediction, provided that the predictive workflow and the inferential workflow are explicitly separated and then reconnected through a canonical export layer.
 
-\section{Key Findings}
+In the current repository, that applied pipeline culminates in a sequence-plus-text ESM2-3B attention ensemble. This model provides the strongest current protein-edge surrogate and supports stable prediction-powered summaries on both the internal Intra benchmark and the external BIOGRID-human test split.
 
-The empirical and inferential results support four major conclusions:
+\section{Main Findings}
+
+Three conclusions are most important.
 \begin{enumerate}
-    \item Representation choice materially impacts both predictive accuracy and downstream uncertainty efficiency.
-    \item Adding text-derived features can improve robustness, but gains are data- and split-dependent.
-    \item PPI and PPI++ provide useful uncertainty control under constrained labeled budgets, with PPI++ often showing efficiency advantages.
-    \item The same inference principles transfer to non-biological AI-evaluation contexts (LLM-as-a-judge), suggesting broad applicability.
+    \item \textbf{Strong surrogates can be built for protein-edge prediction.} The best-performing model in the current workspace is not a single classical classifier but a merged-pool neural attention ensemble using both sequence and text information.
+    \item \textbf{Prediction-powered inference works well once the surrogate is strong.} For the frozen best model, PPI/PPI++ estimates on the main test splits remain close to the full-data references even when the calibration budget is limited.
+    \item \textbf{Independence assumptions matter in graph-structured PPI data.} The published i.i.d. planning formulas are still useful, but their apparent sample-size savings should be interpreted as baseline results rather than dependence-robust guarantees.
 \end{enumerate}
 
 \section{Limitations}
 
-Several limitations remain:
+Several limitations remain in the current thesis draft.
 \begin{enumerate}
-    \item External dataset preparation depends on mapping quality and negative-edge construction assumptions.
-    \item Confidence-interval behavior for derived nonlinear metrics may be sensitive in low-prevalence settings.
-    \item High-capacity embedding models increase compute cost and can constrain repeated calibration experiments.
+    \item The dependence extension is implemented as a sensitivity analysis rather than a full dependence-robust asymptotic theory.
+    \item The power analysis currently targets mean/proportion-type estimands derived from classification summaries, not direct differences in PR-AUC or ROC-AUC.
+    \item External robustness still depends on how the BIOGRID dataset is mapped, filtered, and paired with negatives.
+    \item The best surrogate is computationally expensive, which limits the ease of broader hyperparameter exploration or repeated resampling experiments.
 \end{enumerate}
 
-\section{Future Work}
+\section{Future Directions}
 
-Future directions include:
+The most useful next steps are therefore methodological and practical at the same time.
 \begin{enumerate}
-    \item Extending inference targets to additional network-level functionals.
-    \item Improving external benchmark harmonization across curated PPI resources.
-    \item Exploring adaptive labeling strategies guided by prediction-powered variance diagnostics.
-    \item Integrating biologically informed priors from structured knowledge bases and literature-guided models.
+    \item Develop dependence-robust variance theory for shared-protein edge data instead of relying only on design-effect sensitivity.
+    \item Extend the planning layer to additional estimands beyond the current mean/proportion target, especially metrics more directly tied to predictive ranking performance.
+    \item Improve external validation by incorporating additional experimentally curated PPI resources and more systematic negative-edge construction.
+    \item Explore stronger surrogate architectures and more explicit calibration strategies, including adaptive labeling rules informed by prediction-powered variance diagnostics.
 \end{enumerate}
 
-\section{Final Remarks}
+\section{Closing Remarks}
 
-A central practical outcome of this work is reproducibility: all major analyses are script-driven, unified by a single notebook interface, and directly connected to thesis-ready tables and figures. This workflow is intended to be reusable for subsequent biological studies where labeled data are limited but predictive surrogates are available at scale.
+The main practical outcome of this thesis is a reproducible script-first workflow that ties together protein-edge prediction, canonical prediction export, prediction-powered inference, and planning. The main conceptual outcome is equally important: strong AI/ML predictions do not remove the need for statistical calibration, but when used carefully they can substantially reduce the amount of gold-standard labeling required for valid scientific reporting.

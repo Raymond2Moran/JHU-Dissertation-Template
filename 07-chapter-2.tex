@@ -1,58 +1,53 @@
-\chapter{Methods: Prediction Models and Prediction-Powered Inference} \label{chap:methods}
+\chapter{Foundation I: Efficient Inference for Noisy LLM-as-a-Judge Evaluation} \label{chap:foundation_llm}
 
-\section{Data Structure and Splits}
+This chapter summarizes the first methodological foundation used in the thesis, the preprint \emph{Efficient Inference for Noisy LLM-as-a-Judge Evaluation} \parencite{llmjudge_eif}. Although that paper is motivated by LLM-as-a-judge evaluation, its core statistical structure is directly relevant here: a large set of cheap surrogate labels is available for many units, while a smaller calibration set contains both the surrogate and the gold-standard outcome.
 
-Each edge is represented as a tuple \((u, v, y)\), where \(u\) and \(v\) are UniProt proteins and \(y \in \{0,1\}\) indicates non-interaction/interaction. The primary benchmark uses Intra1 (train), Intra0 (validation), and Intra2 (test). A secondary robustness analysis uses a BIOGRID-human physical-interaction dataset with protein-disjoint train/validation/test splits.
+\section{Surrogate Labels and Calibration Design}
 
-\section{Feature Construction}
-
-\subsection{Sequence Embeddings}
-
-For each protein, we extract sequence embeddings using ProtBERT and ESM2 variants (650M and 3B). Pair-level sequence features are formed by summing endpoint embeddings.
-
-\subsection{Text Embeddings}
-
-For each protein, we embed UniProt description text using a sentence-transformer backbone. Pair-level text features are formed by summing endpoint text embeddings.
-
-\subsection{Feature Sets}
-
-Three feature sets are evaluated:
+Let $Y$ denote the latent target outcome and let $\widehat{Y}$ denote a noisy surrogate or judge label. The data are split into two parts:
 \begin{enumerate}
-    \item Sequence-only.
-    \item Text-only.
-    \item Concatenated sequence+text.
+    \item a large evaluation set with only $\widehat{Y}$ observed, and
+    \item a smaller calibration set with both $Y$ and $\widehat{Y}$ observed.
+\end{enumerate}
+The inferential goal is to estimate a mean-type target parameter,
+\[
+\theta = \mathbb{E}[Y],
+\]
+while using the large surrogate-only sample to reduce variance and the small calibration sample to correct bias.
+
+The paper compares two broad correction strategies. The first treats $\widehat{Y}$ as a mismeasured version of $Y$ and uses direct measurement-error correction, such as Rogan--Gladen-style estimators. The second treats $\widehat{Y}$ as a generic surrogate outcome and uses prediction-powered correction based on calibration residuals. The central message is that these views can be unified through efficient influence functions and semiparametric efficiency \parencite{rogan_gladen, eif_ref, llmjudge_eif}.
+
+\section{Relationship to Earlier Statistical Literature}
+
+The conceptual roots of this chapter lie in two older literatures. The first is the literature on imperfect diagnostics and measurement error, where the observed label is a noisy proxy for an unobserved truth. Rogan--Gladen-style prevalence correction is a classical example of this perspective \parencite{rogan_gladen}. The second is semiparametric efficiency theory, where efficient influence functions characterize the best possible first-order use of auxiliary information under a given model \parencite{eif_ref}. The LLM-as-a-judge paper is important because it connects these traditions to modern AI-assisted evaluation problems rather than treating them as separate worlds.
+
+That connection matters for the rest of the thesis. In protein-edge prediction, the cheap label is not a binary judge produced by an LLM but a model-based prediction score for an interaction edge. Even so, the statistical skeleton is the same: the inexpensive signal is observed broadly, the expensive signal is observed only on a smaller labeled subset, and the inferential problem is how to combine them efficiently.
+
+\section{Why This Paper Matters for the Thesis}
+
+The importance of \textcite{llmjudge_eif} for this thesis is conceptual rather than domain-specific. In the protein application, the surrogate is not an LLM judge score but a learned edge-prediction score produced by a neural model. The structure is nevertheless the same:
+\begin{enumerate}
+    \item the surrogate is available at scale,
+    \item the gold label is expensive, and
+    \item the calibration set is used to correct systematic error.
 \end{enumerate}
 
-\section{Classifier and Threshold Policy}
+The paper also clarifies a useful modeling distinction. A cheap surrogate can be treated as a noisy measurement, but it can also be treated as a generic prediction that is corrected through calibration. The latter perspective is more flexible for this thesis because the protein-edge surrogate is continuous, model-based, and not naturally parameterized by a simple sensitivity/specificity pair. That flexibility is one reason prediction-powered methods are a better fit for the protein application than a strict diagnostic-test abstraction.
 
-A supervised binary classifier is trained on the Intra1 split. The decision threshold is tuned only on Intra0 using F1-optimal validation and then frozen for Intra2 and external-set evaluation. This prevents test-time threshold leakage.
+\section{Efficient Estimation Viewpoint}
 
-\section{Estimands and Inference}
+Prediction-powered inference can be written as a residual-correction estimator. In the simplest mean-setting,
+\[
+\widehat{\theta}_{\mathrm{PPI}} = \overline{f}_{U} + \frac{1}{n} \sum_{i \in L} \{Y_i - f_i\},
+\]
+where $f_i$ is the surrogate prediction, $L$ denotes the labeled calibration set, and $U$ denotes the large unlabeled set. PPI++ introduces a tuning parameter $\lambda$,
+\[
+\widehat{\theta}_{\lambda} = \overline{Y}_{L} + \lambda\, (\overline{f}_{U} - \overline{f}_{L}),
+\]
+which can improve efficiency when the surrogate is strong \parencite{ppi_framework, ppi_pp}.
 
-\subsection{Primary Mean-Based Estimands}
+The contribution of \textcite{llmjudge_eif} is to place these estimators in an efficient-influence-function framework. That perspective explains when simple correction rules are efficient, when they are suboptimal, and why a stronger surrogate typically leads to shorter confidence intervals after calibration. For the purposes of this thesis, the main takeaway is that better prediction quality helps twice: it improves point prediction, and it also improves downstream inferential efficiency.
 
-For each model and split, we estimate:
-\begin{enumerate}
-    \item Prevalence of positives.
-    \item Accuracy.
-    \item Confusion-component rates (TP, FP, TN, FN).
-    \item Brier-style squared error summary.
-\end{enumerate}
+\section{Bridge to the Protein Application}
 
-Under labeled budget \(m\), a calibration subset \(L\) is observed with gold labels and an unlabeled subset \(U\) contributes surrogate predictions.
-
-\subsection{Prediction-Powered Estimators}
-
-Let \(Y\) be a target per-edge quantity and \(f(X)\) a surrogate. We use PPI and PPI++ point estimators with confidence intervals, leveraging implementations adapted from prior package work \parencite{ppi_framework,ppi_pp,debias_pkg}.
-
-\subsection{Secondary AUC Uncertainty}
-
-ROC AUC and PR AUC are reported with stratified bootstrap confidence intervals to complement the primary mean-based inference targets.
-
-\section{Power and Sample-Size Planning}
-
-We use pilot metrics from validation predictions and \texttt{n\_required\_ppi\_pp()} to estimate labeled-sample requirements at fixed unlabeled pool size \parencite{pppower_pkg}.
-
-\section{Transfer Case Study}
-
-To evaluate methodological portability, the same calibration-budget analysis is applied to LLM-as-a-judge prevalence inference, comparing naive, PPI, PPI++, EIF, Rogan--Gladen, and joint MLE estimators \parencite{debias_pkg,rogan_gladen,eif_ref}.
+The rest of the thesis uses the same general template in a different scientific setting. The protein-edge predictor produces the surrogate, the experimentally labeled subset provides calibration, and prediction-powered procedures deliver corrected summaries with uncertainty quantification. The next chapter adds the second methodological foundation needed for that pipeline: labeled-sample planning and power analysis under prediction-powered inference \parencite{ppi_power}.
