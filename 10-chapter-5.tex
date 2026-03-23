@@ -68,6 +68,125 @@ Let an edge be indexed by $e = (i,j)$, and let $N(e)$ denote the set of other ed
 \]
 which inflates the labeled-sample requirement relative to the i.i.d. baseline.
 
+\subsection{Variance Decomposition Under Shared-Protein Dependence}
+
+For a fixed tuning parameter $\lambda$, the mean-type prediction-powered estimator can be written as
+\[
+\widehat{\theta}_{\lambda}
+=
+\bar{Y}_{L} + \lambda(\bar{f}_{U} - \bar{f}_{L})
+=
+\frac{1}{n}\sum_{e \in L}(Y_e - \lambda f_e)
++
+\frac{\lambda}{N}\sum_{e \in U} f_e,
+\]
+where $L$ is the labeled calibration set with size $n$ and $U$ is the prediction-only set with size $N$. Define the labeled residual term and prediction-only term by
+\[
+R_e^{\lambda} = Y_e - \lambda f_e,
+\qquad
+G_e^{\lambda} = \lambda f_e.
+\]
+Then
+\[
+\widehat{\theta}_{\lambda} = \bar{R}^{\lambda}_{L} + \bar{G}^{\lambda}_{U},
+\]
+so the variance decomposes as
+\[
+\Var(\widehat{\theta}_{\lambda})
+=
+\Var(\bar{R}^{\lambda}_{L})
++
+\Var(\bar{G}^{\lambda}_{U})
++
+2\Cov(\bar{R}^{\lambda}_{L}, \bar{G}^{\lambda}_{U}).
+\]
+
+Under the i.i.d. approximation used in the published power formulas, off-diagonal covariances vanish and one recovers
+\[
+\Var_{\mathrm{iid}}(\widehat{\theta}_{\lambda})
+\approx
+\frac{\Var(R^{\lambda})}{n}
++
+\frac{\Var(G^{\lambda})}{N}
+=
+\frac{\Var(Y-\lambda f)}{n}
++
+\frac{\lambda^2 \Var(f)}{N}.
+\]
+Expanding the labeled residual term gives
+\[
+\Var(Y-\lambda f)
+=
+\Var(Y) + \lambda^2 \Var(f) - 2\lambda \Cov(Y,f).
+\]
+
+For graph-structured protein-edge data, however, the cross-edge covariance terms do not generally vanish. If $A_{ee'} = 1$ indicates that edges $e$ and $e'$ share at least one protein, then the dependence-aware variance can be written as
+\[
+\Var_{\mathrm{dep}}(\widehat{\theta}_{\lambda})
+=
+\frac{1}{n^2}\sum_{e,e' \in L}\Cov(R_e^{\lambda}, R_{e'}^{\lambda})
++
+\frac{1}{N^2}\sum_{u,u' \in U}\Cov(G_u^{\lambda}, G_{u'}^{\lambda})
++
+\frac{2}{nN}\sum_{e \in L}\sum_{u \in U}\Cov(R_e^{\lambda}, G_u^{\lambda}),
+\]
+where the off-diagonal summands are concentrated on edge pairs with $A_{ee'} = 1$. This makes the key point explicit: the estimator is unchanged, but the variance is inflated by shared-protein dependence.
+
+\subsection{Design-Effect Approximation and Sample-Size Inflation}
+
+To obtain a tractable first-order sensitivity analysis, suppose the main effect of dependence is to inflate the labeled residual component while leaving the prediction-only term approximately unchanged because $N$ is large. Introduce a design effect $d_{\lambda} \ge 1$ and define the working variance model
+\[
+\Var_{\mathrm{sens}}(\widehat{\theta}_{\lambda})
+=
+d_{\lambda}\frac{\Var(Y-\lambda f)}{n}
++
+\frac{\lambda^2 \Var(f)}{N}.
+\]
+This is the dependence-sensitive approximation used in the thesis figures. It should be read as a sensitivity model, not a replacement theorem.
+
+For a two-sided Wald design targeting absolute difference $\Delta$ at significance level $\alpha$ and power $1-\beta$, let
+\[
+S^2
+=
+\left(
+\frac{\Delta}{z_{1-\alpha/2} + z_{1-\beta}}
+\right)^2.
+\]
+The required labeled sample size is the smallest $n$ such that
+\[
+d_{\lambda}\frac{\Var(Y-\lambda f)}{n}
++
+\frac{\lambda^2 \Var(f)}{N}
+\le S^2.
+\]
+Solving for $n$ gives
+\[
+n_{\mathrm{req}}^{\mathrm{dep}}(\lambda; d_{\lambda})
+=
+\frac{
+d_{\lambda}\Var(Y-\lambda f)
+}{
+S^2 - \lambda^2 \Var(f)/N
+},
+\]
+provided $S^2 > \lambda^2 \Var(f)/N$. Under the i.i.d. baseline, where $d_{\lambda}=1$,
+\[
+n_{\mathrm{req}}^{\mathrm{iid}}(\lambda)
+=
+\frac{
+\Var(Y-\lambda f)
+}{
+S^2 - \lambda^2 \Var(f)/N
+}.
+\]
+Hence
+\[
+n_{\mathrm{req}}^{\mathrm{dep}}(\lambda; d_{\lambda})
+=
+d_{\lambda}\, n_{\mathrm{req}}^{\mathrm{iid}}(\lambda).
+\]
+This identity provides the mathematical justification for the current sensitivity-analysis implementation: once an i.i.d. required labeled sample size is computed for vanilla PPI, estimated-lambda PPI++, or oracle-lambda PPI++, the dependence-sensitive counterpart is obtained by multiplying by the chosen design effect.
+
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.93\textwidth]{chap5_required_n_dependence_curves.png}
