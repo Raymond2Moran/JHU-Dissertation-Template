@@ -174,8 +174,16 @@
 
 %%%% BIBLIOGRAPHIC PACKAGE (change the style or other options if you need to)
 %% Nature style bibliography
-\usepackage[backend=biber, defernumbers=true, style=nature, maxnames=99,
-     date=year, isbn=false, url=false, doi=true]{biblatex}
+\usepackage[
+  backend=biber,
+  style=nature,
+  sorting=none,
+  maxnames=99,
+  date=year,
+  isbn=false,
+  url=false,
+  doi=true
+]{biblatex}
 
 %% APA style
 % \usepackage[backend=biber, defernumbers=true, style=apa, maxnames=99,
@@ -625,7 +633,7 @@
 %%%% BIBLIOGRAPHIC REFERENCES
 \BibTextSpacing                         % text spacing for each bib item
 \fancyhead[L]{\nouppercase \leftmark}
-\printbibliography[title={Bibliographic references},
+\printbibliography[title={References},
     heading=bibintoc, notcategory=mypapers]
 \clearpage                              % flushes out floating header
 
