@@ -1,6 +1,6 @@
 \chapter{Protein Results, PPI/\texttt{PPI++}, and Dependence Sensitivity} \label{chap:protein_results}
 
-This chapter reports the protein-specific empirical results. The discussion is organized in three layers. First, it summarizes the predictive performance of the actual mainline surrogate. Second, it shows how the canonical exported predictions are passed into PPI/\texttt{PPI++} estimation. Third, it examines power/sample-size planning under the published i.i.d. formulas and then adds a dependence-sensitive extension motivated by shared-protein edges.
+This chapter reports the protein-specific empirical results. Unless otherwise noted, I retain the global notation from Section~\ref{sec:global_notation}; when the unit is specialized to an interaction edge, I simply replace the generic index \(i\) by an edge index \(e = (u,v)\). The discussion is organized in three layers. First, it summarizes the predictive performance of the actual mainline surrogate. Second, it shows how the canonical exported predictions are passed into PPI/\texttt{PPI++} estimation. Third, it examines power/sample-size planning under the published i.i.d. formulas and then adds a dependence-sensitive extension motivated by shared-protein edges.
 
 \section{Prediction Layer: Mainline Performance}
 
@@ -61,6 +61,8 @@ The i.i.d. planning results show the expected ordering. At $\Delta = 0.10$, the 
 \section{Dependence Sensitivity for Shared-Protein Edges}
 
 The published formulas above assume independent observations. Protein-edge data, however, are naturally graph-structured. If two edges share a protein, then their features, predicted scores, and even validation labels can be correlated. To make that issue explicit, this thesis adds a dependence-sensitive extension rather than silently treating the published formulas as universally correct. The concern is not purely abstract: the pair-input evaluation literature repeatedly shows that dependence across constituent objects can distort performance estimation if the benchmark design ignores it \parencite{park2012, bernett2024}.
+
+The main additional notation in this section is specific to this dependence discussion. I write \(\mathrm{deff}\) for a design effect, meaning a scalar variance-inflation factor relative to the published i.i.d.\ planning formulas. When the unit is specialized from a generic index \(i\) to a protein edge, I write \(e = (u,v)\) for an edge between proteins \(u\) and \(v\), and later use notation such as \(Y_e\), \(f_e\), and \(\psi_e^{\lambda}\) for edge-level outcomes, surrogate scores, and influence contributions.
 
 Let an edge be indexed by $e = (i,j)$, and let $N(e)$ denote the set of other edges that share protein $i$ or $j$. For an edge-level influence contribution $\psi_e^{\lambda}$, the relevant large-sample variance under dependence is no longer purely diagonal. Cross-edge covariance terms need not vanish, and therefore the usual i.i.d. confidence intervals and sample-size calculations can be optimistic. In this first draft, I do not replace the published theorem. Instead, I report a sensitivity analysis based on a design effect,
 \[
