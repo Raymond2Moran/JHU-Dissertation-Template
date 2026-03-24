@@ -1,25 +1,59 @@
 \chapter{Foundation I: Efficient Inference for Noisy LLM-as-a-Judge Evaluation} \label{chap:foundation_llm}
 
-This chapter summarizes the first methodological foundation used in the thesis, the preprint \emph{Efficient Inference for Noisy LLM-as-a-Judge Evaluation} \parencite{llmjudge_eif}. Although that paper is motivated by LLM-as-a-judge evaluation, its core statistical structure is directly relevant here: a large set of cheap surrogate labels is available for many units, while a smaller calibration set contains both the surrogate and the gold-standard outcome.
+This chapter summarizes the first methodological foundation used in the thesis, the preprint \emph{Efficient Inference for Noisy LLM-as-a-Judge Evaluation} \parencite{llmjudge_eif}. It should be read as a direct extension of the original prediction-powered inference line: the starting point is the PPI/PPI++ estimator family, and the new question is what happens when the cheap label is itself noisy, biased, or better interpreted as a surrogate outcome rather than as a clean prediction target. Although the paper is motivated by LLM-as-a-judge evaluation, its core statistical structure is directly relevant here: a large set of cheap surrogate labels is available for many units, while a smaller calibration set contains both the surrogate and the gold-standard outcome.
 
-\section{Surrogate Labels and Calibration Design}
+\section{Statistical Setup and Notation}
 
-Let $Y$ denote the latent target outcome and let $\widehat{Y}$ denote a noisy surrogate or judge label. The data are split into two parts:
-\begin{enumerate}
-    \item a large evaluation set with only $\widehat{Y}$ observed, and
-    \item a smaller calibration set with both $Y$ and $\widehat{Y}$ observed.
-\end{enumerate}
-The inferential goal is to estimate a mean-type target parameter,
+This section fixes notation that will be used throughout the rest of the thesis. For each unit $i$, let
 \[
-\theta = \mathbb{E}[Y],
+Y_i
 \]
-while using the large surrogate-only sample to reduce variance and the small calibration sample to correct bias.
+denote the gold-standard outcome of interest and let
+\[
+\widehat{Y}_i
+\]
+denote a cheap surrogate label. In this chapter, $\widehat{Y}_i$ is the LLM-as-a-judge label studied in \textcite{llmjudge_eif}. In the later protein chapters, the same statistical role is played by a model-based edge prediction score, written as $f_i=f(X_i)$. The point is that the mathematical structure is the same even when the scientific interpretation changes.
 
-The paper compares two broad correction strategies. The first treats $\widehat{Y}$ as a mismeasured version of $Y$ and uses direct measurement-error correction, such as Rogan--Gladen-style estimators. The second treats $\widehat{Y}$ as a generic surrogate outcome and uses prediction-powered correction based on calibration residuals. The central message is that these views can be unified through efficient influence functions and semiparametric efficiency \parencite{rogan_gladen, eif_ref, llmjudge_eif}.
+Let
+\[
+R_i \in \{0,1\}
+\]
+indicate whether the gold-standard label is observed for unit $i$, and write
+\[
+\pi = \Pr(R_i=1).
+\]
+The data are split into two parts:
+\begin{enumerate}
+    \item a large prediction-only set $U = \{i:R_i=0\}$ of size $N$, on which only the surrogate is available, and
+    \item a smaller labeled calibration set $L = \{i:R_i=1\}$ of size $n$, on which both the gold label and the surrogate are observed.
+\end{enumerate}
+The inferential goal is to estimate a mean-type target parameter
+\[
+\theta = \mathbb{E}[Y_i],
+\]
+while using the large prediction-only sample to reduce variance and the smaller labeled sample to correct bias. For any quantity $A_i$, write
+\[
+\overline{A}_{U}=\frac{1}{N}\sum_{i\in U}A_i,
+\qquad
+\overline{A}_{L}=\frac{1}{n}\sum_{i\in L}A_i.
+\]
+When the surrogate is continuous or model-based, the notation
+\[
+\mu(\widehat{Y}_i)=\mathbb{E}[Y_i\mid \widehat{Y}_i]
+\]
+denotes the calibration function linking the cheap label to the gold-standard outcome.
+
+To keep the rest of the thesis consistent, I use the additional shorthand
+\[
+f_i=f(X_i)
+\]
+for a generic surrogate prediction. In the LLM-as-a-judge setting, one can read $f_i$ as a working model for the information contained in $\widehat{Y}_i$; in the later protein chapters, $f_i$ is the learned edge-prediction score itself. With that notation, the same estimator formulas can be reused across chapters without changing their statistical meaning.
+
+This setup can also be viewed as a missing-data problem: the target outcome $Y_i$ is observed only on the calibration set, while the surrogate is observed for everyone \parencite{rubin1976, tsiatis2006, robins1995}. The paper compares two broad correction strategies. The first treats $\widehat{Y}$ as a mismeasured version of $Y$ and uses direct measurement-error correction, such as Rogan--Gladen-style estimators. The second treats $\widehat{Y}$ as a generic surrogate outcome and uses prediction-powered correction based on calibration residuals. The central message is that these views can be unified through efficient influence functions and semiparametric efficiency \parencite{rogan_gladen, eif_ref, tsiatis2006, llmjudge_eif}.
 
 \section{Relationship to Earlier Statistical Literature}
 
-The conceptual roots of this chapter lie in two older literatures. The first is the literature on imperfect diagnostics and measurement error, where the observed label is a noisy proxy for an unobserved truth. Rogan--Gladen-style prevalence correction is a classical example of this perspective \parencite{rogan_gladen}. The second is semiparametric efficiency theory, where efficient influence functions characterize the best possible first-order use of auxiliary information under a given model \parencite{eif_ref}. The LLM-as-a-judge paper is important because it connects these traditions to modern AI-assisted evaluation problems rather than treating them as separate worlds.
+The conceptual roots of this chapter lie in three older literatures. The first is the literature on imperfect diagnostics and measurement error, where the observed label is a noisy proxy for an unobserved truth. Rogan--Gladen-style prevalence correction is a classical example of this perspective \parencite{rogan_gladen}. The second is the missing-data literature, which studies how to use partially observed outcomes together with auxiliary variables and sampling indicators \parencite{rubin1976, robins1995, tsiatis2006}. The third is semiparametric efficiency theory, where efficient influence functions characterize the best possible first-order use of auxiliary information under a given model \parencite{eif_ref, tsiatis2006}. The LLM-as-a-judge paper is important because it connects these traditions to modern AI-assisted evaluation problems rather than treating them as separate worlds.
 
 That connection matters for the rest of the thesis. In protein-edge prediction, the cheap label is not a binary judge produced by an LLM but a model-based prediction score for an interaction edge. Even so, the statistical skeleton is the same: the inexpensive signal is observed broadly, the expensive signal is observed only on a smaller labeled subset, and the inferential problem is how to combine them efficiently.
 
@@ -36,7 +70,7 @@ The paper also clarifies a useful modeling distinction. A cheap surrogate can be
 
 \section{Efficient Estimation Viewpoint}
 
-Prediction-powered inference can be written as a residual-correction estimator. In the simplest mean-setting,
+The cleanest way to see the relationship between the original PPI papers and the noisy-surrogate extension is to start from the estimator family itself. Using the generic surrogate notation $f_i$, prediction-powered inference can be written as a residual-correction estimator. In the simplest mean-setting,
 \[
 \widehat{\theta}_{\mathrm{PPI}} = \overline{f}_{U} + \frac{1}{n} \sum_{i \in L} \{Y_i - f_i\},
 \]
@@ -44,9 +78,9 @@ where $f_i$ is the surrogate prediction, $L$ denotes the labeled calibration set
 \[
 \widehat{\theta}_{\lambda} = \overline{Y}_{L} + \lambda\, (\overline{f}_{U} - \overline{f}_{L}),
 \]
-which can improve efficiency when the surrogate is strong \parencite{ppi_framework, ppi_pp}.
+which can improve efficiency when the surrogate is strong \parencite{ppi_framework, ppi_pp}. The LLM-as-a-judge preprint keeps this same estimator family in view, but asks a sharper question: when the cheap label is noisy, when is the working choice $f_i\approx Y_i$ good enough, and when should one instead target the full regression function $\mu(\widehat{Y})=\mathbb{E}[Y\mid \widehat{Y}]$?
 
-The contribution of \textcite{llmjudge_eif} is to place these estimators in an efficient-influence-function framework. That perspective explains when simple correction rules are efficient, when they are suboptimal, and why a stronger surrogate typically leads to shorter confidence intervals after calibration. For the purposes of this thesis, the main takeaway is that better prediction quality helps twice: it improves point prediction, and it also improves downstream inferential efficiency.
+The contribution of \textcite{llmjudge_eif} is to place these estimators in an efficient-influence-function framework rooted in semiparametric missing-data theory \parencite{robins1995, tsiatis2006}. That perspective explains when simple correction rules are efficient, when they are suboptimal, and why a stronger surrogate typically leads to shorter confidence intervals after calibration. For the purposes of this thesis, the main takeaway is that better prediction quality helps twice: it improves point prediction, and it also improves downstream inferential efficiency.
 
 \subsection{Key Formulas for Mean Estimation with a Surrogate Label}
 
@@ -70,7 +104,7 @@ where $O=(R,RY,\widehat{Y})$. The corresponding efficient estimator therefore ha
 +
 \frac{1}{n}\sum_{i \in L}\{Y_i-\mu(\widehat{Y}_i)\}.
 \]
-This equation is the bridge between the semiparametric theory and the practical estimators used later in the thesis. Standard PPI is obtained by the working choice $\mu(\widehat{Y}) \approx \widehat{Y}$, whereas PPI++ uses the linear approximation $\mu(\widehat{Y}) \approx \lambda \widehat{Y}$ \parencite{ppi_framework, ppi_pp, llmjudge_eif}. Detailed algebra for these identities is summarized in Appendix~\ref{chap:appendix-a}.
+This equation is the bridge between the semiparametric theory and the practical estimators used later in the thesis. Standard PPI is obtained by the working choice $\mu(\widehat{Y}_i) \approx f_i$, whereas PPI++ uses the linear approximation $\mu(\widehat{Y}_i) \approx \lambda f_i$ \parencite{ppi_framework, ppi_pp, llmjudge_eif}. In the binary judge setting, the simple special case $f_i=\widehat{Y}_i$ recovers the most familiar form of the estimator. Detailed algebra for these identities is summarized in Appendix~\ref{chap:appendix-a}.
 
 \subsection{Binary Misclassification View and Rogan--Gladen}
 
