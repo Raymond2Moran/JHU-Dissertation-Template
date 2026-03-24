@@ -134,32 +134,134 @@ where the off-diagonal summands are concentrated on edge pairs with $A_{ee'} = 1
 
 \subsection{Design-Effect Approximation and Sample-Size Inflation}
 
-To obtain a tractable first-order sensitivity analysis, suppose the main effect of dependence is to inflate the labeled residual component while leaving the prediction-only term approximately unchanged because $N$ is large. Introduce a design effect $d_{\lambda} \ge 1$ and define the working variance model
-\[
-\Var_{\mathrm{sens}}(\widehat{\theta}_{\lambda})
-=
-d_{\lambda}\frac{\Var(Y-\lambda f)}{n}
-+
-\frac{\lambda^2 \Var(f)}{N}.
-\]
-This is the dependence-sensitive approximation used in the thesis figures. It should be read as a sensitivity model, not a replacement theorem.
+To obtain a tractable first-order sensitivity analysis, suppose the main effect of dependence is to inflate the labeled residual component while leaving the prediction-only term approximately unchanged because $N$ is large. The goal is not to prove a new general dependent-edge theorem. Rather, the goal is to show that once the omitted covariance terms are summarized by a single nonnegative inflation factor, the sample-size inflation rule used in the code follows exactly.
 
-For a two-sided Wald design targeting absolute difference $\Delta$ at significance level $\alpha$ and power $1-\beta$, let
+Let
+\[
+D_{\lambda}
+=
+\Var_{\mathrm{dep}}(\widehat{\theta}_{\lambda})
+-
+\left\{
+\frac{\Var(Y-\lambda f)}{n}
++
+\frac{\lambda^2 \Var(f)}{N}
+\right\}
+\]
+denote the excess variance beyond the published i.i.d. baseline. If $\Var(Y-\lambda f)>0$ and $D_{\lambda}\ge 0$, define the design effect by
+\[
+d_{\lambda}
+=
+1+\frac{n D_{\lambda}}{\Var(Y-\lambda f)}.
+\]
+This representation makes precise what the chapter means by a design effect: it is the scalar that absorbs the omitted dependence-induced covariance terms into the labeled residual variance.
+
+\begin{theorem}[Design-effect representation and sample-size inflation]
+\label{thm:deff-inflation}
+Fix $\lambda \in \mathbb{R}$ and suppose $\Var(Y-\lambda f)>0$. Let
 \[
 S^2
 =
 \left(
 \frac{\Delta}{z_{1-\alpha/2} + z_{1-\beta}}
-\right)^2.
+\right)^2
 \]
-The required labeled sample size is the smallest $n$ such that
+for a two-sided Wald design targeting absolute difference $\Delta$ at significance level $\alpha$ and power $1-\beta$. Assume $D_{\lambda}\ge 0$ and $S^2 > \lambda^2 \Var(f)/N$. Then:
+\begin{enumerate}
+    \item the dependence-aware variance can be written exactly as
+    \[
+    \Var_{\mathrm{dep}}(\widehat{\theta}_{\lambda})
+    =
+    d_{\lambda}\frac{\Var(Y-\lambda f)}{n}
+    +
+    \frac{\lambda^2 \Var(f)}{N},
+    \qquad d_{\lambda}\ge 1;
+    \]
+    \item the smallest \emph{real-valued} labeled sample size satisfying the Wald planning inequality
+    \[
+    \Var_{\mathrm{dep}}(\widehat{\theta}_{\lambda}) \le S^2
+    \]
+    is
+    \[
+    n_{\mathrm{req}}^{\mathrm{dep}}(\lambda; d_{\lambda})
+    =
+    \frac{
+    d_{\lambda}\Var(Y-\lambda f)
+    }{
+    S^2 - \lambda^2 \Var(f)/N
+    };
+    \]
+    \item if
+    \[
+    n_{\mathrm{req}}^{\mathrm{iid}}(\lambda)
+    =
+    \frac{
+    \Var(Y-\lambda f)
+    }{
+    S^2 - \lambda^2 \Var(f)/N
+    }
+    \]
+    denotes the corresponding i.i.d. planning target, then
+    \[
+    n_{\mathrm{req}}^{\mathrm{dep}}(\lambda; d_{\lambda})
+    =
+    d_{\lambda}\, n_{\mathrm{req}}^{\mathrm{iid}}(\lambda).
+    \]
+\end{enumerate}
+If an integer sample size is required in practice, one takes the ceiling of the real-valued expression above.
+\end{theorem}
+
+\begin{proof}
+By the definition of $D_{\lambda}$,
+\[
+\Var_{\mathrm{dep}}(\widehat{\theta}_{\lambda})
+=
+\frac{\Var(Y-\lambda f)}{n}
++
+\frac{\lambda^2 \Var(f)}{N}
++
+D_{\lambda}.
+\]
+Substituting
+\[
+D_{\lambda}
+=
+\frac{(d_{\lambda}-1)\Var(Y-\lambda f)}{n},
+\]
+which follows directly from the definition of $d_{\lambda}$, gives
+\[
+\Var_{\mathrm{dep}}(\widehat{\theta}_{\lambda})
+=
+d_{\lambda}\frac{\Var(Y-\lambda f)}{n}
++
+\frac{\lambda^2 \Var(f)}{N}.
+\]
+Because $D_{\lambda}\ge 0$ and $\Var(Y-\lambda f)>0$, the same definition implies $d_{\lambda}\ge 1$, proving part (1).
+
+For part (2), impose the Wald planning inequality
 \[
 d_{\lambda}\frac{\Var(Y-\lambda f)}{n}
 +
 \frac{\lambda^2 \Var(f)}{N}
 \le S^2.
 \]
-Solving for $n$ gives
+Since $S^2 > \lambda^2 \Var(f)/N$, subtracting the prediction-only term preserves positivity:
+\[
+d_{\lambda}\frac{\Var(Y-\lambda f)}{n}
+\le
+S^2 - \lambda^2 \Var(f)/N.
+\]
+Multiplying both sides by $n$ and dividing by the positive quantity $S^2 - \lambda^2 \Var(f)/N$ yields
+\[
+n
+\ge
+\frac{
+d_{\lambda}\Var(Y-\lambda f)
+}{
+S^2 - \lambda^2 \Var(f)/N
+}.
+\]
+Hence the smallest real-valued $n$ satisfying the inequality is exactly
 \[
 n_{\mathrm{req}}^{\mathrm{dep}}(\lambda; d_{\lambda})
 =
@@ -169,7 +271,9 @@ d_{\lambda}\Var(Y-\lambda f)
 S^2 - \lambda^2 \Var(f)/N
 },
 \]
-provided $S^2 > \lambda^2 \Var(f)/N$. Under the i.i.d. baseline, where $d_{\lambda}=1$,
+which proves part (2).
+
+For part (3), set $d_{\lambda}=1$ in the same expression to obtain the i.i.d. target
 \[
 n_{\mathrm{req}}^{\mathrm{iid}}(\lambda)
 =
@@ -179,13 +283,17 @@ n_{\mathrm{req}}^{\mathrm{iid}}(\lambda)
 S^2 - \lambda^2 \Var(f)/N
 }.
 \]
-Hence
+Factoring this term from the dependence-sensitive expression gives
 \[
 n_{\mathrm{req}}^{\mathrm{dep}}(\lambda; d_{\lambda})
 =
-d_{\lambda}\, n_{\mathrm{req}}^{\mathrm{iid}}(\lambda).
+d_{\lambda}\,
+n_{\mathrm{req}}^{\mathrm{iid}}(\lambda),
 \]
-This identity provides the mathematical justification for the current sensitivity-analysis implementation: once an i.i.d. required labeled sample size is computed for vanilla PPI, estimated-lambda \texttt{PPI++}, or oracle-lambda \texttt{PPI++}, the dependence-sensitive counterpart is obtained by multiplying by the chosen design effect.
+as claimed.
+\end{proof}
+
+Theorem~\ref{thm:deff-inflation} is intentionally modest. It does not claim that one scalar can capture every form of graph dependence. It proves a narrower statement: once the extra covariance induced by shared-protein dependence is represented by a nonnegative scalar inflation on the labeled residual term, the linear sample-size inflation rule used in the current sensitivity-analysis code is algebraically exact rather than heuristic.
 
 \begin{figure}[ht]
 \centering
