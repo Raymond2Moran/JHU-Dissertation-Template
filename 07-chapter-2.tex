@@ -48,6 +48,60 @@ which can improve efficiency when the surrogate is strong \parencite{ppi_framewo
 
 The contribution of \textcite{llmjudge_eif} is to place these estimators in an efficient-influence-function framework. That perspective explains when simple correction rules are efficient, when they are suboptimal, and why a stronger surrogate typically leads to shorter confidence intervals after calibration. For the purposes of this thesis, the main takeaway is that better prediction quality helps twice: it improves point prediction, and it also improves downstream inferential efficiency.
 
+\subsection{Key Formulas for Mean Estimation with a Surrogate Label}
+
+The efficient-influence-function perspective can be written explicitly. Let $R$ be the indicator that the gold-standard label is observed, with $\Pr(R=1)=\pi$, and suppose $R$ is independent of $(Y,\widehat{Y})$. Define
+\[
+\mu(\widehat{Y}) = \mathbb{E}[Y \mid \widehat{Y}].
+\]
+Then the efficient influence function for the mean target $\theta=\mathbb{E}[Y]$ takes the form
+\[
+\phi(O)
+=
+\mu(\widehat{Y}) - \theta
++
+\frac{R}{\pi}\{Y-\mu(\widehat{Y})\},
+\]
+where $O=(R,RY,\widehat{Y})$. The corresponding efficient estimator therefore has the generic residual-correction form
+\[
+\widehat{\theta}(\mu)
+=
+\frac{1}{N}\sum_{i \in U}\mu(\widehat{Y}_i)
++
+\frac{1}{n}\sum_{i \in L}\{Y_i-\mu(\widehat{Y}_i)\}.
+\]
+This equation is the bridge between the semiparametric theory and the practical estimators used later in the thesis. Standard PPI is obtained by the working choice $\mu(\widehat{Y}) \approx \widehat{Y}$, whereas PPI++ uses the linear approximation $\mu(\widehat{Y}) \approx \lambda \widehat{Y}$ \parencite{ppi_framework, ppi_pp, llmjudge_eif}. Detailed algebra for these identities is summarized in Appendix~\ref{chap:appendix-a}.
+
+\subsection{Binary Misclassification View and Rogan--Gladen}
+
+The direct measurement-error view can also be written explicitly in the binary case. Let
+\[
+q_0 = \Pr(\widehat{Y}=0 \mid Y=0),
+\qquad
+q_1 = \Pr(\widehat{Y}=1 \mid Y=1),
+\qquad
+p = \Pr(\widehat{Y}=1).
+\]
+Then
+\[
+p
+=
+\Pr(\widehat{Y}=1 \mid Y=0)\Pr(Y=0)
++
+\Pr(\widehat{Y}=1 \mid Y=1)\Pr(Y=1)
+=
+(1-q_0)(1-\theta)+q_1\theta,
+\]
+which simplifies to
+\[
+p = (q_0+q_1-1)\theta + (1-q_0).
+\]
+Solving for $\theta$ yields the Rogan--Gladen identity
+\[
+\theta = \frac{p+q_0-1}{q_0+q_1-1}.
+\]
+This is the classical correction formula against which residual-correction estimators such as PPI and PPI++ are compared in the LLM-as-a-judge paper \parencite{rogan_gladen, llmjudge_eif}. In the protein chapters, I do not use this binary misclassification model directly, but it remains a useful conceptual reference point.
+
 \section{Bridge to the Protein Application}
 
 The rest of the thesis uses the same general template in a different scientific setting. The protein-edge predictor produces the surrogate, the experimentally labeled subset provides calibration, and prediction-powered procedures deliver corrected summaries with uncertainty quantification. The next chapter adds the second methodological foundation needed for that pipeline: labeled-sample planning and power analysis under prediction-powered inference \parencite{ppi_power}.

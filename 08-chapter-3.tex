@@ -4,14 +4,94 @@ This chapter summarizes the second methodological foundation used in the thesis,
 
 \section{Mean-Type Planning Setup}
 
-The planning problem in \textcite{ppi_power} is stated for a scalar estimand such as a mean or proportion. Let $Y$ denote the target outcome, let $f(X)$ denote a prediction or surrogate, let $n$ denote the number of labeled observations, and let $N$ denote the number of unlabeled observations with predictions only. For a tuning parameter $\lambda$, the large-sample variance of a mean-type PPI/PPI++ estimator is of the form
+The planning problem in \textcite{ppi_power} is stated for a scalar estimand such as a mean or proportion. Let
+\[
+\theta = \mathbb{E}[Y]
+\]
+be the target parameter, let $f(X)$ denote a prediction or surrogate, let $L$ be a labeled calibration sample of size $n$, and let $U$ be a prediction-only sample of size $N$. For the one-sample mean setting, the basic PPI estimator is
+\[
+\widehat{\theta}_{\mathrm{PPI}}
+=
+\frac{1}{N}\sum_{j \in U} f_j
++
+\frac{1}{n}\sum_{i \in L}(Y_i-f_i),
+\]
+which is unbiased because $\theta = \mathbb{E}[f(X)] + \mathbb{E}[Y-f(X)]$.
+
+Power-tuned PPI introduces the one-parameter family
+\[
+\widehat{\theta}_{\lambda}
+=
+\overline{Y}_{L}
++
+\lambda(\overline{f}_{U}-\overline{f}_{L}),
+\]
+where $\lambda=1$ recovers vanilla PPI. Under the working i.i.d.\ setup of \textcite{ppi_power}, $\widehat{\theta}_{\lambda}$ remains unbiased for any fixed $\lambda$ that is independent of the labeled outcomes. The main design question is therefore not bias correction, but variance reduction.
+
+\subsection{Variance Expansion and the Role of \texorpdfstring{$\lambda$}{lambda}}
+
+For fixed $\lambda$, the large-sample variance of the mean-type PPI/PPI++ estimator can be written as
 \[
 \mathrm{Var}(\widehat{\theta}_{\lambda}) \approx
 \frac{\mathrm{Var}(Y - \lambda f)}{n}
 +
 \frac{\lambda^2 \mathrm{Var}(f)}{N}.
 \]
-This expression makes the planning intuition transparent. Better predictions reduce the labeled-sample contribution through the residual term $Y - \lambda f$, and a larger prediction-only sample reduces the second term. In that sense, the chapter extends the core logic of prediction-powered inference from point estimation to study design \parencite{ppi_framework, ppi_pp, ppi_power}.
+Expanding the first term gives the equivalent form
+\[
+\mathrm{Var}(\widehat{\theta}_{\lambda})
+\approx
+\frac{\mathrm{Var}(Y)}{n}
++
+\lambda^2 \mathrm{Var}(f)\left(\frac{1}{n}+\frac{1}{N}\right)
+-
+\frac{2\lambda\,\mathrm{Cov}(Y,f)}{n}.
+\]
+This display makes the role of $\lambda$ concrete. A larger $\lambda$ puts more weight on the prediction-only sample, which can help if $f$ is strongly correlated with $Y$, but can hurt if the added prediction variability dominates the covariance gain. The optimal balance is obtained by minimizing the variance with respect to $\lambda$.
+
+Differentiating the variance expression and setting the derivative to zero yields
+\[
+\lambda^\star
+=
+\frac{\mathrm{Cov}(Y,f)}
+{\mathrm{Var}(f)\left(1+\frac{n}{N}\right)}.
+\]
+If the labeled-to-unlabeled ratio is defined as
+\[
+r = \frac{n}{N},
+\]
+then the oracle tuning parameter can be written more compactly as
+\[
+\lambda^\star
+=
+\frac{\mathrm{Cov}(Y,f)}
+{\mathrm{Var}(f)(1+r)}.
+\]
+Substituting $\lambda^\star$ back into the variance formula gives
+\[
+\mathrm{Var}(\widehat{\theta}_{\lambda^\star})
+\approx
+\frac{\mathrm{Var}(Y)}{n}
+-
+\frac{\mathrm{Cov}(Y,f)^2}{\mathrm{Var}(f)}
+\frac{N}{n(n+N)}.
+\]
+Writing $\rho_{Yf} = \mathrm{Corr}(Y,f)$ yields the equivalent expression
+\[
+\mathrm{Var}(\widehat{\theta}_{\lambda^\star})
+\approx
+\frac{\mathrm{Var}(Y)}{n}
+\left(
+1-\frac{\rho_{Yf}^2}{1+r}
+\right).
+\]
+This is the key planning formula in the one-sample mean setting. It shows explicitly that stronger predictions reduce the labeled-sample requirement through the squared correlation between the surrogate and the truth. When $N$ is much larger than $n$, so that $r \approx 0$, the expression reduces to the familiar rule-of-thumb
+\[
+\mathrm{Var}(\widehat{\theta}_{\lambda^\star})
+\approx
+\frac{\mathrm{Var}(Y)}{n}(1-\rho_{Yf}^2),
+\]
+which says that the proportional reduction in required labeled sample size is approximately an $R^2$ gain \parencite{ppi_power}. Appendix~\ref{chap:appendix-a} collects the algebra for the variance expansion and the oracle-$\lambda$ minimization.
 
 \section{Connection to the Broader Efficiency Literature}
 
@@ -21,11 +101,34 @@ The three planning modes emphasized in the preprint are therefore natural rather
 
 \section{Wald Inversion and Required Labeled Sample Size}
 
-For a target difference $\delta$ and a two-sided level-$\alpha$ test with desired power $1-\beta$, the planning rule in \textcite{ppi_power} is based on Wald inversion. In the mean case, the key object is the target variance scale
+For a target difference $\delta$ and a two-sided level-$\alpha$ test with desired power $1-\beta$, the planning rule in \textcite{ppi_power} is based on Wald inversion. Consider the one-sample hypothesis
+\[
+H_0:\theta=\theta_0
+\qquad\text{versus}\qquad
+H_1:\theta=\theta_0+\delta.
+\]
+The key object is the target variance scale
 \[
 S^2 = \left( \frac{\delta}{z_{1-\alpha/2} + z_{1-\beta}} \right)^2,
 \]
-and the required labeled sample size is the smallest $n$ for which the asymptotic variance of the prediction-powered estimator is below this threshold. The practical consequence is that sample-size savings can be tied directly to predictive quality, often through rule-of-thumb relationships that behave like an $R^2$-type gain.
+and the required labeled sample size is the smallest $n$ for which the asymptotic variance of the prediction-powered estimator is below this threshold:
+\[
+\mathrm{Var}(\widehat{\theta}_{\lambda}) \le S^2.
+\]
+If $\lambda$ is treated as fixed, this inequality can be rearranged directly to give
+\[
+n_{\mathrm{req}}(\lambda)
+=
+\frac{\mathrm{Var}(Y-\lambda f)}
+{S^2-\lambda^2\mathrm{Var}(f)/N},
+\]
+provided the denominator is positive. This expression clarifies the three planning modes used later in the thesis:
+\begin{enumerate}
+    \item vanilla PPI fixes $\lambda=1$,
+    \item estimated-lambda PPI++ plugs in a pilot estimate $\widehat{\lambda}$, and
+    \item oracle-lambda PPI++ uses the variance-minimizing choice $\lambda^\star$.
+\end{enumerate}
+The oracle case is slightly more delicate because $\lambda^\star$ itself depends on $n$ through the ratio $r=n/N$. The resulting sample-size condition is therefore a quadratic inequality rather than a simple linear inversion. The closed-form solution is given in \textcite{ppi_power}; in the thesis code, the same planning logic is implemented numerically for transparency and flexibility. Additional algebra is collected in Appendix~\ref{chap:appendix-a}.
 
 \section{Assumptions and Scope}
 
