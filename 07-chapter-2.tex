@@ -1,4 +1,4 @@
-\chapter{Foundation I: Efficient Inference for Noisy LLM-as-a-Judge Evaluation} \label{chap:foundation_llm}
+\chapter{Prior Work I: Efficient Inference for Noisy LLM-as-a-Judge Evaluation} \label{chap:foundation_llm}
 
 This chapter summarizes the first methodological foundation used in the thesis, the preprint \emph{Efficient Inference for Noisy LLM-as-a-Judge Evaluation} \parencite{llmjudge_eif}. It should be read as a direct extension of the original prediction-powered inference line: the starting point is the PPI/\texttt{PPI++} estimator family, and the new question is what happens when the cheap label is itself noisy, biased, or better interpreted as a surrogate outcome rather than as a clean prediction target. Although the paper is motivated by LLM-as-a-judge evaluation, its core statistical structure is directly relevant here: a large set of cheap surrogate labels is available for many units, while a smaller calibration set contains both the surrogate and the gold-standard outcome.
 
