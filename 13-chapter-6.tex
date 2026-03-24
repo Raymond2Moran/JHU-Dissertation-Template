@@ -11,7 +11,7 @@ In the current repository, that applied pipeline culminates in a sequence-plus-t
 Three conclusions are most important.
 \begin{enumerate}
     \item \textbf{Strong surrogates can be built for protein-edge prediction.} The best-performing model in the current workspace is not a single classical classifier but a merged-pool neural attention ensemble using both sequence and text information.
-    \item \textbf{Prediction-powered inference works well once the surrogate is strong.} For the frozen best model, PPI/PPI++ estimates on the main test splits remain close to the full-data references even when the calibration budget is limited.
+    \item \textbf{Prediction-powered inference works well once the surrogate is strong.} For the frozen best model, PPI/\texttt{PPI++} estimates on the main test splits remain close to the full-data references even when the calibration budget is limited.
     \item \textbf{Independence assumptions matter in graph-structured PPI data.} The published i.i.d. planning formulas are still useful, but their apparent sample-size savings should be interpreted as baseline results rather than dependence-robust guarantees.
 \end{enumerate}
 

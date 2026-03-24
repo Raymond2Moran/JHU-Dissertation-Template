@@ -1,53 +1,20 @@
 \chapter{Foundation I: Efficient Inference for Noisy LLM-as-a-Judge Evaluation} \label{chap:foundation_llm}
 
-This chapter summarizes the first methodological foundation used in the thesis, the preprint \emph{Efficient Inference for Noisy LLM-as-a-Judge Evaluation} \parencite{llmjudge_eif}. It should be read as a direct extension of the original prediction-powered inference line: the starting point is the PPI/PPI++ estimator family, and the new question is what happens when the cheap label is itself noisy, biased, or better interpreted as a surrogate outcome rather than as a clean prediction target. Although the paper is motivated by LLM-as-a-judge evaluation, its core statistical structure is directly relevant here: a large set of cheap surrogate labels is available for many units, while a smaller calibration set contains both the surrogate and the gold-standard outcome.
+This chapter summarizes the first methodological foundation used in the thesis, the preprint \emph{Efficient Inference for Noisy LLM-as-a-Judge Evaluation} \parencite{llmjudge_eif}. It should be read as a direct extension of the original prediction-powered inference line: the starting point is the PPI/\texttt{PPI++} estimator family, and the new question is what happens when the cheap label is itself noisy, biased, or better interpreted as a surrogate outcome rather than as a clean prediction target. Although the paper is motivated by LLM-as-a-judge evaluation, its core statistical structure is directly relevant here: a large set of cheap surrogate labels is available for many units, while a smaller calibration set contains both the surrogate and the gold-standard outcome.
 
 \section{Statistical Setup and Notation}
 
-This section fixes notation that will be used throughout the rest of the thesis. For each unit $i$, let
-\[
-Y_i
-\]
-denote the gold-standard outcome of interest and let
-\[
-\widehat{Y}_i
-\]
-denote a cheap surrogate label. In this chapter, $\widehat{Y}_i$ is the LLM-as-a-judge label studied in \textcite{llmjudge_eif}. In the later protein chapters, the same statistical role is played by a model-based edge prediction score, written as $f_i=f(X_i)$. The point is that the mathematical structure is the same even when the scientific interpretation changes.
+This section fixes notation that will be used throughout the rest of the thesis. For each unit \(i\), let \(Y_i\) denote the gold-standard outcome of interest and let \(\widehat{Y}_i\) denote a cheap surrogate label. In this chapter, \(\widehat{Y}_i\) is the LLM-as-a-judge label studied in \textcite{llmjudge_eif}. In the later protein chapters, the same statistical role is played by a model-based edge prediction score, written as \(f_i=f(X_i)\). The point is that the mathematical structure is the same even when the scientific interpretation changes.
 
-Let
-\[
-R_i \in \{0,1\}
-\]
-indicate whether the gold-standard label is observed for unit $i$, and write
-\[
-\pi = \Pr(R_i=1).
-\]
+Let \(R_i \in \{0,1\}\) indicate whether the gold-standard label is observed for unit \(i\), and write \(\pi = \Pr(R_i=1)\).
 The data are split into two parts:
 \begin{enumerate}
     \item a large prediction-only set $U = \{i:R_i=0\}$ of size $N$, on which only the surrogate is available, and
     \item a smaller labeled calibration set $L = \{i:R_i=1\}$ of size $n$, on which both the gold label and the surrogate are observed.
 \end{enumerate}
-The inferential goal is to estimate a mean-type target parameter
-\[
-\theta = \mathbb{E}[Y_i],
-\]
-while using the large prediction-only sample to reduce variance and the smaller labeled sample to correct bias. For any quantity $A_i$, write
-\[
-\overline{A}_{U}=\frac{1}{N}\sum_{i\in U}A_i,
-\qquad
-\overline{A}_{L}=\frac{1}{n}\sum_{i\in L}A_i.
-\]
-When the surrogate is continuous or model-based, the notation
-\[
-\mu(\widehat{Y}_i)=\mathbb{E}[Y_i\mid \widehat{Y}_i]
-\]
-denotes the calibration function linking the cheap label to the gold-standard outcome.
+The inferential goal is to estimate a mean-type target parameter \(\theta = \mathbb{E}[Y_i]\), while using the large prediction-only sample to reduce variance and the smaller labeled sample to correct bias. For any quantity \(A_i\), write \(\overline{A}_{U}=\frac{1}{N}\sum_{i\in U}A_i\) and \(\overline{A}_{L}=\frac{1}{n}\sum_{i\in L}A_i\). When the surrogate is continuous or model-based, the notation \(\mu(\widehat{Y}_i)=\mathbb{E}[Y_i\mid \widehat{Y}_i]\) denotes the calibration function linking the cheap label to the gold-standard outcome.
 
-To keep the rest of the thesis consistent, I use the additional shorthand
-\[
-f_i=f(X_i)
-\]
-for a generic surrogate prediction. In the LLM-as-a-judge setting, one can read $f_i$ as a working model for the information contained in $\widehat{Y}_i$; in the later protein chapters, $f_i$ is the learned edge-prediction score itself. With that notation, the same estimator formulas can be reused across chapters without changing their statistical meaning.
+To keep the rest of the thesis consistent, I use the additional shorthand \(f_i=f(X_i)\) for a generic surrogate prediction. In the LLM-as-a-judge setting, one can read \(f_i\) as a working model for the information contained in \(\widehat{Y}_i\); in the later protein chapters, \(f_i\) is the learned edge-prediction score itself. With that notation, the same estimator formulas can be reused across chapters without changing their statistical meaning.
 
 This setup can also be viewed as a missing-data problem: the target outcome $Y_i$ is observed only on the calibration set, while the surrogate is observed for everyone \parencite{rubin1976, tsiatis2006, robins1995}. The paper compares two broad correction strategies. The first treats $\widehat{Y}$ as a mismeasured version of $Y$ and uses direct measurement-error correction, such as Rogan--Gladen-style estimators. The second treats $\widehat{Y}$ as a generic surrogate outcome and uses prediction-powered correction based on calibration residuals. The central message is that these views can be unified through efficient influence functions and semiparametric efficiency \parencite{rogan_gladen, eif_ref, tsiatis2006, llmjudge_eif}.
 
@@ -74,7 +41,7 @@ The cleanest way to see the relationship between the original PPI papers and the
 \[
 \widehat{\theta}_{\mathrm{PPI}} = \overline{f}_{U} + \frac{1}{n} \sum_{i \in L} \{Y_i - f_i\},
 \]
-where $f_i$ is the surrogate prediction, $L$ denotes the labeled calibration set, and $U$ denotes the large unlabeled set. PPI++ introduces a tuning parameter $\lambda$,
+where $f_i$ is the surrogate prediction, $L$ denotes the labeled calibration set, and $U$ denotes the large unlabeled set. \texttt{PPI++} introduces a tuning parameter $\lambda$,
 \[
 \widehat{\theta}_{\lambda} = \overline{Y}_{L} + \lambda\, (\overline{f}_{U} - \overline{f}_{L}),
 \]
@@ -84,10 +51,7 @@ The contribution of \textcite{llmjudge_eif} is to place these estimators in an e
 
 \subsection{Key Formulas for Mean Estimation with a Surrogate Label}
 
-The efficient-influence-function perspective can be written explicitly. Let $R$ be the indicator that the gold-standard label is observed, with $\Pr(R=1)=\pi$, and suppose $R$ is independent of $(Y,\widehat{Y})$. Define
-\[
-\mu(\widehat{Y}) = \mathbb{E}[Y \mid \widehat{Y}].
-\]
+The efficient-influence-function perspective can be written explicitly. Let $R$ be the indicator that the gold-standard label is observed, with $\Pr(R=1)=\pi$, and suppose $R$ is independent of $(Y,\widehat{Y})$. Define \(\mu(\widehat{Y}) = \mathbb{E}[Y \mid \widehat{Y}]\).
 Then the efficient influence function for the mean target $\theta=\mathbb{E}[Y]$ takes the form
 \[
 \phi(O)
@@ -104,18 +68,11 @@ where $O=(R,RY,\widehat{Y})$. The corresponding efficient estimator therefore ha
 +
 \frac{1}{n}\sum_{i \in L}\{Y_i-\mu(\widehat{Y}_i)\}.
 \]
-This equation is the bridge between the semiparametric theory and the practical estimators used later in the thesis. Standard PPI is obtained by the working choice $\mu(\widehat{Y}_i) \approx f_i$, whereas PPI++ uses the linear approximation $\mu(\widehat{Y}_i) \approx \lambda f_i$ \parencite{ppi_framework, ppi_pp, llmjudge_eif}. In the binary judge setting, the simple special case $f_i=\widehat{Y}_i$ recovers the most familiar form of the estimator. Detailed algebra for these identities is summarized in Appendix~\ref{chap:appendix-a}.
+This equation is the bridge between the semiparametric theory and the practical estimators used later in the thesis. Standard PPI is obtained by the working choice $\mu(\widehat{Y}_i) \approx f_i$, whereas \texttt{PPI++} uses the linear approximation $\mu(\widehat{Y}_i) \approx \lambda f_i$ \parencite{ppi_framework, ppi_pp, llmjudge_eif}. In the binary judge setting, the simple special case $f_i=\widehat{Y}_i$ recovers the most familiar form of the estimator. Detailed algebra for these identities is summarized in Appendix~\ref{chap:appendix-a}.
 
 \subsection{Binary Misclassification View and Rogan--Gladen}
 
-The direct measurement-error view can also be written explicitly in the binary case. Let
-\[
-q_0 = \Pr(\widehat{Y}=0 \mid Y=0),
-\qquad
-q_1 = \Pr(\widehat{Y}=1 \mid Y=1),
-\qquad
-p = \Pr(\widehat{Y}=1).
-\]
+The direct measurement-error view can also be written explicitly in the binary case. Let \(q_0 = \Pr(\widehat{Y}=0 \mid Y=0)\), \(q_1 = \Pr(\widehat{Y}=1 \mid Y=1)\), and \(p = \Pr(\widehat{Y}=1)\).
 Then
 \[
 p
@@ -134,7 +91,7 @@ Solving for $\theta$ yields the Rogan--Gladen identity
 \[
 \theta = \frac{p+q_0-1}{q_0+q_1-1}.
 \]
-This is the classical correction formula against which residual-correction estimators such as PPI and PPI++ are compared in the LLM-as-a-judge paper \parencite{rogan_gladen, llmjudge_eif}. In the protein chapters, I do not use this binary misclassification model directly, but it remains a useful conceptual reference point.
+This is the classical correction formula against which residual-correction estimators such as PPI and \texttt{PPI++} are compared in the LLM-as-a-judge paper \parencite{rogan_gladen, llmjudge_eif}. In the protein chapters, I do not use this binary misclassification model directly, but it remains a useful conceptual reference point.
 
 \section{Bridge to the Protein Application}
 

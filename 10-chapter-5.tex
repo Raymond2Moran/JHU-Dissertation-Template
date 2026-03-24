@@ -1,6 +1,6 @@
-\chapter{Protein Results, PPI/PPI++, and Dependence Sensitivity} \label{chap:protein_results}
+\chapter{Protein Results, PPI/\texttt{PPI++}, and Dependence Sensitivity} \label{chap:protein_results}
 
-This chapter reports the protein-specific empirical results. The discussion is organized in three layers. First, it summarizes the predictive performance of the actual mainline surrogate. Second, it shows how the canonical exported predictions are passed into PPI/PPI++ estimation. Third, it examines power/sample-size planning under the published i.i.d. formulas and then adds a dependence-sensitive extension motivated by shared-protein edges.
+This chapter reports the protein-specific empirical results. The discussion is organized in three layers. First, it summarizes the predictive performance of the actual mainline surrogate. Second, it shows how the canonical exported predictions are passed into PPI/\texttt{PPI++} estimation. Third, it examines power/sample-size planning under the published i.i.d. formulas and then adds a dependence-sensitive extension motivated by shared-protein edges.
 
 \section{Prediction Layer: Mainline Performance}
 
@@ -13,7 +13,7 @@ Relative to the best single attention seed, the ensemble improves stability and 
 
 This interpretation is consistent with the recent PPI-prediction literature. Deep sequence models and protein-language-model-based approaches can achieve strong within-dataset performance, but their apparent gains are strongly shaped by benchmark design, negative sampling, and leakage control \parencite{dscript2021, xcapt52024, park2012, bernett2024}. For that reason, the current thesis treats the predictive pipeline primarily as a source of a high-quality surrogate for downstream inference, not as a claim of universal state-of-the-art performance against every published PPI benchmark.
 
-\section{Inference Layer: Canonical Export and PPI/PPI++}
+\section{Inference Layer: Canonical Export and PPI/\texttt{PPI++}}
 
 All inference in this thesis is driven by the canonical prediction export rather than the raw training outputs. The handoff is:
 \begin{enumerate}
@@ -25,7 +25,7 @@ All inference in this thesis is driven by the canonical prediction export rather
 
 This separation mirrors the statistical distinction emphasized in the prediction-powered literature: prediction and inference are related, but they are not the same object \parencite{ppi_framework, ppi_pp, llmjudge_eif}. The predictor supplies a scalable surrogate, whereas the calibration set corrects the residual bias and enables uncertainty quantification.
 
-Figure~\ref{fig:chap5_ppi_budget} shows the main PPI/PPI++ summaries on the two test splits. Even at small calibration budgets, the estimated prevalence-, accuracy-, and error-type functionals remain close to the full-data references, which indicates that the frozen surrogate is strong enough to support stable correction with limited labels.
+Figure~\ref{fig:chap5_ppi_budget} shows the main PPI/\texttt{PPI++} summaries on the two test splits. Even at small calibration budgets, the estimated prevalence-, accuracy-, and error-type functionals remain close to the full-data references, which indicates that the frozen surrogate is strong enough to support stable correction with limited labels.
 
 \begin{figure}[ht]
 \centering
@@ -43,7 +43,7 @@ Figure~\ref{fig:chap5_confusion} extends this view to nonlinear summaries derive
 \label{fig:chap5_confusion}
 \end{figure}
 
-A notable empirical result is that PPI and PPI++ are close to one another in this frozen run. This does not imply that the tuning parameter is unimportant in general. Rather, it indicates that the current surrogate is already strong enough that the additional gain from tuning $\lambda$ is moderate for these mean-type targets, which is qualitatively in line with the theory behind PPI++ \parencite{ppi_pp, ppi_power}.
+A notable empirical result is that PPI and \texttt{PPI++} are close to one another in this frozen run. This does not imply that the tuning parameter is unimportant in general. Rather, it indicates that the current surrogate is already strong enough that the additional gain from tuning $\lambda$ is moderate for these mean-type targets, which is qualitatively in line with the theory behind \texttt{PPI++} \parencite{ppi_pp, ppi_power}.
 
 \section{Planning Layer: I.I.D. Power and Sample-Size Baseline}
 
@@ -52,11 +52,11 @@ The current thesis code uses the planning formulas from Chapter~\ref{chap:founda
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.93\textwidth]{chap5_required_n_curves_zoom.png}
-\caption{i.i.d. prediction-powered planning curves for the frozen attention ensemble. The three lines correspond to vanilla PPI, estimated-lambda PPI++, and oracle-lambda PPI++. The inset highlights the right end of the curve near $\Delta = 0.10$.}
+\caption{i.i.d. prediction-powered planning curves for the frozen attention ensemble. The three lines correspond to vanilla PPI, estimated-lambda \texttt{PPI++}, and oracle-lambda \texttt{PPI++}. The inset highlights the right end of the curve near $\Delta = 0.10$.}
 \label{fig:chap5_power_iid}
 \end{figure}
 
-The i.i.d. planning results show the expected ordering. At $\Delta = 0.10$, the required labeled sample sizes are 286 for vanilla PPI, 186 for estimated-lambda PPI++, and 182 for oracle-lambda PPI++. At $\Delta = 0.05$, the corresponding values are 1155, 743, and 727. These numbers quantify the label-efficiency gains that come from using a strong surrogate in the published prediction-powered planning framework \parencite{ppi_power}.
+The i.i.d. planning results show the expected ordering. At $\Delta = 0.10$, the required labeled sample sizes are 286 for vanilla PPI, 186 for estimated-lambda \texttt{PPI++}, and 182 for oracle-lambda \texttt{PPI++}. At $\Delta = 0.05$, the corresponding values are 1155, 743, and 727. These numbers quantify the label-efficiency gains that come from using a strong surrogate in the published prediction-powered planning framework \parencite{ppi_power}.
 
 \section{Dependence Sensitivity for Shared-Protein Edges}
 
@@ -185,7 +185,7 @@ n_{\mathrm{req}}^{\mathrm{dep}}(\lambda; d_{\lambda})
 =
 d_{\lambda}\, n_{\mathrm{req}}^{\mathrm{iid}}(\lambda).
 \]
-This identity provides the mathematical justification for the current sensitivity-analysis implementation: once an i.i.d. required labeled sample size is computed for vanilla PPI, estimated-lambda PPI++, or oracle-lambda PPI++, the dependence-sensitive counterpart is obtained by multiplying by the chosen design effect.
+This identity provides the mathematical justification for the current sensitivity-analysis implementation: once an i.i.d. required labeled sample size is computed for vanilla PPI, estimated-lambda \texttt{PPI++}, or oracle-lambda \texttt{PPI++}, the dependence-sensitive counterpart is obtained by multiplying by the chosen design effect.
 
 \begin{figure}[ht]
 \centering
@@ -194,8 +194,8 @@ This identity provides the mathematical justification for the current sensitivit
 \label{fig:chap5_power_dependence}
 \end{figure}
 
-The substantive implication is straightforward. The i.i.d. formulas remain useful as a baseline, but they should be read as optimistic when shared-protein dependence is non-negligible. The stronger the local dependence, the less dramatic the apparent label savings from PPI/PPI++ become. This is the main protein-specific extension of the chapter: the point estimator is unchanged, but the variance interpretation and planning conclusions become dependence-sensitive.
+The substantive implication is straightforward. The i.i.d. formulas remain useful as a baseline, but they should be read as optimistic when shared-protein dependence is non-negligible. The stronger the local dependence, the less dramatic the apparent label savings from PPI/\texttt{PPI++} become. This is the main protein-specific extension of the chapter: the point estimator is unchanged, but the variance interpretation and planning conclusions become dependence-sensitive.
 
 \section{Chapter Summary}
 
-The protein results support a coherent three-layer message. First, the attention-ensemble branch is the strongest current surrogate in the repository. Second, the exported predictions from that surrogate are good enough that PPI/PPI++ estimates remain stable under modest calibration budgets. Third, the published power formulas provide a useful baseline, but graph-induced dependence should be treated as a real caveat in PPI applications rather than ignored. Existing PPI-prediction papers are still useful points of comparison, but only when their evaluation protocols are interpreted with the same caution demanded by the pair-input benchmarking literature \parencite{lee2023, park2012, bernett2024}.
+The protein results support a coherent three-layer message. First, the attention-ensemble branch is the strongest current surrogate in the repository. Second, the exported predictions from that surrogate are good enough that PPI/\texttt{PPI++} estimates remain stable under modest calibration budgets. Third, the published power formulas provide a useful baseline, but graph-induced dependence should be treated as a real caveat in PPI applications rather than ignored. Existing PPI-prediction papers are still useful points of comparison, but only when their evaluation protocols are interpreted with the same caution demanded by the pair-input benchmarking literature \parencite{lee2023, park2012, bernett2024}.

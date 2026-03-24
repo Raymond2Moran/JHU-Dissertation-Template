@@ -11,20 +11,7 @@ This appendix collects short algebraic derivations that support the main formula
 
 \section{Residual-Correction Identity Behind Prediction-Powered Estimation}
 
-Chapter~\ref{chap:foundation_llm} uses the efficient-influence-function perspective for mean estimation with a surrogate label. Let $R$ indicate whether the gold-standard outcome $Y$ is observed, with
-\[
-\Pr(R=1)=\pi,
-\]
-and assume that $R$ is independent of $(Y,\widehat{Y})$. Define
-\[
-\mu(\widehat{Y})=\mathbb{E}[Y\mid \widehat{Y}].
-\]
-Then
-\[
-\theta=\mathbb{E}[Y]
-=
-\mathbb{E}\{\mu(\widehat{Y})\}+\mathbb{E}\{Y-\mu(\widehat{Y})\}.
-\]
+Chapter~\ref{chap:foundation_llm} uses the efficient-influence-function perspective for mean estimation with a surrogate label. Let $R$ indicate whether the gold-standard outcome $Y$ is observed, with \(\Pr(R=1)=\pi\), and assume that $R$ is independent of $(Y,\widehat{Y})$. Define \(\mu(\widehat{Y})=\mathbb{E}[Y\mid \widehat{Y}]\). Then \(\theta=\mathbb{E}[Y]=\mathbb{E}\{\mu(\widehat{Y})\}+\mathbb{E}\{Y-\mu(\widehat{Y})\}\).
 Because $R$ is independent of $(Y,\widehat{Y})$ and $\mathbb{E}[R]=\pi$,
 \[
 \mathbb{E}\left[
@@ -61,20 +48,11 @@ Replacing expectations by sample averages yields the generic residual-correction
 +
 \frac{1}{n}\sum_{i\in L}\{Y_i-\mu(\widehat{Y}_i)\}.
 \]
-Standard PPI corresponds to the working approximation $\mu(\widehat{Y})\approx \widehat{Y}$, while linear PPI++ corresponds to $\mu(\widehat{Y})\approx \lambda \widehat{Y}$.
+Standard PPI corresponds to the working approximation $\mu(\widehat{Y})\approx \widehat{Y}$, while linear \texttt{PPI++} corresponds to $\mu(\widehat{Y})\approx \lambda \widehat{Y}$.
 
 \section{Rogan--Gladen Algebra for the Binary Misclassification Model}
 
-Suppose $Y,\widehat{Y}\in\{0,1\}$ and define
-\[
-\theta = \Pr(Y=1),\qquad
-q_0=\Pr(\widehat{Y}=0\mid Y=0),\qquad
-q_1=\Pr(\widehat{Y}=1\mid Y=1),
-\]
-along with the observed surrogate prevalence
-\[
-p=\Pr(\widehat{Y}=1).
-\]
+Suppose $Y,\widehat{Y}\in\{0,1\}$ and define \(\theta = \Pr(Y=1)\), \(q_0=\Pr(\widehat{Y}=0\mid Y=0)\), and \(q_1=\Pr(\widehat{Y}=1\mid Y=1)\), along with the observed surrogate prevalence \(p=\Pr(\widehat{Y}=1)\).
 Using the law of total probability,
 \begin{align*}
 p
@@ -97,7 +75,7 @@ and therefore
 \]
 This is the Rogan--Gladen identity used in Chapter~\ref{chap:foundation_llm}. Its stability depends directly on the denominator $q_0+q_1-1$, which explains why the estimator becomes unstable when the surrogate label is only weakly informative.
 
-\section{Mean \texorpdfstring{PPI++}{PPI++} Variance and the Oracle \texorpdfstring{$\lambda$}{lambda}}
+\section{Mean \texorpdfstring{\texttt{PPI++}}{PPI++} Variance and the Oracle \texorpdfstring{$\lambda$}{lambda}}
 
 Chapter~\ref{chap:foundation_power} uses the one-sample mean estimator
 \[
@@ -178,13 +156,7 @@ Substituting $\lambda^\star$ into the variance gives
 \frac{\Cov(Y,f)^2}{\Var(f)}
 \frac{N}{n(n+N)}.
 \]
-If one writes
-\[
-\rho_{Yf}=\Corr(Y,f),
-\qquad
-r=\frac{n}{N},
-\]
-then the same expression becomes
+If one writes \(\rho_{Yf}=\Corr(Y,f)\) and \(r=\frac{n}{N}\), then the same expression becomes
 \[
 \Var(\widehat{\theta}_{\lambda^\star})
 =
@@ -209,13 +181,7 @@ H_0:\theta=\theta_0
 \qquad\text{versus}\qquad
 H_1:\theta=\theta_0+\delta.
 \]
-Define the target variance scale
-\[
-S^2=
-\left(
-\frac{\delta}{z_{1-\alpha/2}+z_{1-\beta}}
-\right)^2.
-\]
+Define the target variance scale \(S^2=\left(\frac{\delta}{z_{1-\alpha/2}+z_{1-\beta}}\right)^2\).
 The planning rule is to choose the smallest labeled sample size such that
 \[
 \Var(\widehat{\theta}_{\lambda})\le S^2.
@@ -237,7 +203,7 @@ n
 \frac{\Var(Y-\lambda f)}
 {S^2-\lambda^2\Var(f)/N},
 \]
-provided $S^2>\lambda^2\Var(f)/N$. This is the direct inversion used for vanilla PPI ($\lambda=1$) and for fixed plug-in PPI++ using an estimated $\widehat{\lambda}$.
+provided $S^2>\lambda^2\Var(f)/N$. This is the direct inversion used for vanilla PPI ($\lambda=1$) and for fixed plug-in \texttt{PPI++} using an estimated $\widehat{\lambda}$.
 
 \subsection{Oracle-\texorpdfstring{$\lambda$}{lambda} inversion}
 
