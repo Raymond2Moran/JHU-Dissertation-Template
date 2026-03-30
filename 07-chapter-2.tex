@@ -5,7 +5,7 @@ This chapter summarizes the first methodological foundation used in the thesis, 
 \section{Global Statistical Setup and Notation}
 \label{sec:global_notation}
 
-This section fixes the notation used throughout the remainder of the thesis. The same symbols are reused in the methodological foundation chapters and in the later protein-edge application; what changes from chapter to chapter is the scientific interpretation of a ``unit,'' not the statistical structure.
+This section fixes the notation used throughout the remainder of the thesis. The same symbols are reused in the methodological foundation chapters and in the later protein-edge application; what changes from chapter to chapter is the scientific interpretation of a ``unit'', not the statistical structure.
 
 \paragraph{Generic unit-level notation.}
 Index generic units by \(i\). Let \(X_i\) denote the raw input or feature vector associated with unit \(i\), let \(Y_i\) denote the gold-standard outcome of interest, and let \(\widehat{Y}_i\) denote a cheap observed surrogate label when such a surrogate is directly recorded. In the LLM-as-a-judge setting of \textcite{llmjudge_eif}, \(\widehat{Y}_i\) is the cheap judge label itself. In later chapters, I use the shorthand \(f_i = f(X_i)\) for a generic model-based surrogate prediction. In the protein application, the unit is usually an edge and \(f_i\) is the predicted interaction score.
@@ -58,8 +58,8 @@ and the one-parameter \texttt{PPI++} family is
 Here \(\lambda\) is the tuning parameter that controls how strongly the prediction-only sample enters the corrected estimator. Later chapters distinguish three common cases:
 \begin{enumerate}
     \item vanilla PPI, corresponding to \(\lambda = 1\);
-    \item estimated-lambda \texttt{PPI++}, where \(\lambda\) is estimated from pilot or calibration data; and
-    \item oracle-lambda \texttt{PPI++}, where \(\lambda\) is chosen to minimize the working asymptotic variance.
+    \item estimated-lambda \texttt{PPI++}, where \(\hat{\lambda}\) is estimated from pilot or calibration data; and
+    \item oracle-lambda \texttt{HPPI++}, where \(\lambda\) is chosen to minimize the working asymptotic variance.
 \end{enumerate}
 
 This setup can also be viewed as a missing-data problem: the target outcome \(Y_i\) is observed only on the labeled subset, while the surrogate is observed for everyone \parencite{rubin1976, tsiatis2006, robins1995}. The paper compares two broad correction strategies. The first treats \(\widehat{Y}\) as a mismeasured version of \(Y\) and uses direct measurement-error correction, such as Rogan--Gladen-style estimators. The second treats \(\widehat{Y}\) or \(f(X)\) as a generic surrogate outcome and uses prediction-powered residual correction. The central message is that these views can be unified through efficient influence functions and semiparametric efficiency \parencite{rogan_gladen, eif_ref, tsiatis2006, llmjudge_eif}.
