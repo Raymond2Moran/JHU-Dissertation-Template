@@ -4,12 +4,27 @@ This chapter reports the protein-specific empirical results. Unless otherwise no
 
 \section{Prediction Layer: Mainline Performance}
 
-The strongest current surrogate in the repository is the sequence-plus-text ESM2-3B attention ensemble introduced in Chapter~\ref{chap:protein_pipeline}. Its performance on the two main test splits is:
-\begin{enumerate}
-    \item \textbf{Intra test}: PR-AUC 0.715 and ROC-AUC 0.722.
-    \item \textbf{BIOGRID-human test}: PR-AUC 0.799 and ROC-AUC 0.810.
-\end{enumerate}
-Relative to the best single attention seed, the ensemble improves stability and ranking performance; relative to the best MLP baseline, it provides a modest but consistent gain. The main empirical lesson is therefore not that attention radically changes the task, but that a strong prediction head plus seed averaging produces the most reliable surrogate for the downstream inference layer.
+The strongest current surrogate in the repository is the sequence-plus-text ESM2-3B attention ensemble introduced in Chapter~\ref{chap:protein_pipeline}. Table~\ref{tab:chap5_predictive_metrics} reports the main predictive metrics for the frozen model gradient used throughout the later planning analysis: a sequence-only logreg model, a sequence-only MLP, a sequence-plus-text MLP, the strongest current single-attention run, and the frozen attention ensemble.
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{lccccc}
+\toprule
+Model & Intra val PR-AUC & Intra test PR-AUC & Intra test ROC-AUC & BIOGRID test PR-AUC & BIOGRID test ROC-AUC \\
+\midrule
+Seq ESM2-3B LogReg & 0.598 & 0.616 & 0.615 & 0.761 & 0.779 \\
+Seq ESM2-3B MLP & 0.665 & 0.681 & 0.696 & 0.776 & 0.789 \\
+Seq+Text ESM2-3B MLP & 0.676 & 0.699 & 0.705 & 0.783 & 0.797 \\
+Seq+Text ESM2-3B Attn & 0.687 & 0.697 & 0.710 & 0.788 & 0.800 \\
+Seq+Text ESM2-3B Attn Ensemble & 0.697 & 0.715 & 0.722 & 0.799 & 0.810 \\
+\bottomrule
+\end{tabular}
+\caption{Predictive benchmarking table for the frozen surrogate family used in the protein application. The final thesis surrogate is the sequence-plus-text ESM2-3B attention ensemble, which has the strongest overall test performance among the displayed models.}
+\label{tab:chap5_predictive_metrics}
+\end{table}
+
+The ensemble is strongest on both main test splits and also improves on the representative single-attention run. Relative to the best MLP baseline, the gain is modest but consistent. The main empirical lesson is therefore not that attention radically changes the task, but that a strong prediction head plus seed averaging produces the most reliable surrogate for the downstream inference layer.
 
 This interpretation is consistent with the recent PPI-prediction literature. Deep sequence models and protein-language-model-based approaches can achieve strong within-dataset performance, but their apparent gains are strongly shaped by benchmark design, negative sampling, and leakage control \parencite{dscript2021, xcapt52024, park2012, bernett2024}. For that reason, the current thesis treats the predictive pipeline primarily as a source of a high-quality surrogate for downstream inference, not as a claim of universal state-of-the-art performance against every published PPI benchmark.
 
@@ -93,11 +108,17 @@ This surrogate-strength comparison is more informative than the failed follow-up
 
 \section{Dependence Sensitivity for Shared-Protein Edges}
 
-The published formulas above assume independent observations. Protein-edge data, however, are naturally graph-structured. If two edges share a protein, then their features, predicted scores, and even validation labels can be correlated. To make that issue explicit, this thesis adds a dependence-sensitive extension rather than silently treating the published formulas as universally correct. The concern is not purely abstract: the pair-input evaluation literature repeatedly shows that dependence across constituent objects can distort performance estimation if the benchmark design ignores it \parencite{park2012, bernett2024}.
+The published formulas above assume independent observations. Protein-edge data, however, are naturally graph-structured. If two edges share a protein, then their features, predicted scores, and even validation labels can be correlated. In that setting, two labeled edges need not contribute two fully independent pieces of information. If many labeled edges share proteins, then the raw labeled sample size can overstate the amount of independent information actually available for planning. The concern is not purely abstract: the pair-input evaluation literature repeatedly shows that dependence across constituent objects can distort performance estimation if the benchmark design ignores it \parencite{park2012, bernett2024}.
 
-The main additional notation in this section is specific to this dependence discussion. I write \(\mathrm{deff}\) for a design effect, meaning a scalar variance-inflation factor relative to the published i.i.d.\ planning formulas. In plain language, \(\mathrm{deff}=1.25\) means a 25\% variance inflation relative to the i.i.d.\ baseline, \(\mathrm{deff}=1.50\) means a 50\% inflation, and \(\mathrm{deff}=2.00\) doubles the variance. When the unit is specialized from a generic index \(i\) to a protein edge, I write \(e = (u,v)\) for an edge between proteins \(u\) and \(v\), and later use notation such as \(Y_e\), \(f_e\), and \(\psi_e^{\lambda}\) for edge-level outcomes, surrogate scores, and influence contributions.
+This section therefore adds a dependence-sensitive extension rather than silently treating the published formulas as universally correct. The main user-facing quantity is a design effect, written \(\mathrm{deff}\). In plain English, \(\mathrm{deff}\) is a penalty factor for non-independence. If the i.i.d.\ planning calculation says that \(n\) labeled edges are sufficient, then \(\mathrm{deff}>1\) says that those \(n\) edges behave like only
+\[
+n_{\mathrm{eff}} = \frac{n}{\mathrm{deff}}
+\]
+independent labeled edges. Equivalently, the relevant variance is inflated by the factor \(\mathrm{deff}\). For example, \(\mathrm{deff}=1.25\) means 25\% larger variance and about 80\% as much effective labeled information, \(\mathrm{deff}=1.50\) means 50\% larger variance and \(n_{\mathrm{eff}} = 2n/3\), and \(\mathrm{deff}=2.00\) means doubled variance and only half as many effective independent labels.
 
-Let an edge be indexed by $e = (i,j)$, and let $N(e)$ denote the set of other edges that share protein $i$ or $j$. For an edge-level influence contribution $\psi_e^{\lambda}$, the relevant large-sample variance under dependence is no longer purely diagonal. Cross-edge covariance terms need not vanish, and therefore the usual i.i.d. confidence intervals and sample-size calculations can be optimistic. In this first draft, I do not replace the published theorem. Instead, I report a sensitivity analysis based on a design effect,
+In statistical terms, the design effect is a variance-inflation factor relative to the published i.i.d.\ planning formulas. Throughout this section, I use \(\mathrm{deff}\) for the user-facing sensitivity parameter shown in figures and tables, and \(d_{\lambda}\) for its fixed-\(\lambda\) mathematical version inside the derivation below. When the unit is specialized from a generic index \(i\) to a protein edge, I write \(e = (u,v)\) for an edge between proteins \(u\) and \(v\), and later use notation such as \(Y_e\), \(f_e\), and \(\psi_e^{\lambda}\) for edge-level outcomes, surrogate scores, and influence contributions.
+
+In this first draft, I do not attempt to estimate the true design effect of the protein graph from first principles. Instead, I report a sensitivity analysis based on
 \[
 \mathrm{deff} \in \{1.00, 1.25, 1.50, 2.00\},
 \]
@@ -154,9 +175,6 @@ Expanding the labeled residual term gives
 =
 \Var(Y) + \lambda^2 \Var(f) - 2\lambda \Cov(Y,f).
 \]
-
-
-
 For graph-structured protein-edge data, however, the cross-edge covariance terms do not generally vanish. If $A_{ee'} = 1$ indicates that edges $e$ and $e'$ share at least one protein, then the dependence-aware variance can be written as
 \[
 \Var_{\mathrm{dep}}(\widehat{\theta}_{\lambda})
@@ -167,11 +185,17 @@ For graph-structured protein-edge data, however, the cross-edge covariance terms
 +
 \frac{2}{nN}\sum_{e \in L}\sum_{u \in U}\Cov(R_e^{\lambda}, G_u^{\lambda}),
 \]
-where the off-diagonal summands are concentrated on edge pairs with $A_{ee'} = 1$. This makes the key point explicit: the estimator is unchanged, but the variance is inflated by shared-protein dependence.
+where the off-diagonal summands are concentrated on edge pairs with $A_{ee'} = 1$. This makes the key point explicit: the estimator is unchanged, but the variance is inflated by shared-protein dependence. The design effect is a compact way to summarize the contribution of those extra covariance terms when one does not want to model the full dependence graph explicitly.
 
 \subsection{Design-Effect Approximation and Sample-Size Inflation}
 
-To obtain a tractable first-order sensitivity analysis, suppose the main effect of dependence is to inflate the labeled residual component while leaving the prediction-only term approximately unchanged because $N$ is large. The goal is not to prove a new general dependent-edge theorem. Rather, the goal is to show that once the omitted covariance terms are summarized by a single nonnegative inflation factor, the sample-size inflation rule used in the code follows exactly.
+To obtain a tractable first-order sensitivity analysis, suppose the main effect of dependence is to inflate the labeled residual component while leaving the prediction-only term approximately unchanged because $N$ is large. This approximation has an immediate effective-sample-size interpretation. If dependence reduces the information content of the labeled sample from \(n\) independent edges to an effective sample size \(n_{\mathrm{eff},\lambda} = n/d_{\lambda}\), then
+\[
+\frac{\Var(Y-\lambda f)}{n_{\mathrm{eff},\lambda}}
+=
+d_{\lambda}\frac{\Var(Y-\lambda f)}{n}.
+\]
+So the same quantity can be read in two equivalent ways: either dependence inflates the labeled residual variance by \(d_{\lambda}\), or it shrinks the effective number of independent labeled edges to \(n/d_{\lambda}\). The goal is not to prove a new general dependent-edge theorem. Rather, the goal is to show that once the omitted covariance terms are summarized by a single nonnegative inflation factor, the sample-size inflation rule used in the code follows exactly.
 
 Let
 \[
@@ -331,6 +355,8 @@ as claimed.
 \end{proof}
 
 Theorem~\ref{thm:deff-inflation} is intentionally modest. It does not claim that one scalar can capture every form of graph dependence. It proves a narrower statement: once the extra covariance induced by shared-protein dependence is represented by a nonnegative scalar inflation on the labeled residual term, the linear sample-size inflation rule used in the current sensitivity-analysis code is algebraically exact rather than heuristic.
+
+The plain-language interpretation is straightforward. If \(d_{\lambda}=1.50\), then the labeled residual variance is 50\% larger than the i.i.d.\ formula suggests, and \(n\) labeled edges behave like only \(n/1.50\) independent edges for the purpose of this planning calculation. That is why the sensitivity curves move upward as \(\mathrm{deff}\) increases: the estimator is not being changed, but the same nominal labeled sample is treated as carrying less effective information.
 
 \begin{figure}[ht]
 \centering
