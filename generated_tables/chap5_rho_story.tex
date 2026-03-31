@@ -1,0 +1,17 @@
+\begin{table}[ht]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}X*{5}{>{\centering\arraybackslash}X}@{}}
+\toprule
+Model & $\rho^2_{\mathrm{val}}$ & $\hat{\lambda}$ & $n^\star(0.02)$ & $n^\star(0.05)$ & $n^\star(0.10)$ \\
+\midrule
+Seq LogReg & 0.027 & 0.165 & 4815 & 771 & 193 \\
+Seq MLP & 0.082 & 0.209 & 4626 & 740 & 185 \\
+Seq+Text MLP & 0.073 & 0.169 & 4657 & 745 & 187 \\
+Seq+Text Attn & 0.099 & 0.205 & 4567 & 730 & 183 \\
+Attn Ensemble & 0.106 & 0.222 & 4545 & 726 & 182 \\
+\bottomrule
+\end{tabularx}
+\caption{Pilot surrogate quality and required labeled sample size for the protein-side planning story. The classical label-only baseline is 4906, 785, and 197 for $\Delta = 0.02, 0.05, 0.10$, respectively. The single-attention row is the strongest currently available single-attention run by pilot $\rho^2$.}
+\label{tab:chap5_rho_story}
+\end{table}

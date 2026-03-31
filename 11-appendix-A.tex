@@ -7,7 +7,7 @@
 
 \chapter{Supplementary Derivations} \label{chap:appendix-a}
 
-This appendix collects short algebraic derivations that support the main formulas in Chapters~\ref{chap:foundation_llm} and~\ref{chap:foundation_power}. These calculations are placed here so that the core chapters can emphasize interpretation and study-design implications without losing mathematical transparency.
+This appendix collects short algebraic derivations and supplementary numerical tables that support the main formulas and empirical summaries in Chapters~\ref{chap:foundation_llm},~\ref{chap:foundation_power}, and~\ref{chap:protein_results}. These materials are placed here so that the core chapters can emphasize interpretation and study-design implications without losing mathematical transparency.
 
 \section{Residual-Correction Identity Behind Prediction-Powered Estimation}
 
@@ -236,3 +236,11 @@ n_{\mathrm{req}}^{\mathrm{oracle}}
 {2S^2}.
 \]
 This makes the design logic explicit: stronger predictions, represented by larger $\rho_{Yf}^2$, shift the required labeled sample size downward.
+
+\section{Supplementary Numerical Tables for Chapter~\ref{chap:protein_results}}
+
+The compact Chapter~\ref{chap:protein_results} tables emphasize the main point estimates needed for the narrative. The full interval estimates for the same held-out inference summaries are listed below.
+
+\input{generated_tables/appendix_chap5_ppi_core_full.tex}
+
+\input{generated_tables/appendix_chap5_confusion_full.tex}

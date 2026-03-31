@@ -1,28 +1,12 @@
 \chapter{Protein Results, PPI/\texttt{PPI++}, and Dependence Sensitivity} \label{chap:protein_results}
 
-This chapter reports the protein-specific empirical results. Unless otherwise noted, I retain the global notation from Section~\ref{sec:global_notation}; when the unit is specialized to an interaction edge, I simply replace the generic index \(i\) by an edge index \(e = (u,v)\). The discussion is organized in three layers. First, it summarizes the predictive performance of the actual mainline surrogate. Second, it shows how the canonical exported predictions are passed into PPI/\texttt{PPI++} estimation. Third, it examines power/sample-size planning under the published i.i.d. formulas and then adds a dependence-sensitive extension motivated by shared-protein edges.
+This chapter reports the protein-specific empirical results. Unless otherwise noted, I retain the global notation from Section~\ref{sec:global_notation}; when the unit is specialized to an interaction edge, I simply replace the generic index \(i\) by an edge index \(e = (u,v)\). The discussion is organized in three layers. First, it summarizes the predictive performance of the actual mainline surrogate. Second, it shows how the frozen surrogate scores are carried into PPI/\texttt{PPI++} estimation. Third, it examines power/sample-size planning under the published i.i.d. formulas and then adds a dependence-sensitive extension motivated by shared-protein edges.
 
 \section{Prediction Layer: Mainline Performance}
 
-The strongest current surrogate in the repository is the sequence-plus-text ESM2-3B attention ensemble introduced in Chapter~\ref{chap:protein_pipeline}. Table~\ref{tab:chap5_predictive_metrics} reports the main predictive metrics for the frozen model gradient used throughout the later planning analysis: a sequence-only logreg model, a sequence-only MLP, a sequence-plus-text MLP, the strongest current single-attention run, and the frozen attention ensemble.
+The strongest current surrogate in this study is the sequence-plus-text ESM2-3B attention ensemble introduced in Chapter~\ref{chap:protein_pipeline}. Table~\ref{tab:chap5_predictive_metrics} reports the main predictive metrics for the frozen model gradient used throughout the later planning analysis: a sequence-only logreg model, a sequence-only MLP, a sequence-plus-text MLP, the strongest current single-attention run, and the frozen attention ensemble.
 
-\begin{table}[ht]
-\centering
-\small
-\begin{tabular}{lccccc}
-\toprule
-Model & Intra val PR-AUC & Intra test PR-AUC & Intra test ROC-AUC & BIOGRID test PR-AUC & BIOGRID test ROC-AUC \\
-\midrule
-Seq ESM2-3B LogReg & 0.598 & 0.616 & 0.615 & 0.761 & 0.779 \\
-Seq ESM2-3B MLP & 0.665 & 0.681 & 0.696 & 0.776 & 0.789 \\
-Seq+Text ESM2-3B MLP & 0.676 & 0.699 & 0.705 & 0.783 & 0.797 \\
-Seq+Text ESM2-3B Attn & 0.687 & 0.697 & 0.710 & 0.788 & 0.800 \\
-Seq+Text ESM2-3B Attn Ensemble & 0.697 & 0.715 & 0.722 & 0.799 & 0.810 \\
-\bottomrule
-\end{tabular}
-\caption{Predictive benchmarking table for the frozen surrogate family used in the protein application. The final thesis surrogate is the sequence-plus-text ESM2-3B attention ensemble, which has the strongest overall test performance among the displayed models.}
-\label{tab:chap5_predictive_metrics}
-\end{table}
+\input{generated_tables/chap5_predictive_metrics.tex}
 
 The ensemble is strongest on both main test splits and also improves on the representative single-attention run. Relative to the best MLP baseline, the gain is modest but consistent. The main empirical lesson is therefore not that attention radically changes the task, but that a strong prediction head plus seed averaging produces the most reliable surrogate for the downstream inference layer.
 
@@ -30,33 +14,17 @@ This interpretation is consistent with the recent PPI-prediction literature. Dee
 
 \section{Inference Layer: Canonical Export and PPI/\texttt{PPI++}}
 
-All inference in this thesis is driven by the canonical prediction export rather than the raw training outputs. The handoff is:
-\begin{enumerate}
-    \item per-run \texttt{predictions.csv} from neural training,
-    \item ensemble-averaged predictions from \texttt{10\_ensemble\_predictions.py},
-    \item canonical export from \texttt{07\_export\_predictions.py}, and
-    \item R-based inference using \texttt{01\_run\_ppi\_estimators.R} and \texttt{02\_derive\_confusion\_metrics.R}.
-\end{enumerate}
+All inference in this thesis is driven by the frozen prediction set rather than by raw model outputs. Predictions are first stabilized through seed averaging, then standardized for inference, and only then passed to the correction layer. This separation mirrors the statistical distinction emphasized in the prediction-powered literature: prediction and inference are related, but they are not the same object \parencite{ppi_framework, ppi_pp, llmjudge_eif}. The predictor supplies a scalable surrogate, whereas the calibration set corrects the residual bias and enables uncertainty quantification.
 
-This separation mirrors the statistical distinction emphasized in the prediction-powered literature: prediction and inference are related, but they are not the same object \parencite{ppi_framework, ppi_pp, llmjudge_eif}. The predictor supplies a scalable surrogate, whereas the calibration set corrects the residual bias and enables uncertainty quantification.
+Table~\ref{tab:chap5_ppi_core} gives a compact view of the main mean-type summaries on the two held-out test splits. Even at small calibration budgets, the estimated prevalence, accuracy, and Brier functionals remain close to the full-data references. That is the operational sign that the frozen surrogate is strong enough to support stable correction with limited labels. The corresponding interval estimates for the same rows are reported in Appendix~\ref{chap:appendix-a}, Table~\ref{tab:app_chap5_ppi_core_full}.
 
-Figure~\ref{fig:chap5_ppi_budget} shows the main PPI/\texttt{PPI++} summaries on the two test splits. Even at small calibration budgets, the estimated prevalence-, accuracy-, and error-type functionals remain close to the full-data references, which indicates that the frozen surrogate is strong enough to support stable correction with limited labels.
+\input{generated_tables/chap5_ppi_core_compact.tex}
 
-\begin{figure}[ht]
-\centering
-\includegraphics[width=0.93\textwidth]{chap5_ppi_metrics_test_only.png}
-\caption{Prediction-powered estimates on the Intra and BIOGRID test splits. Dashed horizontal lines are the full-data reference values. The curves are computed from the exported predictions of the frozen attention ensemble.}
-\label{fig:chap5_ppi_budget}
-\end{figure}
+Tables~\ref{tab:chap5_confusion_intra} and~\ref{tab:chap5_confusion_biogrid} extend this view to nonlinear summaries derived from the prediction-powered confusion components. The overall pattern is similar: higher calibration budgets reduce variability, but the 5\%, 10\%, and 20\% budgets already track the truth closely for the main test splits. Full interval estimates for these rows are reported in Appendix~\ref{chap:appendix-a}, Table~\ref{tab:app_chap5_confusion_full}.
 
-Figure~\ref{fig:chap5_confusion} extends this view to nonlinear summaries derived from the prediction-powered confusion components. The overall pattern is similar: higher calibration budgets reduce variability, but the 5\%, 10\%, and 20\% budgets already produce estimates that track the truth closely for the main test splits.
+\input{generated_tables/chap5_confusion_intra_compact.tex}
 
-\begin{figure}[ht]
-\centering
-\includegraphics[width=0.93\textwidth]{chap5_derived_confusion_metrics_test_only.png}
-\caption{Derived precision, recall, F1, specificity, and false-positive-rate summaries obtained from prediction-powered confusion-component estimates.}
-\label{fig:chap5_confusion}
-\end{figure}
+\input{generated_tables/chap5_confusion_biogrid_compact.tex}
 
 A notable empirical result is that PPI and \texttt{PPI++} are close to one another in this frozen run. This does not imply that the tuning parameter is unimportant in general. Rather, it indicates that the current surrogate is already strong enough that the additional gain from tuning $\lambda$ is moderate for these mean-type targets, which is qualitatively in line with the theory behind \texttt{PPI++} \parencite{ppi_pp, ppi_power}.
 
@@ -86,23 +54,7 @@ Chapter~\ref{chap:foundation_power} emphasized that, in the one-sample mean sett
 
 Figure~\ref{fig:chap5_rho_story} shows that the ordering is monotone but modest. The pilot $\rho_{Y\hat p}^2$ values rise from 0.0266 for the sequence-only logreg model to 0.1056 for the frozen attention ensemble, and the required labeled sample size falls accordingly. For example, at $\Delta = 0.05$, the classical baseline requires 785 labels, whereas the sequence-only logreg model requires 771, the sequence-only MLP requires 740, the sequence-plus-text MLP requires 745, the representative single-attention model requires 730, and the frozen attention ensemble requires 726. At $\Delta = 0.10$, the same ordering is 197, 193, 185, 187, 183, and 182. The point is not that the gains are dramatic; the point is that the protein application reproduces the same logic as the real-data studies in \textcite{ppi_power}: stronger pilot agreement between truth and surrogate yields lower required labeled sample size.
 
-\begin{table}[ht]
-\centering
-\small
-\begin{tabular}{lccccc}
-\toprule
-Model & $\rho^2_{\mathrm{val}}$ & $\hat{\lambda}$ & $n^\star(0.02)$ & $n^\star(0.05)$ & $n^\star(0.10)$ \\
-\midrule
-Seq ESM2-3B LogReg & 0.0266 & 0.165 & 4815 & 771 & 193 \\
-Seq ESM2-3B MLP & 0.0818 & 0.209 & 4626 & 740 & 185 \\
-Seq+Text ESM2-3B MLP & 0.0728 & 0.169 & 4657 & 745 & 187 \\
-Seq+Text ESM2-3B Attn & 0.0990 & 0.205 & 4567 & 730 & 183 \\
-Seq+Text ESM2-3B Attn Ensemble & 0.1056 & 0.222 & 4545 & 726 & 182 \\
-\bottomrule
-\end{tabular}
-\caption{Pilot surrogate quality and required labeled sample size for the protein-side planning story. The classical label-only baseline is 4906, 785, and 197 for $\Delta = 0.02, 0.05, 0.10$, respectively. The single-attention row is the strongest currently available single-attention run by pilot $\rho^2$.}
-\label{tab:chap5_rho_story}
-\end{table}
+\input{generated_tables/chap5_rho_story.tex}
 
 This surrogate-strength comparison is more informative than the failed follow-up tuning campaign. After the frozen ensemble was established, I also ran a dedicated rho-focused search over alternative losses, early-stopping criteria, hard-negative settings, and post-hoc calibration. That search did not produce a replacement surrogate that improved pilot $\rho^2$ enough to beat the frozen ensemble without sacrificing ranking performance. For the thesis, the right conclusion is therefore conservative: the existing model gradient is already enough to show the protein-side planning story, and the main leverage appears to come from representation quality and evaluation design rather than from small head-level tuning changes.
 
