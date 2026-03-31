@@ -2,7 +2,7 @@
 
 This chapter reports the protein-specific empirical results. Unless otherwise noted, I retain the global notation from Section~\ref{sec:global_notation}; when the unit is specialized to an interaction edge, I simply replace the generic index \(i\) by an edge index \(e = (u,v)\). The discussion is organized in three layers. First, it summarizes the predictive performance of the actual mainline surrogate. Second, it shows how the frozen surrogate scores are carried into PPI/\texttt{PPI++} estimation. Third, it examines power/sample-size planning under the published i.i.d. formulas and then adds a dependence-sensitive extension motivated by shared-protein edges.
 
-\section{Prediction Layer: Mainline Performance}
+\section[Prediction Layer]{Prediction Layer: Mainline Performance}
 
 The strongest current surrogate in this study is the sequence-plus-text ESM2-3B attention ensemble introduced in Chapter~\ref{chap:protein_pipeline}. Table~\ref{tab:chap5_predictive_metrics} reports the main predictive metrics for the frozen model gradient used throughout the later planning analysis: a sequence-only logreg model, a sequence-only MLP, a sequence-plus-text MLP, the strongest current single-attention run, and the frozen attention ensemble.
 
@@ -12,7 +12,7 @@ The ensemble is strongest on both main test splits and also improves on the repr
 
 This interpretation is consistent with the recent PPI-prediction literature. Deep sequence models and protein-language-model-based approaches can achieve strong within-dataset performance, but their apparent gains are strongly shaped by benchmark design, negative sampling, and leakage control \parencite{dscript2021, xcapt52024, park2012, bernett2024}. For that reason, the current thesis treats the predictive pipeline primarily as a source of a high-quality surrogate for downstream inference, not as a claim of universal state-of-the-art performance against every published PPI benchmark.
 
-\section{Inference Layer: Canonical Export and PPI/\texttt{PPI++}}
+\section[Inference Layer]{Inference Layer: Canonical Export and PPI/\texttt{PPI++}}
 
 All inference in this thesis is driven by the frozen prediction set rather than by raw model outputs. Predictions are first stabilized through seed averaging, then standardized for inference, and only then passed to the correction layer. This separation mirrors the statistical distinction emphasized in the prediction-powered literature: prediction and inference are related, but they are not the same object \parencite{ppi_framework, ppi_pp, llmjudge_eif}. The predictor supplies a scalable surrogate, whereas the calibration set corrects the residual bias and enables uncertainty quantification.
 
@@ -28,27 +28,27 @@ Tables~\ref{tab:chap5_confusion_intra} and~\ref{tab:chap5_confusion_biogrid} ext
 
 A notable empirical result is that PPI and \texttt{PPI++} are close to one another in this frozen run. This does not imply that the tuning parameter is unimportant in general. Rather, it indicates that the current surrogate is already strong enough that the additional gain from tuning $\lambda$ is moderate for these mean-type targets, which is qualitatively in line with the theory behind \texttt{PPI++} \parencite{ppi_pp, ppi_power}.
 
-\section{Planning Layer: I.I.D. Power and Sample-Size Baseline}
+\section[I.I.D. Planning Baseline]{Planning Layer: I.I.D. Power and Sample-Size Baseline}
 
 The current thesis code uses the planning formulas from Chapter~\ref{chap:foundation_power} in their published i.i.d. form. In the present protein application, the planning target is a mean/proportion-type estimand, specifically the positive-edge rate or interaction prevalence in a target edge population. Accordingly, the horizontal axis $\Delta$ in Figure~\ref{fig:chap5_power_iid} should be interpreted as a target absolute difference in that prevalence-like parameter rather than as a difference in PR-AUC or ROC-AUC.
 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.93\textwidth]{chap5_required_n_curves_zoom.png}
-\caption{i.i.d. planning curves for the frozen attention ensemble. The dashed black line is the classical label-only baseline; the colored lines correspond to vanilla PPI, estimated-lambda \texttt{PPI++}, and oracle-lambda \texttt{PPI++}. The inset highlights the right end of the curve near $\Delta = 0.10$.}
+\caption[I.I.D. planning curves for the frozen ensemble]{i.i.d. planning curves for the frozen attention ensemble. The dashed black line is the classical label-only baseline; the colored lines correspond to vanilla PPI, estimated-lambda \texttt{PPI++}, and oracle-lambda \texttt{PPI++}. The inset highlights the right end of the curve near $\Delta = 0.10$.}
 \label{fig:chap5_power_iid}
 \end{figure}
 
 The classical baseline is now explicit in the protein results, which is important for interpretation. At $\Delta = 0.10$, the required labeled sample sizes are 197 for the classical estimator, 286 for vanilla PPI, 186 for estimated-lambda \texttt{PPI++}, and 182 for oracle-lambda \texttt{PPI++}. At $\Delta = 0.05$, the corresponding values are 785, 1155, 743, and 727; at $\Delta = 0.02$, they are 4906, 7844, 4649, and 4567. This makes the relevant comparison clear. Vanilla PPI is not automatically better than the label-only baseline, whereas the tuned \texttt{PPI++} variants do deliver the expected sample-size reduction in this frozen run \parencite{ppi_power}.
 
-\subsection{Protein-Side \texorpdfstring{$\rho^2$}{rho2} Planning Story}
+\subsection[Protein rho2 Planning]{Protein-Side \texorpdfstring{$\rho^2$}{rho2} Planning Story}
 
 Chapter~\ref{chap:foundation_power} emphasized that, in the one-sample mean setting, pilot $\rho_{Yf}^2$ is the key summary of surrogate quality for planning. The protein application shows the same qualitative pattern. Using the Intra validation split as the pilot set, I constructed a small surrogate-strength gradient from the completed model runs already available in the workspace: a sequence-only logreg model, a sequence-only MLP, a sequence-plus-text MLP, the strongest current single-attention run, and the frozen attention ensemble.
 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.93\textwidth]{chap5_protein_rho_story_curves.png}
-\caption{Protein-side analogue of the real-data planning story in \textcite{ppi_power}. The dashed black line is the classical label-only baseline; colored lines are fixed estimated-lambda \texttt{PPI++} planning curves for five frozen protein surrogates. Better pilot agreement between $Y$ and $\hat p$ shifts the required labeled sample size downward.}
+\caption[Protein-side rho2 planning curves]{Protein-side analogue of the real-data planning story in \textcite{ppi_power}. The dashed black line is the classical label-only baseline; colored lines are fixed estimated-lambda \texttt{PPI++} planning curves for five frozen protein surrogates. Better pilot agreement between $Y$ and $\hat p$ shifts the required labeled sample size downward.}
 \label{fig:chap5_rho_story}
 \end{figure}
 
@@ -58,7 +58,7 @@ Figure~\ref{fig:chap5_rho_story} shows that the ordering is monotone but modest.
 
 This surrogate-strength comparison is more informative than the failed follow-up tuning campaign. After the frozen ensemble was established, I also ran a dedicated rho-focused search over alternative losses, early-stopping criteria, hard-negative settings, and post-hoc calibration. That search did not produce a replacement surrogate that improved pilot $\rho^2$ enough to beat the frozen ensemble without sacrificing ranking performance. For the thesis, the right conclusion is therefore conservative: the existing model gradient is already enough to show the protein-side planning story, and the main leverage appears to come from representation quality and evaluation design rather than from small head-level tuning changes.
 
-\section{Dependence Sensitivity for Shared-Protein Edges}
+\section[Dependence Sensitivity]{Dependence Sensitivity for Shared-Protein Edges}
 
 The published formulas above assume independent observations. Protein-edge data, however, are naturally graph-structured. If two edges share a protein, then their features, predicted scores, and even validation labels can be correlated. In that setting, two labeled edges need not contribute two fully independent pieces of information. If many labeled edges share proteins, then the raw labeled sample size can overstate the amount of independent information actually available for planning. The concern is not purely abstract: the pair-input evaluation literature repeatedly shows that dependence across constituent objects can distort performance estimation if the benchmark design ignores it \parencite{park2012, bernett2024}.
 
@@ -76,7 +76,7 @@ In this first draft, I do not attempt to estimate the true design effect of the 
 \]
 which spans no inflation, mild inflation, moderate inflation, and a conservative doubling of the i.i.d.\ variance. The purpose of this grid is not to assert that one of these values is already known to be correct for the protein graph. The purpose is to show how quickly the apparent planning gain would shrink if shared-protein dependence inflates uncertainty by a plausible multiplicative factor.
 
-\subsection{Variance Decomposition Under Shared-Protein Dependence}
+\subsection[Variance Under Shared-Protein Dependence]{Variance Decomposition Under Shared-Protein Dependence}
 
 For a fixed tuning parameter $\lambda$, the mean-type prediction-powered estimator can be written as
 \[
@@ -139,7 +139,7 @@ For graph-structured protein-edge data, however, the cross-edge covariance terms
 \]
 where the off-diagonal summands are concentrated on edge pairs with $A_{ee'} = 1$. This makes the key point explicit: the estimator is unchanged, but the variance is inflated by shared-protein dependence. The design effect is a compact way to summarize the contribution of those extra covariance terms when one does not want to model the full dependence graph explicitly.
 
-\subsection{Design-Effect Approximation and Sample-Size Inflation}
+\subsection[Design Effect and Sample Size]{Design-Effect Approximation and Sample-Size Inflation}
 
 To obtain a tractable first-order sensitivity analysis, suppose the main effect of dependence is to inflate the labeled residual component while leaving the prediction-only term approximately unchanged because $N$ is large. This approximation has an immediate effective-sample-size interpretation. If dependence reduces the information content of the labeled sample from \(n\) independent edges to an effective sample size \(n_{\mathrm{eff},\lambda} = n/d_{\lambda}\), then
 \[
@@ -313,7 +313,7 @@ The plain-language interpretation is straightforward. If \(d_{\lambda}=1.50\), t
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.93\textwidth]{chap5_required_n_dependence_curves.png}
-\caption{Dependence-sensitive planning curves obtained by inflating the i.i.d. labeled-sample requirement with a design effect. The design effect is used as a sensitivity parameter for shared-protein edge dependence, with \texttt{deff = 1.00} corresponding to the published i.i.d. baseline.}
+\caption[Dependence-sensitive planning curves]{Dependence-sensitive planning curves obtained by inflating the i.i.d. labeled-sample requirement with a design effect. The design effect is used as a sensitivity parameter for shared-protein edge dependence, with \texttt{deff = 1.00} corresponding to the published i.i.d. baseline.}
 \label{fig:chap5_power_dependence}
 \end{figure}
 

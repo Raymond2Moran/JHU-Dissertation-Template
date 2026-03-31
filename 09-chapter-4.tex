@@ -2,7 +2,7 @@
 
 This chapter defines the prediction layer used in the protein application. The goal is not to present a generic software walkthrough. Rather, the goal is to specify the scientific data sources, leakage-aware split design, protein representations, pair-feature construction, model family, and final surrogate that are later handed off to prediction-powered inference. The mainline branch in the thesis repository is the sequence-plus-text attention-ensemble workflow, but the chapter is written around the methodological choices behind that workflow rather than around repository internals.
 
-\section{Data Sources, Curation, and Split Construction}
+\section[Data Sources and Splits]{Data Sources, Curation, and Split Construction}
 
 Two datasets anchor the protein application.
 \begin{enumerate}
@@ -14,21 +14,21 @@ This choice is motivated by the broader literature on interactome construction. 
 
 \begin{table}[ht]
 \centering
-\small
-\begin{tabular}{llrrrrl}
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}llrrr>{\raggedright\arraybackslash}X@{}}
 \toprule
 Dataset & Split & Positives & Negatives & Total & Role \\
 \midrule
-Intra & train & 81{,}596 & 81{,}596 & 163{,}192 & model training \\
-Intra & val   & 29{,}630 & 29{,}630 & 59{,}260 & model selection / pilot calibration \\
-Intra & test  & 26{,}024 & 26{,}024 & 52{,}048 & main in-domain evaluation \\
-BIOGRID human & train & 394{,}829 & 399{,}610 & 794{,}439 & training-pool candidate only \\
-BIOGRID human & val   & 19{,}814 & 18{,}160 & 37{,}974 & held-out external validation \\
-BIOGRID human & test  & 17{,}819 & 18{,}950 & 36{,}769 & held-out external robustness test \\
-Merged pool & train & 416{,}686 & 480{,}172 & 896{,}858 & final leakage-controlled training pool \\
+Intra & train & 81{,}596 & 81{,}596 & 163{,}192 & Train \\
+Intra & val   & 29{,}630 & 29{,}630 & 59{,}260 & Pilot / val \\
+Intra & test  & 26{,}024 & 26{,}024 & 52{,}048 & Main test \\
+BIOGRID & train & 394{,}829 & 399{,}610 & 794{,}439 & Pool cand. \\
+BIOGRID & val   & 19{,}814 & 18{,}160 & 37{,}974 & Ext. val \\
+BIOGRID & test  & 17{,}819 & 18{,}950 & 36{,}769 & Ext. test \\
+Merged pool & train & 416{,}686 & 480{,}172 & 896{,}858 & Merged train \\
 \bottomrule
-\end{tabular}
-\caption{Summary of the processed splits used in the protein application. The merged training pool is formed after removing overlaps with validation and test holdouts and resolving duplicate-label conflicts with a positive-wins rule.}
+\end{tabularx}
+\caption[Processed data splits for the protein application]{Summary of the processed splits used in the protein application. The merged training pool is formed after removing overlaps with validation and test holdouts and resolving duplicate-label conflicts with a positive-wins rule.}
 \label{tab:chap4_data_splits}
 \end{table}
 
@@ -36,7 +36,7 @@ Table~\ref{tab:chap4_data_splits} is the central reproducibility summary for the
 
 That split policy is part of the statistical design, not only an engineering convenience. Pair-input prediction tasks are known to be vulnerable to optimistic performance estimation when constituent objects are reused across train and test or when negative examples are generated in unrealistic ways \parencite{park2012, bernett2024}. For protein-interaction prediction in particular, those problems can dominate apparent model gains. This thesis therefore treats leakage control as a first-order requirement of the benchmark.
 
-\section{Per-Protein Representations and Pair Features}
+\section[Representations and Pair Features]{Per-Protein Representations and Pair Features}
 
 Each protein is represented from two complementary views.
 \begin{enumerate}
@@ -52,13 +52,13 @@ The predictive unit is an edge, so protein-level embeddings must be converted in
 \]
 applied to the sequence block, the text block, or the concatenated sequence-plus-text block. This choice is pragmatic. It is simple enough to support controlled ablations and downstream uncertainty analysis, while still giving the neural heads access to nonlinear interactions among summary operators. In the repository, the pair-feature construction is implemented explicitly after the embedding stage, but the statistical object that matters here is the resulting pair-level surrogate input.
 
-\section{Relationship to the PPI Prediction Literature}
+\section[PPI Prediction Literature]{Relationship to the PPI Prediction Literature}
 
 The predictive design in this thesis is related to, but not identical with, the recent literature on sequence-based PPI prediction. Earlier deep models already showed that amino-acid sequence alone can yield useful interaction predictors \parencite{sun2017}. Later methods such as D-SCRIPT emphasized sequence-driven inductive bias, interpretability, and cross-species transfer \parencite{dscript2021}. More recent work has paired deep architectures with protein language model features, as illustrated by xCAPT5 and by the broader review literature on deep PPI analysis \parencite{xcapt52024, lee2023}.
 
 The current thesis does not claim a universal state of the art against that literature, because direct metric comparison is rarely fair across different datasets, negative-sampling rules, and split designs. The methodological lesson taken from that literature is narrower and more defensible: strong single-protein representations matter, but evaluation design matters just as much \parencite{park2012, bernett2024}. That is why the thesis prioritizes leakage-aware splits, external robustness checks, and an explicit prediction-to-inference handoff over maximizing one benchmark score in isolation.
 
-\section{Merged Training Pool and Neural Predictors}
+\section[Training Pool and Neural Predictors]{Merged Training Pool and Neural Predictors}
 
 The mainline training set is not any single raw split. It is a merged, leakage-controlled training pool formed from the train partitions of the processed Intra and BIOGRID datasets after removing overlaps with all downstream holdouts. In the current workspace, this yields 896{,}858 training edges, of which 416{,}686 are positive and 480{,}172 are negative. The pool-construction step also removes 26{,}830 pairs that overlap with later validation or test sets and resolves 594 duplicate-label conflicts with a positive-wins rule. These details matter because the later inference claims depend on the surrogate being trained without contaminating the holdout targets.
 
@@ -71,7 +71,7 @@ Three neural heads are compared on top of the pair features.
 
 For the \texttt{seq\_text} setting, the attention model does not treat the full feature vector as one undifferentiated block. Instead, it groups the pair representation into sequence and text operator tokens, projects those tokens into a shared latent space, applies multihead self-attention, and then produces one edge-level probability. The final surrogate used later in the thesis is a three-seed ensemble of that attention model. This is a deliberately moderate architecture choice relative to full end-to-end cross-encoders: the thesis needs a strong and stable surrogate that can be exported cleanly into downstream inference, not only a maximally complex predictor.
 
-\section{Frozen Best Model and Prediction Handoff}
+\section[Frozen Model and Handoff]{Frozen Best Model and Prediction Handoff}
 
 The frozen best surrogate in the current workspace is
 \begin{center}
