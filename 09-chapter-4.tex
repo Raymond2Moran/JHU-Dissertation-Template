@@ -1,64 +1,86 @@
 \chapter{Protein-PPI Extension: Data, Features, and Predictive Pipeline} \label{chap:protein_pipeline}
 
-This chapter describes the actual predictive workflow implemented in the thesis repository and situates it within the existing literature on PPI resources, sequence-based prediction, protein language models, and evaluation design. The mainline pipeline is the neural attention-ensemble branch, not the earlier baseline-only benchmark path. The modeling story therefore proceeds from processed edge tables to per-protein embeddings, pairwise feature construction, merged training-pool design, neural edge prediction, and seed ensembling.
+This chapter defines the prediction layer used in the protein application. The goal is not to present a generic software walkthrough. Rather, the goal is to specify the scientific data sources, leakage-aware split design, protein representations, pair-feature construction, model family, and final surrogate that are later handed off to prediction-powered inference. The mainline branch in the thesis repository is the sequence-plus-text attention-ensemble workflow, but the chapter is written around the methodological choices behind that workflow rather than around repository internals.
 
 \section{Data Sources, Curation, and Split Construction}
 
-Two datasets are used in the protein application.
+Two datasets anchor the protein application.
 \begin{enumerate}
-    \item \textbf{Intra}: the internal benchmark with train, validation, and test partitions used for model selection and main in-domain evaluation.
-    \item \textbf{BIOGRID human physical interactions}: an external robustness dataset used to test transportability under a protein-disjoint split.
+    \item \textbf{Intra}: the internal benchmark used for model selection and the main in-domain evaluation.
+    \item \textbf{BIOGRID human physical interactions}: an external benchmark used to test robustness under a protein-disjoint split.
 \end{enumerate}
 
-This design is motivated by the broader literature on interactome construction. BioGRID is one of the major curated resources for experimentally observed interactions, whereas the human reference interactome and related mapping projects illustrate both the value and incompleteness of current gold-standard PPI catalogs \parencite{biogrid2019, luck2020, vidal2011}. The processed edge tables in this thesis are created by \texttt{01\_prepare\_intra\_data.py} and \texttt{02\_prepare\_biogrid\_human.py}. The mainline pipeline keeps validation and test edges isolated from training, and the external BIOGRID split is constructed to reduce leakage through shared proteins.
+This choice is motivated by the broader literature on interactome construction. BioGRID is one of the major curated resources for experimentally observed interactions, whereas the human reference interactome and related mapping projects highlight both the value and incompleteness of current PPI catalogs \parencite{biogrid2019, luck2020, vidal2011}. In the thesis workflow, the raw edge tables are first normalized into processed pair datasets and then split into train, validation, and test partitions with explicit leakage controls.
 
-That split policy is not merely a software convenience. Pair-input prediction tasks are known to be sensitive to optimistic evaluation when constituent objects reappear across train and test or when negative examples are generated in a way that does not reflect the real deployment target \parencite{park2012, bernett2024}. For PPI prediction in particular, those issues can substantially inflate reported performance. The thesis therefore treats leakage control as part of the statistical design of the benchmark rather than as an afterthought.
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{llrrrrl}
+\toprule
+Dataset & Split & Positives & Negatives & Total & Role \\
+\midrule
+Intra & train & 81{,}596 & 81{,}596 & 163{,}192 & model training \\
+Intra & val   & 29{,}630 & 29{,}630 & 59{,}260 & model selection / pilot calibration \\
+Intra & test  & 26{,}024 & 26{,}024 & 52{,}048 & main in-domain evaluation \\
+BIOGRID human & train & 394{,}829 & 399{,}610 & 794{,}439 & training-pool candidate only \\
+BIOGRID human & val   & 19{,}814 & 18{,}160 & 37{,}974 & held-out external validation \\
+BIOGRID human & test  & 17{,}819 & 18{,}950 & 36{,}769 & held-out external robustness test \\
+Merged pool & train & 416{,}686 & 480{,}172 & 896{,}858 & final leakage-controlled training pool \\
+\bottomrule
+\end{tabular}
+\caption{Summary of the processed splits used in the protein application. The merged training pool is formed after removing overlaps with validation and test holdouts and resolving duplicate-label conflicts with a positive-wins rule.}
+\label{tab:chap4_data_splits}
+\end{table}
 
-\section{Per-Protein Embeddings and Pair Features}
+Table~\ref{tab:chap4_data_splits} is the central reproducibility summary for the application. The Intra validation split serves two roles later in the thesis: it is the model-selection split for predictive work and the pilot/calibration split for several planning calculations. The BIOGRID validation and test splits are held out from the merged training pool and are constructed to reduce leakage through shared proteins. The preprocessing itself is implemented in the repository scripts that build the processed pair tables, but the main methodological point is the split design rather than the script names.
 
-The pipeline builds two views for each protein.
+That split policy is part of the statistical design, not only an engineering convenience. Pair-input prediction tasks are known to be vulnerable to optimistic performance estimation when constituent objects are reused across train and test or when negative examples are generated in unrealistic ways \parencite{park2012, bernett2024}. For protein-interaction prediction in particular, those problems can dominate apparent model gains. This thesis therefore treats leakage control as a first-order requirement of the benchmark.
+
+\section{Per-Protein Representations and Pair Features}
+
+Each protein is represented from two complementary views.
 \begin{enumerate}
     \item \textbf{Sequence view}: embeddings from pretrained protein language models, including ProtBERT and ESM2 variants.
     \item \textbf{Text view}: embeddings from UniProt description text using a compact sentence-transformer backbone.
 \end{enumerate}
 
-The sequence side of the workflow is motivated by the recent success of large self-supervised protein representation models. ProtTrans demonstrated that language-model pretraining on large protein corpora yields embeddings that transfer across many downstream tasks, while the ESM line of work showed that large protein language models can encode rich structural and functional information \parencite{prottrans2022, lin2023}. The text side is complementary rather than redundant: UniProt descriptions encode curated biological context that is not present in raw sequence alone \parencite{uniprot2025}. To represent those descriptions, the thesis uses sentence-embedding models descended from Sentence-BERT and MiniLM \parencite{sentence_bert2019, minilm2020}.
+The sequence representation is motivated by the strong transfer performance of large self-supervised protein language models. ProtTrans showed that large-scale protein pretraining yields broadly useful representations, while the ESM line demonstrated that these models can encode rich structural and functional information \parencite{prottrans2022, lin2023}. The text representation is deliberately complementary. UniProt descriptions contain curated biological context that is not present in raw sequence alone, and sentence-embedding models derived from Sentence-BERT and MiniLM provide a compact way to encode that context \parencite{uniprot2025, sentence_bert2019, minilm2020}.
 
-The feature-building stage converts protein-level embeddings into pair-level representations. For each protein pair $(u,v)$, the repository constructs operator-based features,
+The predictive unit is an edge, so protein-level embeddings must be converted into pair-level features. For a protein pair $(u,v)$, the workflow uses the operator-based representation
 \[
 [u+v,\; |u-v|,\; u \odot v,\; \cos(u,v)],
 \]
-for the sequence block, the text block, or their concatenation. These are generated by \texttt{05\_build\_pair\_features.py}. The resulting feature sets are \texttt{seq}, \texttt{text}, and \texttt{seq\_text}. This operator-based construction is a pragmatic compromise: it is simple enough to support strong baselines and uncertainty analysis, but expressive enough to let the downstream neural heads learn nonlinear edge structure.
+applied to the sequence block, the text block, or the concatenated sequence-plus-text block. This choice is pragmatic. It is simple enough to support controlled ablations and downstream uncertainty analysis, while still giving the neural heads access to nonlinear interactions among summary operators. In the repository, the pair-feature construction is implemented explicitly after the embedding stage, but the statistical object that matters here is the resulting pair-level surrogate input.
 
 \section{Relationship to the PPI Prediction Literature}
 
-The predictive design in this thesis is related to, but not identical with, the recent literature on sequence-based PPI prediction. Earlier neural approaches already showed that amino-acid sequence alone can yield useful interaction predictors \parencite{sun2017}. Later models such as D-SCRIPT emphasized cross-species transfer, interpretability, and the value of sequence-driven inductive bias \parencite{dscript2021}. More recent methods have combined deep architectures with protein language model features, as illustrated by xCAPT5 and the broader review literature on deep PPI analysis \parencite{xcapt52024, lee2023}.
+The predictive design in this thesis is related to, but not identical with, the recent literature on sequence-based PPI prediction. Earlier deep models already showed that amino-acid sequence alone can yield useful interaction predictors \parencite{sun2017}. Later methods such as D-SCRIPT emphasized sequence-driven inductive bias, interpretability, and cross-species transfer \parencite{dscript2021}. More recent work has paired deep architectures with protein language model features, as illustrated by xCAPT5 and by the broader review literature on deep PPI analysis \parencite{xcapt52024, lee2023}.
 
-The current thesis does not aim to declare a universal state of the art against those papers, because direct metric comparison is difficult when datasets, negative-sampling protocols, and split designs differ. Instead, it adopts the relevant methodological lesson from that literature: strong single-protein representations matter, but evaluation design matters just as much \parencite{park2012, bernett2024}. That is why the thesis prioritizes leakage-aware splits and external robustness checks over maximizing performance on a single convenient benchmark.
+The current thesis does not claim a universal state of the art against that literature, because direct metric comparison is rarely fair across different datasets, negative-sampling rules, and split designs. The methodological lesson taken from that literature is narrower and more defensible: strong single-protein representations matter, but evaluation design matters just as much \parencite{park2012, bernett2024}. That is why the thesis prioritizes leakage-aware splits, external robustness checks, and an explicit prediction-to-inference handoff over maximizing one benchmark score in isolation.
 
 \section{Merged Training Pool and Neural Predictors}
 
-The mainline training branch uses a merged leakage-controlled training pool. The script \texttt{09\_build\_training\_pool.py} combines the available training edges from the Intra and BIOGRID tables, removes any pair that overlaps with downstream holdout sets, and collapses duplicates with a positive-wins rule. This produces a larger training pool while preserving strict separation from validation and test edges.
+The mainline training set is not any single raw split. It is a merged, leakage-controlled training pool formed from the train partitions of the processed Intra and BIOGRID datasets after removing overlaps with all downstream holdouts. In the current workspace, this yields 896{,}858 training edges, of which 416{,}686 are positive and 480{,}172 are negative. The pool-construction step also removes 26{,}830 pairs that overlap with later validation or test sets and resolves 594 duplicate-label conflicts with a positive-wins rule. These details matter because the later inference claims depend on the surrogate being trained without contaminating the holdout targets.
 
-Three neural prediction heads are implemented in \texttt{06\_train\_models\_nn.py}.
+Three neural heads are compared on top of the pair features.
 \begin{enumerate}
-    \item \textbf{NN-LogReg}: a linear head on top of the pair features.
-    \item \textbf{NN-MLP}: a multilayer perceptron with nonlinear hidden layers.
-    \item \textbf{NN-Attn}: a multihead self-attention model over operator/modality tokens.
+    \item \textbf{NN-LogReg}: a linear head that serves as the simplest neural baseline.
+    \item \textbf{NN-MLP}: a multilayer perceptron that allows nonlinear mixing of the pair features.
+    \item \textbf{NN-Attn}: a multihead self-attention head operating over operator/modality tokens.
 \end{enumerate}
 
-For the \texttt{seq\_text} setting, the attention model does not treat the full feature vector as an undifferentiated block. Instead, it splits the pair representation into sequence and text operator tokens, projects those tokens into a shared latent space, applies multihead self-attention, and then predicts one edge-level probability. The final prediction used in this thesis is a three-seed ensemble of the best attention configuration. This architecture choice is deliberately modest relative to full end-to-end cross-encoder designs: the aim is to obtain a strong and stable surrogate that can be exported cleanly into the downstream inference pipeline.
+For the \texttt{seq\_text} setting, the attention model does not treat the full feature vector as one undifferentiated block. Instead, it groups the pair representation into sequence and text operator tokens, projects those tokens into a shared latent space, applies multihead self-attention, and then produces one edge-level probability. The final surrogate used later in the thesis is a three-seed ensemble of that attention model. This is a deliberately moderate architecture choice relative to full end-to-end cross-encoders: the thesis needs a strong and stable surrogate that can be exported cleanly into downstream inference, not only a maximally complex predictor.
 
 \section{Frozen Best Model and Prediction Handoff}
 
-The frozen best surrogate in the current repository is:
+The frozen best surrogate in the current workspace is
 \begin{center}
 \texttt{seq\_text + esm2\_3b + attention ensemble}.
 \end{center}
-It is built by training three attention models with different random seeds and averaging their predicted probabilities using \texttt{10\_ensemble\_predictions.py}. The resulting ensemble achieves the best observed test-set performance in the current workspace, with PR-AUC 0.715 on the Intra test split and PR-AUC 0.799 on the BIOGRID-human test split.
+It is built by training three attention models with different random seeds and averaging their predicted probabilities. In the current results, that ensemble achieves PR-AUC 0.715 on the Intra test split and PR-AUC 0.799 on the BIOGRID-human test split, making it the strongest practical surrogate available for the later inference layer.
 
-The predictive and inferential layers are connected through an explicit export step. Per-run training outputs are stored in each run directory as \texttt{predictions.csv}. The ensemble predictions are then converted to a canonical export schema by \texttt{07\_export\_predictions.py}. All downstream R scripts read that canonical export rather than directly reading model-specific training artifacts. This separation is important for reproducibility: training, ensembling, export, and inference are distinct stages with distinct output contracts.
+The predictive and inferential workflows are connected through an explicit export contract. Training produces per-run prediction files, the ensemble step averages the seed-level probabilities, and a canonical export step converts the result into a stable schema consumed by the R-based inference scripts. This separation is important for the thesis because it keeps the prediction problem and the inference problem distinct: the neural model supplies the surrogate score, while prediction-powered procedures use a smaller labeled subset to correct and quantify uncertainty.
 
 \section{Chapter Summary}
 
-The protein application therefore uses a script-first predictive pipeline whose mainline is the merged-pool attention-ensemble branch. The scientific context for that design comes from curated PPI resources, protein language modeling, and the recent literature on leakage-aware sequence-based PPI prediction \parencite{biogrid2019, luck2020, prottrans2022, dscript2021, park2012, bernett2024}. This chapter establishes the prediction layer. The next chapter evaluates that layer, then uses its exported predictions as inputs to PPI/\texttt{PPI++} estimation, labeled-budget planning, and dependence sensitivity analysis.
+The protein application therefore rests on four design decisions: leakage-aware split construction, complementary sequence and text representations, operator-based pair features, and a frozen attention ensemble used as the default surrogate. These choices are informed by curated PPI resources, protein language modeling, and the recent literature on leakage-aware sequence-based PPI prediction \parencite{biogrid2019, luck2020, prottrans2022, dscript2021, park2012, bernett2024}. The next chapter evaluates that surrogate as a prediction layer and then uses its exported scores for PPI/\texttt{PPI++} estimation, labeled-budget planning, and dependence sensitivity analysis.

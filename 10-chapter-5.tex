@@ -47,28 +47,61 @@ A notable empirical result is that PPI and \texttt{PPI++} are close to one anoth
 
 \section{Planning Layer: I.I.D. Power and Sample-Size Baseline}
 
-The current thesis code uses the planning formulas from Chapter~\ref{chap:foundation_power} in their published i.i.d. form. In the present implementation, the planning target is a mean/proportion-type estimand rather than PR-AUC or ROC-AUC directly. Accordingly, the horizontal axis $\Delta$ in Figure~\ref{fig:chap5_power_iid} should be interpreted as a target absolute difference in a mean-like parameter.
+The current thesis code uses the planning formulas from Chapter~\ref{chap:foundation_power} in their published i.i.d. form. In the present protein application, the planning target is a mean/proportion-type estimand, specifically the positive-edge rate or interaction prevalence in a target edge population. Accordingly, the horizontal axis $\Delta$ in Figure~\ref{fig:chap5_power_iid} should be interpreted as a target absolute difference in that prevalence-like parameter rather than as a difference in PR-AUC or ROC-AUC.
 
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.93\textwidth]{chap5_required_n_curves_zoom.png}
-\caption{i.i.d. prediction-powered planning curves for the frozen attention ensemble. The three lines correspond to vanilla PPI, estimated-lambda \texttt{PPI++}, and oracle-lambda \texttt{PPI++}. The inset highlights the right end of the curve near $\Delta = 0.10$.}
+\caption{i.i.d. planning curves for the frozen attention ensemble. The dashed black line is the classical label-only baseline; the colored lines correspond to vanilla PPI, estimated-lambda \texttt{PPI++}, and oracle-lambda \texttt{PPI++}. The inset highlights the right end of the curve near $\Delta = 0.10$.}
 \label{fig:chap5_power_iid}
 \end{figure}
 
-The i.i.d. planning results show the expected ordering. At $\Delta = 0.10$, the required labeled sample sizes are 286 for vanilla PPI, 186 for estimated-lambda \texttt{PPI++}, and 182 for oracle-lambda \texttt{PPI++}. At $\Delta = 0.05$, the corresponding values are 1155, 743, and 727. These numbers quantify the label-efficiency gains that come from using a strong surrogate in the published prediction-powered planning framework \parencite{ppi_power}.
+The classical baseline is now explicit in the protein results, which is important for interpretation. At $\Delta = 0.10$, the required labeled sample sizes are 197 for the classical estimator, 286 for vanilla PPI, 186 for estimated-lambda \texttt{PPI++}, and 182 for oracle-lambda \texttt{PPI++}. At $\Delta = 0.05$, the corresponding values are 785, 1155, 743, and 727; at $\Delta = 0.02$, they are 4906, 7844, 4649, and 4567. This makes the relevant comparison clear. Vanilla PPI is not automatically better than the label-only baseline, whereas the tuned \texttt{PPI++} variants do deliver the expected sample-size reduction in this frozen run \parencite{ppi_power}.
+
+\subsection{Protein-Side \texorpdfstring{$\rho^2$}{rho2} Planning Story}
+
+Chapter~\ref{chap:foundation_power} emphasized that, in the one-sample mean setting, pilot $\rho_{Yf}^2$ is the key summary of surrogate quality for planning. The protein application shows the same qualitative pattern. Using the Intra validation split as the pilot set, I constructed a small surrogate-strength gradient from the completed model runs already available in the workspace: a sequence-only logreg model, a sequence-only MLP, a sequence-plus-text MLP, the strongest current single-attention run, and the frozen attention ensemble.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.93\textwidth]{chap5_protein_rho_story_curves.png}
+\caption{Protein-side analogue of the real-data planning story in \textcite{ppi_power}. The dashed black line is the classical label-only baseline; colored lines are fixed estimated-lambda \texttt{PPI++} planning curves for five frozen protein surrogates. Better pilot agreement between $Y$ and $\hat p$ shifts the required labeled sample size downward.}
+\label{fig:chap5_rho_story}
+\end{figure}
+
+Figure~\ref{fig:chap5_rho_story} shows that the ordering is monotone but modest. The pilot $\rho_{Y\hat p}^2$ values rise from 0.0266 for the sequence-only logreg model to 0.1056 for the frozen attention ensemble, and the required labeled sample size falls accordingly. For example, at $\Delta = 0.05$, the classical baseline requires 785 labels, whereas the sequence-only logreg model requires 771, the sequence-only MLP requires 740, the sequence-plus-text MLP requires 745, the representative single-attention model requires 730, and the frozen attention ensemble requires 726. At $\Delta = 0.10$, the same ordering is 197, 193, 185, 187, 183, and 182. The point is not that the gains are dramatic; the point is that the protein application reproduces the same logic as the real-data studies in \textcite{ppi_power}: stronger pilot agreement between truth and surrogate yields lower required labeled sample size.
+
+\begin{table}[ht]
+\centering
+\small
+\begin{tabular}{lccccc}
+\toprule
+Model & $\rho^2_{\mathrm{val}}$ & $\hat{\lambda}$ & $n^\star(0.02)$ & $n^\star(0.05)$ & $n^\star(0.10)$ \\
+\midrule
+Seq ESM2-3B LogReg & 0.0266 & 0.165 & 4815 & 771 & 193 \\
+Seq ESM2-3B MLP & 0.0818 & 0.209 & 4626 & 740 & 185 \\
+Seq+Text ESM2-3B MLP & 0.0728 & 0.169 & 4657 & 745 & 187 \\
+Seq+Text ESM2-3B Attn & 0.0990 & 0.205 & 4567 & 730 & 183 \\
+Seq+Text ESM2-3B Attn Ensemble & 0.1056 & 0.222 & 4545 & 726 & 182 \\
+\bottomrule
+\end{tabular}
+\caption{Pilot surrogate quality and required labeled sample size for the protein-side planning story. The classical label-only baseline is 4906, 785, and 197 for $\Delta = 0.02, 0.05, 0.10$, respectively. The single-attention row is the strongest currently available single-attention run by pilot $\rho^2$.}
+\label{tab:chap5_rho_story}
+\end{table}
+
+This surrogate-strength comparison is more informative than the failed follow-up tuning campaign. After the frozen ensemble was established, I also ran a dedicated rho-focused search over alternative losses, early-stopping criteria, hard-negative settings, and post-hoc calibration. That search did not produce a replacement surrogate that improved pilot $\rho^2$ enough to beat the frozen ensemble without sacrificing ranking performance. For the thesis, the right conclusion is therefore conservative: the existing model gradient is already enough to show the protein-side planning story, and the main leverage appears to come from representation quality and evaluation design rather than from small head-level tuning changes.
 
 \section{Dependence Sensitivity for Shared-Protein Edges}
 
 The published formulas above assume independent observations. Protein-edge data, however, are naturally graph-structured. If two edges share a protein, then their features, predicted scores, and even validation labels can be correlated. To make that issue explicit, this thesis adds a dependence-sensitive extension rather than silently treating the published formulas as universally correct. The concern is not purely abstract: the pair-input evaluation literature repeatedly shows that dependence across constituent objects can distort performance estimation if the benchmark design ignores it \parencite{park2012, bernett2024}.
 
-The main additional notation in this section is specific to this dependence discussion. I write \(\mathrm{deff}\) for a design effect, meaning a scalar variance-inflation factor relative to the published i.i.d.\ planning formulas. When the unit is specialized from a generic index \(i\) to a protein edge, I write \(e = (u,v)\) for an edge between proteins \(u\) and \(v\), and later use notation such as \(Y_e\), \(f_e\), and \(\psi_e^{\lambda}\) for edge-level outcomes, surrogate scores, and influence contributions.
+The main additional notation in this section is specific to this dependence discussion. I write \(\mathrm{deff}\) for a design effect, meaning a scalar variance-inflation factor relative to the published i.i.d.\ planning formulas. In plain language, \(\mathrm{deff}=1.25\) means a 25\% variance inflation relative to the i.i.d.\ baseline, \(\mathrm{deff}=1.50\) means a 50\% inflation, and \(\mathrm{deff}=2.00\) doubles the variance. When the unit is specialized from a generic index \(i\) to a protein edge, I write \(e = (u,v)\) for an edge between proteins \(u\) and \(v\), and later use notation such as \(Y_e\), \(f_e\), and \(\psi_e^{\lambda}\) for edge-level outcomes, surrogate scores, and influence contributions.
 
 Let an edge be indexed by $e = (i,j)$, and let $N(e)$ denote the set of other edges that share protein $i$ or $j$. For an edge-level influence contribution $\psi_e^{\lambda}$, the relevant large-sample variance under dependence is no longer purely diagonal. Cross-edge covariance terms need not vanish, and therefore the usual i.i.d. confidence intervals and sample-size calculations can be optimistic. In this first draft, I do not replace the published theorem. Instead, I report a sensitivity analysis based on a design effect,
 \[
 \mathrm{deff} \in \{1.00, 1.25, 1.50, 2.00\},
 \]
-which inflates the labeled-sample requirement relative to the i.i.d. baseline.
+which spans no inflation, mild inflation, moderate inflation, and a conservative doubling of the i.i.d.\ variance. The purpose of this grid is not to assert that one of these values is already known to be correct for the protein graph. The purpose is to show how quickly the apparent planning gain would shrink if shared-protein dependence inflates uncertainty by a plausible multiplicative factor.
 
 \subsection{Variance Decomposition Under Shared-Protein Dependence}
 

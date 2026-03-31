@@ -1,0 +1,10 @@
+run_id,model_family,arch,model_id,feature_set,delta,lambda_mode,lambda_estimate,n_required,N_unlabeled,alpha,target_power
+seq_text_esm2_3b_ensemble_quickwins_seq_text_esm2_3b_attn_20260312_234931,nn_ensemble,ensemble,esm2_3b,seq_text,0.02,vanilla_ppi,0.12854592857898425,7844,52031,0.05,0.8
+seq_text_esm2_3b_ensemble_quickwins_seq_text_esm2_3b_attn_20260312_234931,nn_ensemble,ensemble,esm2_3b,seq_text,0.05,vanilla_ppi,0.12854592857898425,1155,52031,0.05,0.8
+seq_text_esm2_3b_ensemble_quickwins_seq_text_esm2_3b_attn_20260312_234931,nn_ensemble,ensemble,esm2_3b,seq_text,0.1,vanilla_ppi,0.12854592857898425,286,52031,0.05,0.8
+seq_text_esm2_3b_ensemble_quickwins_seq_text_esm2_3b_attn_20260312_234931,nn_ensemble,ensemble,esm2_3b,seq_text,0.02,oracle_lambda,0.12854592857898425,4567,52031,0.05,0.8
+seq_text_esm2_3b_ensemble_quickwins_seq_text_esm2_3b_attn_20260312_234931,nn_ensemble,ensemble,esm2_3b,seq_text,0.05,oracle_lambda,0.12854592857898425,727,52031,0.05,0.8
+seq_text_esm2_3b_ensemble_quickwins_seq_text_esm2_3b_attn_20260312_234931,nn_ensemble,ensemble,esm2_3b,seq_text,0.1,oracle_lambda,0.12854592857898425,182,52031,0.05,0.8
+seq_text_esm2_3b_ensemble_quickwins_seq_text_esm2_3b_attn_20260312_234931,nn_ensemble,ensemble,esm2_3b,seq_text,0.02,estimated_lambda,0.12854592857898425,4649,52031,0.05,0.8
+seq_text_esm2_3b_ensemble_quickwins_seq_text_esm2_3b_attn_20260312_234931,nn_ensemble,ensemble,esm2_3b,seq_text,0.05,estimated_lambda,0.12854592857898425,743,52031,0.05,0.8
+seq_text_esm2_3b_ensemble_quickwins_seq_text_esm2_3b_attn_20260312_234931,nn_ensemble,ensemble,esm2_3b,seq_text,0.1,estimated_lambda,0.12854592857898425,186,52031,0.05,0.8
