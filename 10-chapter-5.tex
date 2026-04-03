@@ -41,7 +41,7 @@ The current thesis code uses the planning formulas from Chapter~\ref{chap:founda
 
 The classical baseline is now explicit in the protein results, which is important for interpretation. At $\Delta = 0.10$, the required labeled sample sizes are 197 for the classical estimator, 286 for vanilla PPI, 186 for estimated-lambda \texttt{PPI++}, and 182 for oracle-lambda \texttt{PPI++}. At $\Delta = 0.05$, the corresponding values are 785, 1155, 743, and 727; at $\Delta = 0.02$, they are 4906, 7844, 4649, and 4567. This makes the relevant comparison clear. Vanilla PPI is not automatically better than the label-only baseline, whereas the tuned \texttt{PPI++} variants do deliver the expected sample-size reduction in this frozen run \parencite{ppi_power}.
 
-\subsection[Protein rho2 Planning]{Protein-Side \texorpdfstring{$\rho^2$}{rho2} Planning Story}
+\subsection[Protein $\rho^2$ Planning]{Protein-Side \texorpdfstring{$\rho^2$}{rho2} Planning Story}
 
 Chapter~\ref{chap:foundation_power} emphasized that, in the one-sample mean setting, pilot $\rho_{Yf}^2$ is the key summary of surrogate quality for planning. The protein application shows the same qualitative pattern. Using the Intra validation split as the pilot set, I constructed a small surrogate-strength gradient from the completed model runs already available in the workspace: a sequence-only logreg model, a sequence-only MLP, a sequence-plus-text MLP, the strongest current single-attention run, and the frozen attention ensemble.
 
