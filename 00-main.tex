@@ -172,12 +172,13 @@
 
 
 %%%% BIBLIOGRAPHIC PACKAGE (change the style or other options if you need to)
-%% Nature style bibliography
+%% Author-year bibliography
 \usepackage[
   backend=biber,
-  style=nature,
-  sorting=none,
-  maxnames=99,
+  style=authoryear,
+  sorting=nyt,
+  maxcitenames=2,
+  maxbibnames=99,
   date=year,
   isbn=false,
   url=false,
@@ -350,7 +351,7 @@
 %% set the width of the box based on the longest label name
 \renewcommand{\cftchappresnum}{\chaptername\space}
 \renewcommand{\cftchapleader}{\cftdotfill{\cftdotsep}}  % dots for chapters too
-\setlength{\cftchapnumwidth}{\widthof{\textbf{Appendix~XXX~}}}
+\setlength{\cftchapnumwidth}{\widthof{\textbf{Chapter~10~}}}
 
 
 \setlength{\cftbeforechapskip}{\ChapTOCSpacing}
