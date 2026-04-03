@@ -4,13 +4,15 @@ This chapter reports the protein-specific empirical results. Unless otherwise no
 
 \section[Prediction Layer]{Prediction Layer: Mainline Performance}
 
-The strongest current surrogate in this study is the sequence-plus-text ESM2-3B attention ensemble introduced in Chapter~\ref{chap:protein_pipeline}. Table~\ref{tab:chap5_predictive_metrics} reports the main predictive metrics for the frozen model gradient used throughout the later planning analysis: a sequence-only logreg model, a sequence-only MLP, a sequence-plus-text MLP, the strongest current single-attention run, and the frozen attention ensemble.
+The strongest current surrogate in this study remains the sequence-plus-text ESM2-3B attention ensemble introduced in Chapter~\ref{chap:protein_pipeline}. Table~\ref{tab:chap5_predictive_metrics} reports the main predictive metrics for the frozen model gradient used throughout the later planning analysis: a sequence-only logreg model, a sequence-only MLP, a sequence-plus-text MLP, the strongest current single-attention run, the frozen attention ensemble, and a later log-loss-optimized attention ensemble included as a calibration-oriented contrast.
 
 \input{generated_tables/chap5_predictive_metrics.tex}
 
-The ensemble is strongest on both main test splits and also improves on the representative single-attention run. Relative to the best MLP baseline, the gain is modest but consistent. The main empirical lesson is therefore not that attention radically changes the task, but that a strong prediction head plus seed averaging produces the most reliable surrogate for the downstream inference layer.
+The original frozen ensemble still performs best on the in-domain test split and remains the surrogate carried into the later inference and planning sections. Relative to the best MLP baseline, the gain is modest but consistent. The main empirical lesson is therefore not that attention radically changes the task, but that a strong prediction head combined with seed averaging yields the most reliable surrogate for the downstream inference layer. The rest of the chapter should be read with that point in mind: the later statistical comparisons are built on a reasonably stable predictive foundation rather than on a fragile benchmark winner.
 
-This interpretation is consistent with the recent PPI-prediction literature. Deep sequence models and protein-language-model-based approaches can achieve strong within-dataset performance, but their apparent gains are strongly shaped by benchmark design, negative sampling, and leakage control \parencite{dscript2021, xcapt52024, park2012, bernett2024}. For that reason, the current thesis treats the predictive pipeline primarily as a source of a high-quality surrogate for downstream inference, not as a claim of universal state-of-the-art performance against every published PPI benchmark.
+The log-loss-optimized ensemble sharpens one side of the tradeoff but not the whole model-selection problem. It lowers log loss on all three key comparison splits and improves Brier on the external test split, but it also degrades the in-domain PR-AUC markedly and reduces the pilot \(\rho^2\) used in the planning story. For that reason, it does not replace the original frozen ensemble under the balanced replacement rule adopted for this thesis. Appendix~\ref{chap:appendix-b} reports the corresponding optimization diagnostics and the side-by-side single-run and ensemble comparisons in full.
+
+This interpretation is consistent with the recent PPI-prediction literature. Deep sequence models and protein-language-model-based approaches can achieve strong within-dataset performance, but their apparent gains are strongly shaped by benchmark design, negative sampling, and leakage control \parencite{dscript2021, xcapt52024, park2012, bernett2024}. For that reason, the thesis treats the predictive pipeline primarily as a source of a high-quality surrogate for downstream inference, not as a claim of universal state-of-the-art performance against every published PPI benchmark.
 
 \section[Inference Layer]{Inference Layer: Canonical Export and PPI/\texttt{PPI++}}
 
@@ -20,11 +22,15 @@ Table~\ref{tab:chap5_ppi_core} gives a compact view of the main mean-type summar
 
 \input{generated_tables/chap5_ppi_core_compact.tex}
 
+The importance of Table~\ref{tab:chap5_ppi_core} is not simply that the estimates are numerically close. The more substantive point is that the correction layer remains stable across both the internal and external test settings even when the labeled budget is small. This is the main reason for treating the frozen predictor as an inferentially useful surrogate rather than merely as a ranking device.
+
 Tables~\ref{tab:chap5_confusion_intra} and~\ref{tab:chap5_confusion_biogrid} extend this view to nonlinear summaries derived from the prediction-powered confusion components. The overall pattern is similar: higher calibration budgets reduce variability, but the 5\%, 10\%, and 20\% budgets already track the truth closely for the main test splits. Full interval estimates for these rows are reported in Appendix~\ref{chap:appendix-a}, Table~\ref{tab:app_chap5_confusion_full}.
 
 \input{generated_tables/chap5_confusion_intra_compact.tex}
 
 \input{generated_tables/chap5_confusion_biogrid_compact.tex}
+
+Taken together, these tables show that the agreement is not confined to one convenient summary. Precision, recall, F1, specificity, and false-positive rate all remain close to their full-data targets. That breadth matters for the later planning discussion: the surrogate is not only predictive, but also compatible with calibration across several derived functionals.
 
 A notable empirical result is that PPI and \texttt{PPI++} are close to one another in this frozen run. This does not imply that the tuning parameter is unimportant in general. Rather, it indicates that the current surrogate is already strong enough that the additional gain from tuning $\lambda$ is moderate for these mean-type targets, which is qualitatively in line with the theory behind \texttt{PPI++} \parencite{ppi_pp, ppi_power}.
 
@@ -39,11 +45,11 @@ The current thesis code uses the planning formulas from Chapter~\ref{chap:founda
 \label{fig:chap5_power_iid}
 \end{figure}
 
-The classical baseline is now explicit in the protein results, which is important for interpretation. At $\Delta = 0.10$, the required labeled sample sizes are 197 for the classical estimator, 286 for vanilla PPI, 186 for estimated-lambda \texttt{PPI++}, and 182 for oracle-lambda \texttt{PPI++}. At $\Delta = 0.05$, the corresponding values are 785, 1155, 743, and 727; at $\Delta = 0.02$, they are 4906, 7844, 4649, and 4567. This makes the relevant comparison clear. Vanilla PPI is not automatically better than the label-only baseline, whereas the tuned \texttt{PPI++} variants do deliver the expected sample-size reduction in this frozen run \parencite{ppi_power}.
+Making the classical baseline explicit is important for interpretation. At $\Delta = 0.10$, the required labeled sample sizes are 197 for the classical estimator, 286 for vanilla PPI, 186 for estimated-lambda \texttt{PPI++}, and 182 for oracle-lambda \texttt{PPI++}. At $\Delta = 0.05$, the corresponding values are 785, 1155, 743, and 727; at $\Delta = 0.02$, they are 4906, 7844, 4649, and 4567. The comparison is therefore clear: vanilla PPI is not automatically better than the label-only baseline, whereas the tuned \texttt{PPI++} variants do deliver the expected sample-size reduction in this setting \parencite{ppi_power}. The result is qualified but still useful. In this application, prediction-powered planning helps once the tuning step is respected, but the gain is moderate rather than transformative.
 
 \subsection[Protein rho2 Planning]{Protein-Side \texorpdfstring{$\rho^2$}{rho2} Planning Story}
 
-Chapter~\ref{chap:foundation_power} emphasized that, in the one-sample mean setting, pilot $\rho_{Yf}^2$ is the key summary of surrogate quality for planning. The protein application shows the same qualitative pattern. Using the Intra validation split as the pilot set, I constructed a small surrogate-strength gradient from the completed model runs already available in the workspace: a sequence-only logreg model, a sequence-only MLP, a sequence-plus-text MLP, the strongest current single-attention run, and the frozen attention ensemble.
+Chapter~\ref{chap:foundation_power} emphasized that, in the one-sample mean setting, pilot $\rho_{Yf}^2$ is the key summary of surrogate quality for planning. The protein application shows the same qualitative pattern. Using the Intra validation split as the pilot set, I constructed a small surrogate-strength gradient from the completed model runs already available for this study: a sequence-only logreg model, a sequence-only MLP, a sequence-plus-text MLP, the strongest current single-attention run, and the frozen attention ensemble.
 
 \begin{figure}[ht]
 \centering
@@ -56,7 +62,9 @@ Figure~\ref{fig:chap5_rho_story} shows that the ordering is monotone but modest.
 
 \input{generated_tables/chap5_rho_story.tex}
 
-This surrogate-strength comparison is more informative than the failed follow-up tuning campaign. After the frozen ensemble was established, I also ran a dedicated rho-focused search over alternative losses, early-stopping criteria, hard-negative settings, and post-hoc calibration. That search did not produce a replacement surrogate that improved pilot $\rho^2$ enough to beat the frozen ensemble without sacrificing ranking performance. For the thesis, the right conclusion is therefore conservative: the existing model gradient is already enough to show the protein-side planning story, and the main leverage appears to come from representation quality and evaluation design rather than from small head-level tuning changes.
+The value of this section lies in the monotone gradient rather than in any one absolute number. The planning story from Chapter~\ref{chap:foundation_power} carries over directly: stronger pilot agreement translates into smaller labeled-sample requirements, even when the application sits in a moderate-\(\rho^2\) regime rather than in an idealized near-deterministic one.
+
+This surrogate-strength comparison is more informative than the later rho-focused tuning campaign. After the frozen ensemble had been established, I ran a dedicated search over alternative losses, early-stopping criteria, hard-negative settings, and post-hoc calibration. That search did not produce a replacement surrogate that improved pilot $\rho^2$ enough to beat the frozen ensemble without sacrificing ranking performance. The appropriate conclusion is therefore conservative: the existing model gradient is already sufficient to show the protein-side planning story, and the main leverage appears to come from representation quality and evaluation design rather than from small head-level tuning changes.
 
 \section[Dependence Sensitivity]{Dependence Sensitivity for Shared-Protein Edges}
 
@@ -317,8 +325,8 @@ The plain-language interpretation is straightforward. If \(d_{\lambda}=1.50\), t
 \label{fig:chap5_power_dependence}
 \end{figure}
 
-The substantive implication is straightforward. The i.i.d. formulas remain useful as a baseline, but they should be read as optimistic when shared-protein dependence is non-negligible. The stronger the local dependence, the less dramatic the apparent label savings from PPI/\texttt{PPI++} become. This is the main protein-specific extension of the chapter: the point estimator is unchanged, but the variance interpretation and planning conclusions become dependence-sensitive.
+The substantive implication is straightforward. The i.i.d. formulas remain useful as a baseline, but they should be read as optimistic when shared-protein dependence is non-negligible. The stronger the local dependence, the less dramatic the apparent label savings from PPI/\texttt{PPI++} become. This is the main protein-specific extension of the chapter: the point estimator is unchanged, but the variance interpretation and the planning conclusions become dependence-sensitive.
 
 \section{Chapter Summary}
 
-The protein results support a coherent three-layer message. First, the attention-ensemble branch is the strongest current surrogate in the repository. Second, the exported predictions from that surrogate are good enough that PPI/\texttt{PPI++} estimates remain stable under modest calibration budgets. Third, the published power formulas provide a useful baseline, but graph-induced dependence should be treated as a real caveat in PPI applications rather than ignored. Existing PPI-prediction papers are still useful points of comparison, but only when their evaluation protocols are interpreted with the same caution demanded by the pair-input benchmarking literature \parencite{lee2023, park2012, bernett2024}.
+The protein results support a coherent three-layer message. First, the attention-ensemble branch is the strongest surrogate examined in this study. Second, the predictions from that surrogate are good enough that PPI/\texttt{PPI++} estimates remain stable under modest calibration budgets. Third, the published power formulas provide a useful baseline, but graph-induced dependence should be treated as a real caveat in PPI applications rather than ignored. Existing PPI-prediction papers are still useful points of comparison, but only when their evaluation protocols are interpreted with the same caution demanded by the pair-input benchmarking literature \parencite{lee2023, park2012, bernett2024}.

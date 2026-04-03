@@ -1,25 +1,18 @@
-\chapter{Prior Work I: Efficient Inference for Noisy LLM-as-a-Judge Evaluation} \label{chap:foundation_llm}
+\chapter{Methodological Foundation I: Efficient Inference for Noisy LLM-as-a-Judge Evaluation} \label{chap:foundation_llm}
 
-This chapter summarizes the first methodological foundation used in the thesis, the preprint \emph{Efficient Inference for Noisy LLM-as-a-Judge Evaluation} \parencite{llmjudge_eif}. It should be read as a direct extension of the original prediction-powered inference line: the starting point is the PPI/\texttt{PPI++} estimator family, and the new question is what happens when the cheap label is itself noisy, biased, or better interpreted as a surrogate outcome rather than as a clean prediction target. Although the paper is motivated by LLM-as-a-judge evaluation, its core statistical structure is directly relevant here: a large set of cheap surrogate labels is available for many units, while a smaller calibration set contains both the surrogate and the gold-standard outcome.
+This chapter provides the first methodological foundation for the thesis. It builds on the preprint \emph{Efficient Inference for Noisy LLM-as-a-Judge Evaluation} \parencite{llmjudge_eif}, but its role here is broader than summarizing that paper. The aim is to clarify how prediction-powered correction relates to measurement error, surrogate outcomes, and semiparametric efficiency when the cheap label is itself noisy or biased. The starting point remains the PPI/\texttt{PPI++} estimator family; the added question is how that family should be interpreted when the auxiliary signal is not a clean prediction target.
+
+For the remainder of the thesis, I adopt three elements of that paper unchanged: the residual-correction viewpoint, the efficient-influence-function interpretation, and the distinction between direct misclassification correction and flexible surrogate calibration. What changes later is the scientific context. Here the motivating example is LLM-as-a-judge evaluation; in the protein chapters the same statistical structure is reused with continuous edge-level surrogate scores. A full domain-specific treatment of LLM evaluation is outside the scope of this thesis.
 
 \section{Global Statistical Setup and Notation}
 \label{sec:global_notation}
 
-This section fixes the notation used throughout the remainder of the thesis. The same symbols are reused in the methodological foundation chapters and in the later protein-edge application; what changes from chapter to chapter is the scientific interpretation of a ``unit'', not the statistical structure.
+This section fixes the notation used throughout the remainder of the thesis. The same symbols are reused in the methodological foundation chapters and in the later protein-edge application; what changes from chapter to chapter is the scientific interpretation of a ``unit'', not the underlying statistical structure. The main objects are:
 
-\paragraph{Generic unit-level notation.}
-Index generic units by \(i\). Let \(X_i\) denote the raw input or feature vector associated with unit \(i\), let \(Y_i\) denote the gold-standard outcome of interest, and let \(\widehat{Y}_i\) denote a cheap observed surrogate label when such a surrogate is directly recorded. In the LLM-as-a-judge setting of \textcite{llmjudge_eif}, \(\widehat{Y}_i\) is the cheap judge label itself. In later chapters, I use the shorthand \(f_i = f(X_i)\) for a generic model-based surrogate prediction. In the protein application, the unit is usually an edge and \(f_i\) is the predicted interaction score.
-
-\paragraph{Observed-label indicator and sample split.}
-Let \(R_i \in \{0,1\}\) indicate whether the gold-standard label \(Y_i\) is observed, and write \(\pi = \Pr(R_i = 1)\). The data are partitioned into
-\begin{enumerate}
-    \item a labeled calibration set \(L = \{i : R_i = 1\}\) of size \(n\), on which both the gold label and the surrogate are observed, and
-    \item a large prediction-only set \(U = \{i : R_i = 0\}\) of size \(N\), on which the surrogate is available at scale.
-\end{enumerate}
-When the later power-analysis chapters speak of a pilot set, calibration set, or labeled subset, they refer to this same object \(L\) unless otherwise stated. Similarly, the evaluation population or unlabeled prediction pool is represented by \(U\).
-
-\paragraph{Averages and target parameter.}
-For any quantity \(A_i\), write
+\begin{itemize}
+    \item \textbf{Unit-level quantities.} Index generic units by \(i\). Let \(X_i\) denote the raw input or feature vector, \(Y_i\) the gold-standard outcome, and \(\widehat{Y}_i\) a cheap observed surrogate label when such a label is directly recorded. In the LLM-as-a-judge setting of \textcite{llmjudge_eif}, \(\widehat{Y}_i\) is the cheap judge label itself. In later chapters I use the shorthand \(f_i = f(X_i)\) for a generic model-based surrogate prediction; in the protein application, the unit is usually an edge and \(f_i\) is the predicted interaction score.
+    \item \textbf{Observed-label indicator and sample split.} Let \(R_i \in \{0,1\}\) indicate whether the gold-standard label \(Y_i\) is observed, and write \(\pi = \Pr(R_i = 1)\). The data are partitioned into a labeled calibration set \(L = \{i : R_i = 1\}\) of size \(n\), on which both the gold label and the surrogate are observed, and a large prediction-only set \(U = \{i : R_i = 0\}\) of size \(N\), on which the surrogate is available at scale. When later chapters speak of a pilot set, calibration set, or labeled subset, they refer to this same object \(L\) unless otherwise stated.
+    \item \textbf{Target parameter and sample averages.} For any quantity \(A_i\), write
 \[
 \overline{A}_{L} = \frac{1}{n}\sum_{i \in L} A_i,
 \qquad
@@ -29,17 +22,13 @@ The primary mean-type target in the thesis is
 \[
 \theta = \mathbb{E}[Y_i].
 \]
-For a binary outcome, \(\theta\) is a prevalence or positive-rate parameter; for a continuous outcome, \(\theta\) is an ordinary mean. This convention will be retained in the power-analysis and protein-application chapters.
-
-\paragraph{Calibration and surrogate notation.}
-When the cheap label is treated through an explicit regression or calibration function, write
+    For a binary outcome, \(\theta\) is a prevalence or positive-rate parameter; for a continuous outcome, \(\theta\) is an ordinary mean. This convention is retained in the power-analysis and protein-application chapters.
+    \item \textbf{Calibration and surrogate notation.} When the cheap label is treated through an explicit regression or calibration function, write
 \[
 \mu(\widehat{Y}_i) = \mathbb{E}[Y_i \mid \widehat{Y}_i].
 \]
-When the surrogate is model-based rather than directly observed, I use \(f_i = f(X_i)\) as the generic prediction notation. With that convention, the same estimator formulas can be written without changing statistical meaning when moving from noisy judge labels to protein-edge prediction scores.
-
-\paragraph{Prediction-powered estimator family.}
-In the mean-setting, the original PPI estimator is
+    When the surrogate is model-based rather than directly observed, I use \(f_i = f(X_i)\) as the generic prediction notation. With that convention, the same estimator formulas can be written without changing statistical meaning when moving from noisy judge labels to protein-edge prediction scores.
+    \item \textbf{Prediction-powered estimator family.} In the mean-setting, the original PPI estimator is
 \[
 \widehat{\theta}_{\mathrm{PPI}}
 =
@@ -55,12 +44,8 @@ and the one-parameter \texttt{PPI++} family is
 +
 \lambda(\overline{f}_{U}-\overline{f}_{L}).
 \]
-Here \(\lambda\) is the tuning parameter that controls how strongly the prediction-only sample enters the corrected estimator. Later chapters distinguish three common cases:
-\begin{enumerate}
-    \item vanilla PPI, corresponding to \(\lambda = 1\);
-    \item estimated-lambda \texttt{PPI++}, where \(\hat{\lambda}\) is estimated from pilot or calibration data; and
-    \item oracle-lambda \texttt{HPPI++}, where \(\lambda\) is chosen to minimize the working asymptotic variance.
-\end{enumerate}
+    Here \(\lambda\) is the tuning parameter that controls how strongly the prediction-only sample enters the corrected estimator. Later chapters distinguish three common cases: vanilla PPI with \(\lambda = 1\), estimated-lambda \texttt{PPI++} with \(\hat{\lambda}\) estimated from pilot or calibration data, and oracle-lambda \texttt{PPI++} with \(\lambda\) chosen to minimize the working asymptotic variance.
+\end{itemize}
 
 This setup can also be viewed as a missing-data problem: the target outcome \(Y_i\) is observed only on the labeled subset, while the surrogate is observed for everyone \parencite{rubin1976, tsiatis2006, robins1995}. The paper compares two broad correction strategies. The first treats \(\widehat{Y}\) as a mismeasured version of \(Y\) and uses direct measurement-error correction, such as Rogan--Gladen-style estimators. The second treats \(\widehat{Y}\) or \(f(X)\) as a generic surrogate outcome and uses prediction-powered residual correction. The central message is that these views can be unified through efficient influence functions and semiparametric efficiency \parencite{rogan_gladen, eif_ref, tsiatis2006, llmjudge_eif}.
 
