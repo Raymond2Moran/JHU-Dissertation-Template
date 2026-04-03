@@ -1,0 +1,15 @@
+\begin{table}[ht]
+\centering
+\scriptsize
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}X*{8}{>{\centering\arraybackslash}X}@{}}
+\toprule
+Split & \makecell{Old\\log loss} & \makecell{New\\log loss} & \makecell{Old\\Brier} & \makecell{New\\Brier} & \makecell{Old\\PR} & \makecell{New\\PR} & \makecell{Old\\rho2} & \makecell{New\\rho2} \\
+\midrule
+BIOGRID test & 0.795 & 0.572 & 0.238 & 0.193 & 0.788 & 0.790 & 0.238 & 0.273 \\
+Intra test & 0.890 & 0.748 & 0.261 & 0.249 & 0.697 & 0.682 & 0.124 & 0.107 \\
+Intra val & 0.940 & 0.755 & 0.277 & 0.257 & 0.687 & 0.664 & 0.099 & 0.073 \\
+\bottomrule
+\end{tabularx}
+\caption[Single-run tradeoff under log-loss optimization]{Comparison between the earlier representative single-attention run and the later log-loss-optimized single-attention run. Lower log loss and Brier indicate better calibration-oriented performance, whereas PR-AUC and pilot rho2 summarize ranking and planning-oriented quality.}
+\label{tab:appb_single_tradeoff}
+\end{table}

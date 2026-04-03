@@ -248,6 +248,28 @@
 %%%% GRAPHICX package
 \graphicspath{{\FigurePath/}}
 
+%%%% SAFE FALLBACKS FOR GENERATED TABLES/FIGURES
+\newcommand{\MaybeInput}[1]{%
+  \IfFileExists{#1}{%
+    \input{#1}%
+  }{%
+    \begin{center}%
+      \fbox{\parbox{0.9\textwidth}{\small Missing generated file: \texttt{#1}. Upload the generated thesis asset or rerun the export pipeline before the final build.}}%
+    \end{center}%
+  }%
+}
+\newcommand{\MaybeIncludeGraphics}[2][]{%
+  \IfFileExists{\FigurePath/#2}{%
+    \includegraphics[#1]{#2}%
+  }{%
+    \IfFileExists{#2}{%
+      \includegraphics[#1]{#2}%
+    }{%
+      \fbox{\parbox{0.85\textwidth}{\small Missing figure file: \texttt{#2}. Upload the generated figure to Overleaf or regenerate the thesis assets locally.}}%
+    }%
+  }%
+}
+
 
 %%%% GEOMETRY PACKAGE: margin settings required by JH library 
 \geometry{letterpaper, margin=\GlobalMargin, bindingoffset=\PrintingOffset, 

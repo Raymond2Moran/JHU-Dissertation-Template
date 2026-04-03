@@ -10,8 +10,9 @@ Seq MLP & 0.665 & 0.681 & 0.696 & 0.776 & 0.789 \\
 Seq+Text MLP & 0.676 & 0.699 & 0.705 & 0.783 & 0.797 \\
 Seq+Text Attn & 0.687 & 0.697 & 0.710 & 0.788 & 0.800 \\
 Attn Ensemble & 0.697 & 0.715 & 0.722 & 0.799 & 0.810 \\
+Log-loss Ens. & 0.641 & 0.649 & 0.666 & 0.802 & 0.817 \\
 \bottomrule
 \end{tabularx}
-\caption[Predictive metrics for the frozen surrogate family]{Predictive benchmarking table for the frozen surrogate family used in the protein application. The final thesis surrogate is the sequence-plus-text ESM2-3B attention ensemble, which has the strongest overall test performance among the displayed models.}
+\caption[Predictive metrics for the frozen surrogate family]{Predictive benchmarking table for the frozen surrogate family used in the protein application. The original attention ensemble remains the final thesis surrogate; the log-loss-optimized ensemble is shown as a calibration-oriented contrast because it improves loss-based metrics but does not pass the balanced replacement rule.}
 \label{tab:chap5_predictive_metrics}
 \end{table}

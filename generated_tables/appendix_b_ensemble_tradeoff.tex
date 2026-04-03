@@ -1,0 +1,15 @@
+\begin{table}[ht]
+\centering
+\scriptsize
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}X*{8}{>{\centering\arraybackslash}X}@{}}
+\toprule
+Split & \makecell{Old\\log loss} & \makecell{New\\log loss} & \makecell{Old\\Brier} & \makecell{New\\Brier} & \makecell{Old\\PR} & \makecell{New\\PR} & \makecell{Old\\rho2} & \makecell{New\\rho2} \\
+\midrule
+BIOGRID test & 0.685 & 0.552 & 0.218 & 0.187 & 0.799 & 0.802 & 0.265 & 0.295 \\
+Intra test & 0.784 & 0.722 & 0.242 & 0.248 & 0.715 & 0.649 & 0.143 & 0.084 \\
+Intra val & 0.834 & 0.731 & 0.261 & 0.255 & 0.697 & 0.641 & 0.106 & 0.059 \\
+\bottomrule
+\end{tabularx}
+\caption[Ensemble tradeoff under log-loss optimization]{Comparison between the original frozen attention ensemble and the log-loss-optimized attention ensemble under a common rescoring path. These are the quantities used in the balanced replacement rule discussed in Appendix~\ref{chap:appendix-b}.}
+\label{tab:appb_ensemble_tradeoff}
+\end{table}

@@ -1,0 +1,16 @@
+\begin{table}[ht]
+\centering
+\small
+\begin{tabularx}{0.82\textwidth}{@{}>{\raggedright\arraybackslash}X*{3}{>{\centering\arraybackslash}X}@{}}
+\toprule
+Split & Log loss & Brier & PR-AUC \\
+\midrule
+Intra train & 0.653 & 0.230 & 0.675 \\
+Intra val & 0.755 & 0.257 & 0.664 \\
+Intra test & 0.748 & 0.249 & 0.682 \\
+BIOGRID test & 0.572 & 0.193 & 0.790 \\
+\bottomrule
+\end{tabularx}
+\caption[Final split-level loss summary for the log-loss attention run]{Final split-level loss and ranking summary for the log-loss-optimized single-attention run used in Appendix~\ref{chap:appendix-b}. The held-out test split is summarized only at the selected checkpoint rather than traced across epochs.}
+\label{tab:appb_loss_summary}
+\end{table}
