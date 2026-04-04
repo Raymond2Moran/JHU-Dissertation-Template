@@ -108,7 +108,7 @@ where $O=(R, RY, \widehat{Y})$ denotes the observed data, with $RY$ the observed
 +
 \frac{1}{n}\sum_{i \in L}\{Y_i-\mu(\widehat{Y}_i)\}.
 \]
-This equation is the bridge between the semiparametric theory and the practical estimators used later in the thesis. Standard PPI is obtained by the working choice $\mu(\widehat{Y}_i) \approx f_i$, whereas \texttt{PPI++} uses the linear approximation $\mu(\widehat{Y}_i) \approx \lambda f_i$ \parencite{ppi_framework, ppi_pp, llmjudge_eif}. In the binary judge setting, the simple special case $f_i=\widehat{Y}_i$ recovers the most familiar form of the estimator. Detailed algebra for these identities is summarized in Appendix~\ref{chap:appendix-a}.
+This equation is the bridge between the semiparametric theory and the practical estimators used later in the thesis. Standard PPI is obtained by the working choice $\mu(\widehat{Y}_i) \approx f_i$, whereas \texttt{PPI++} uses the linear approximation $\mu(\widehat{Y}_i) \approx \lambda f_i$ \parencite{ppi_framework, ppi_pp, llmjudge_eif}. In the binary judge setting, the simple special case $f_i=\widehat{Y}_i$ recovers the most familiar form of the estimator. Detailed algebra for these identities is summarized in Appendix~\ref{chap:appendix-a}. The accompanying noisy-surrogate demonstrations and estimator implementations are also available in the R package \texttt{debiasLLMReporting} \parencite{debias_pkg}.
 
 \subsection{Binary Misclassification View and Rogan--Gladen}
 

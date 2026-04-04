@@ -121,7 +121,7 @@ provided the denominator is positive. This expression clarifies the three planni
     \item estimated-lambda \texttt{PPI++} plugs in a pilot estimate $\widehat{\lambda}$, and
     \item oracle-lambda \texttt{PPI++} uses the variance-minimizing choice $\lambda^\star$.
 \end{enumerate}
-The oracle case is slightly more delicate because $\lambda^\star$ itself depends on $n$ through the ratio $r=n/N$. The resulting sample-size condition is therefore a quadratic inequality rather than a simple linear inversion. The closed-form solution is given in \textcite{ppi_power}; in the thesis code, the same planning logic is implemented numerically for transparency and flexibility. Additional algebra is collected in Appendix~\ref{chap:appendix-a}.
+The oracle case is slightly more delicate because $\lambda^\star$ itself depends on $n$ through the ratio $r=n/N$. The resulting sample-size condition is therefore a quadratic inequality rather than a simple linear inversion. The closed-form solution is given in \textcite{ppi_power}; in the thesis code, the same planning logic is implemented numerically for transparency and flexibility. A companion implementation is also available in the R package \texttt{pppower} \parencite{pppower_pkg}. Additional algebra is collected in Appendix~\ref{chap:appendix-a}.
 
 \section{Real-Data Applications and the Role of Pilot \texorpdfstring{$\rho^2$}{rho2}}
 
