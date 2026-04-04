@@ -16,20 +16,26 @@ One difference between the two datasets should be stated explicitly because it a
 
 \begin{table}[ht]
 \centering
-\footnotesize
-\begin{tabularx}{\textwidth}{@{}llrrr>{\raggedright\arraybackslash}X@{}}
+\small
+\renewcommand{\arraystretch}{1.12}
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}llrrrl@{}}
 \toprule
-Dataset & Split & Positives & Negatives & Total & Role \\
+Dataset & Split & Pos. & Neg. & Total & Role \\
 \midrule
-Intra & train & 81{,}596 & 81{,}596 & 163{,}192 & Train \\
-Intra & val   & 29{,}630 & 29{,}630 & 59{,}260 & Pilot / val \\
-Intra & test  & 26{,}024 & 26{,}024 & 52{,}048 & Main test \\
-BIOGRID & train & 394{,}829 & 399{,}610 & 794{,}439 & Pool cand. \\
-BIOGRID & val   & 19{,}814 & 18{,}160 & 37{,}974 & Ext. val \\
-BIOGRID & test  & 17{,}819 & 18{,}950 & 36{,}769 & Ext. test \\
-Merged pool & train & 416{,}686 & 480{,}172 & 896{,}858 & Merged train \\
+\multirow{3}{*}{Intra}
+  & Train & 81{,}596 & 81{,}596 & 163{,}192 & Train \\
+  & Val.  & 29{,}630 & 29{,}630 & 59{,}260 & Pilot / val. \\
+  & Test  & 26{,}024 & 26{,}024 & 52{,}048 & Main test \\
+\addlinespace[2pt]
+\multirow{3}{*}{BIOGRID}
+  & Train & 394{,}829 & 399{,}610 & 794{,}439 & Pool cand. \\
+  & Val.  & 19{,}814 & 18{,}160 & 37{,}974 & Ext. val. \\
+  & Test  & 17{,}819 & 18{,}950 & 36{,}769 & Ext. test \\
+\addlinespace[2pt]
+Merged pool & Train & 416{,}686 & 480{,}172 & 896{,}858 & Merged train \\
 \bottomrule
-\end{tabularx}
+\end{tabular}
 \caption[Processed data splits for the protein application]{Summary of the processed splits used in the protein application. The merged training pool is formed after removing overlaps with validation and test holdouts and resolving duplicate-label conflicts with a positive-wins rule.}
 \label{tab:chap4_data_splits}
 \end{table}
