@@ -2,6 +2,15 @@
 
 This chapter develops the prediction layer used in the protein application. It is not intended as a software walkthrough. Instead, the aim is to describe the scientific data sources, leakage-aware split design, protein representations, pair-feature construction, model family, and final surrogate that are later carried into prediction-powered inference. The predictive path studied here is the sequence-plus-text attention-ensemble workflow, but the chapter is organized around the methodological choices behind that workflow rather than around software internals.
 
+Figure~\ref{fig:chap4_pipeline_overview} summarizes the predictive pipeline at a high level. Protein sequences and UniProt text descriptions are first converted into protein-level embeddings, then transformed into edge-level pair features, then passed to a small family of predictive heads. The chapter proceeds in that same order. It begins with the split design and benchmark construction, then turns to protein representations and pair features, and finally explains why the frozen three-seed attention ensemble is the surrogate carried forward into the inference chapters.
+
+\begin{figure}[htbp]
+\centering
+\MaybeIncludeGraphics[width=\textwidth]{Pipeline_thesis.pdf}
+\caption[Protein-edge predictive pipeline]{High-level predictive pipeline used in the protein application. Protein sequences and UniProt descriptions are encoded into protein-level embeddings, converted into edge-level pair features, and passed to baseline and neural prediction heads. The final surrogate used in later chapters is the frozen three-seed attention ensemble, whose averaged edge-level probability is exported as the prediction input for downstream PPI/\texttt{PPI++} analysis.}
+\label{fig:chap4_pipeline_overview}
+\end{figure}
+
 \section[Data Sources and Splits]{Data Sources, Curation, and Split Construction}
 
 Two datasets anchor the protein application.
@@ -60,6 +69,8 @@ The predictive unit is an edge, so protein-level embeddings must be converted in
 \]
 applied to the sequence block, the text block, or the concatenated sequence-plus-text block. This choice is pragmatic. It is simple enough to support controlled ablations and downstream uncertainty analysis, while still giving the neural heads access to nonlinear interactions among summary operators. The implementation realizes this construction explicitly after the embedding stage, but the statistical object that matters here is the resulting pair-level surrogate input.
 
+In Figure~\ref{fig:chap4_pipeline_overview}, this is the step labeled feature construction. The important point is that the unit has changed: the raw scientific objects are individual proteins, but the predictive target is an edge. The feature map therefore has to convert two protein-level representations into one edge-level surrogate input.
+
 \section[PPI Prediction Literature]{Relationship to the PPI Prediction Literature}
 
 The broader literature review in Chapter~\ref{chap:introduction} has already summarized the recent movement from sequence-based PPI prediction toward protein-language-model representations and hybrid architectures. The point of the present section is therefore narrower. That literature shows that strong single-protein representations are now feasible, but it also shows that pair-input evaluation is highly sensitive to split construction and negative-edge design \parencite{sun2017, dscript2021, xcapt52024, lee2023, park2012, bernett2024}. The current thesis does not claim a universal state of the art against those studies. Instead, it takes from them a more defensible methodological lesson: representation quality matters, but benchmark design matters just as much. For that reason, the analysis here prioritizes leakage-aware splits, external robustness checks, and an explicit prediction-to-inference handoff over maximizing one benchmark score in isolation.
@@ -75,7 +86,7 @@ Three neural heads are compared on top of the pair features.
     \item \textbf{NN-Attn}: a multihead self-attention head operating over operator/modality tokens.
 \end{enumerate}
 
-For the \texttt{seq\_text} setting, the attention model does not treat the full feature vector as one undifferentiated block. Instead, it groups the pair representation into sequence and text operator tokens, projects those tokens into a shared latent space, applies multihead self-attention, and then produces one edge-level probability. The final surrogate used later in the thesis is a three-seed ensemble of that attention model. This is a deliberately moderate architecture choice relative to full end-to-end cross-encoders: the thesis needs a strong and stable surrogate that can be exported cleanly into downstream inference, not only a maximally complex predictor.
+For the \texttt{seq\_text} setting, the attention model does not treat the full feature vector as one undifferentiated block. Instead, it groups the pair representation into sequence and text operator tokens, projects those tokens into a shared latent space, applies multihead self-attention, and then produces one edge-level probability. Figure~\ref{fig:chap4_pipeline_overview} shows these three heads as parallel model families, with the attention branch feeding the final ensemble. This is a deliberately moderate architecture choice relative to full end-to-end cross-encoders: the thesis needs a strong and stable surrogate that can be exported cleanly into downstream inference, not only a maximally complex predictor.
 
 \section[Frozen Model and Handoff]{Frozen Best Model and Prediction Handoff}
 
