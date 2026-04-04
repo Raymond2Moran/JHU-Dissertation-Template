@@ -51,16 +51,9 @@ Making the classical baseline explicit is important for interpretation. At $\Del
 
 Chapter~\ref{chap:foundation_power} emphasized that, in the one-sample mean setting, pilot $\rho_{Yf}^2$ is the key summary of surrogate quality for planning. The protein application shows the same qualitative pattern. Using the Intra validation split as the pilot set, I constructed a small surrogate-strength gradient from the completed model runs already available for this study: a sequence-only logreg model, a sequence-only MLP, a sequence-plus-text MLP, the strongest current single-attention run, and the frozen attention ensemble.
 
-\begin{figure}[ht]
-\centering
-\MaybeIncludeGraphics[width=0.93\textwidth]{chap5_protein_rho_story_curves.png}
-\caption[Protein-side rho2 planning curves]{Protein-side analogue of the real-data planning story in \textcite{ppi_power}. The dashed black line is the classical label-only baseline; colored lines are fixed estimated-lambda \texttt{PPI++} planning curves for five frozen protein surrogates. Better pilot agreement between $Y$ and $\hat p$ shifts the required labeled sample size downward.}
-\label{fig:chap5_rho_story}
-\end{figure}
-
-Figure~\ref{fig:chap5_rho_story} shows that the ordering is monotone but modest. The pilot $\rho_{Y\hat p}^2$ values rise from 0.0266 for the sequence-only logreg model to 0.1056 for the frozen attention ensemble, and the required labeled sample size falls accordingly. For example, at $\Delta = 0.05$, the classical baseline requires 785 labels, whereas the sequence-only logreg model requires 771, the sequence-only MLP requires 740, the sequence-plus-text MLP requires 745, the representative single-attention model requires 730, and the frozen attention ensemble requires 726. At $\Delta = 0.10$, the same ordering is 197, 193, 185, 187, 183, and 182. The point is not that the gains are dramatic; the point is that the protein application reproduces the same logic as the real-data studies in \textcite{ppi_power}: stronger pilot agreement between truth and surrogate yields lower required labeled sample size.
-
 \MaybeInput{generated_tables/chap5_rho_story.tex}
+
+Table~\ref{tab:chap5_rho_story} shows that the ordering is monotone but modest. The pilot $\rho_{Y\hat p}^2$ values rise from 0.0266 for the sequence-only logreg model to 0.1056 for the frozen attention ensemble, and the required labeled sample size falls accordingly. For example, at $\Delta = 0.05$, the classical baseline requires 785 labels, whereas the sequence-only logreg model requires 771, the sequence-only MLP requires 740, the sequence-plus-text MLP requires 745, the representative single-attention model requires 730, and the frozen attention ensemble requires 726. At $\Delta = 0.10$, the same ordering is 197, 193, 185, 187, 183, and 182. The point is not that the gains are dramatic; the point is that the protein application reproduces the same logic as the real-data studies in \textcite{ppi_power}: stronger pilot agreement between truth and surrogate yields lower required labeled sample size.
 
 The value of this section lies in the monotone gradient rather than in any one absolute number. The planning story from Chapter~\ref{chap:foundation_power} carries over directly: stronger pilot agreement translates into smaller labeled-sample requirements, even when the application sits in a moderate-\(\rho^2\) regime rather than in an idealized near-deterministic one.
 
