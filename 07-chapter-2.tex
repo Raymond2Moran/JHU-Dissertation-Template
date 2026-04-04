@@ -66,9 +66,18 @@ The importance of \textcite{llmjudge_eif} for this thesis is conceptual rather t
 
 The paper also clarifies a useful modeling distinction. A cheap surrogate can be treated as a noisy measurement, but it can also be treated as a generic prediction that is corrected through calibration. The latter perspective is more flexible for this thesis because the protein-edge surrogate is continuous, model-based, and not naturally parameterized by a simple sensitivity/specificity pair. That flexibility is one reason prediction-powered methods are a better fit for the protein application than a strict diagnostic-test abstraction.
 
+Figure~\ref{fig:foundation1_workflow} summarizes the same structure in the original noisy LLM-as-a-judge setting. A prompt set generates pairwise model comparisons, a human-labeled subset supplies the gold-standard outcomes \(Y_i\), and an LLM judge supplies the cheap surrogate labels \(\widehat{Y}_i\) at scale. The inferential problem is then to combine those two sources of information so that the final estimate targets the human preference quantity \(\theta = \mathbb{E}[Y]\) rather than the raw judge output alone. This is the precise bridge from the motivating application to the estimator formulas introduced next.
+
+\begin{figure}[htbp]
+\centering
+\MaybeIncludeGraphics[width=0.95\textwidth]{LLM-as-a-Judge_thesis.pdf}
+\caption[Noisy LLM-as-a-judge workflow]{Workflow for the noisy LLM-as-a-judge setting that motivates the first methodological foundation. Prompts induce pairwise model comparisons; human preferences \(Y_i\) are observed on a labeled subset; LLM-judge labels \(\widehat{Y}_i\) are observed on the full sample; and estimators such as EIF, PPI, \texttt{PPI++}, and Rogan--Gladen use the labeled subset to correct the cheap labels when estimating \(\theta = \mathbb{E}[Y]\).}
+\label{fig:foundation1_workflow}
+\end{figure}
+
 \section{Efficient Estimation Viewpoint}
 
-The cleanest way to see the relationship between the original PPI papers and the noisy-surrogate extension is to start from the estimator family itself. Using the generic surrogate notation $f_i$, prediction-powered inference can be written as a residual-correction estimator. In the simplest mean-setting,
+With the workflow in Figure~\ref{fig:foundation1_workflow} in view, the cleanest way to see the relationship between the original PPI papers and the noisy-surrogate extension is to start from the estimator family itself. Using the generic surrogate notation $f_i$, prediction-powered inference can be written as a residual-correction estimator. In the simplest mean-setting,
 \[
 \widehat{\theta}_{\mathrm{PPI}} = \overline{f}_{U} + \frac{1}{n} \sum_{i \in L} \{Y_i - f_i\},
 \]
