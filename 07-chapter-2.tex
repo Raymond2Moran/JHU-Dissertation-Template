@@ -2,7 +2,7 @@
 
 This chapter provides the first methodological foundation for the thesis. It builds on the preprint \emph{Efficient Inference for Noisy LLM-as-a-Judge Evaluation} \parencite{llmjudge_eif}, but its role here is broader than summarizing that paper. The aim is to clarify how prediction-powered correction relates to measurement error, surrogate outcomes, and semiparametric efficiency when the cheap label is itself noisy or biased. The starting point remains the PPI/\texttt{PPI++} estimator family; the added question is how that family should be interpreted when the auxiliary signal is not a clean prediction target.
 
-For the remainder of the thesis, I adopt three elements of that paper unchanged: the residual-correction viewpoint, the efficient-influence-function interpretation, and the distinction between direct misclassification correction and flexible surrogate calibration. What changes later is the scientific context. Here the motivating example is LLM-as-a-judge evaluation; in the protein chapters the same statistical structure is reused with continuous edge-level surrogate scores. A full domain-specific treatment of LLM evaluation is outside the scope of this thesis.
+For the remainder of the thesis, I adopt three elements of that paper unchanged: the residual-correction viewpoint, the efficient-influence-function interpretation, and the distinction between direct misclassification correction and flexible surrogate calibration. What changes in later chapters is the scientific context. Here the motivating example is LLM-as-a-judge evaluation; in the protein chapters the same statistical structure is reused with continuous edge-level surrogate scores. A full domain-specific treatment of LLM evaluation is outside the scope of this thesis.
 
 \section{Global Statistical Setup and Notation}
 \label{sec:global_notation}
@@ -66,7 +66,7 @@ The importance of \textcite{llmjudge_eif} for this thesis is conceptual rather t
 
 The paper also clarifies a useful modeling distinction. A cheap surrogate can be treated as a noisy measurement, but it can also be treated as a generic prediction that is corrected through calibration. The latter perspective is more flexible for this thesis because the protein-edge surrogate is continuous, model-based, and not naturally parameterized by a simple sensitivity/specificity pair. That flexibility is one reason prediction-powered methods are a better fit for the protein application than a strict diagnostic-test abstraction.
 
-Figure~\ref{fig:foundation1_workflow} summarizes the same structure in the original noisy LLM-as-a-judge setting. A prompt set generates pairwise model comparisons, a human-labeled subset supplies the gold-standard outcomes \(Y_i\), and an LLM judge supplies the cheap surrogate labels \(\widehat{Y}_i\) at scale. The inferential problem is then to combine those two sources of information so that the final estimate targets the human preference quantity \(\theta = \mathbb{E}[Y]\) rather than the raw judge output alone. This is the precise bridge from the motivating application to the estimator formulas introduced next.
+Figure~\ref{fig:foundation1_workflow} summarizes the same structure in the original noisy LLM-as-a-judge setting. A prompt set generates pairwise model comparisons, a human-labeled subset supplies the gold-standard outcomes \(Y_i\), and an LLM judge supplies the cheap surrogate labels \(\widehat{Y}_i\) at scale. The inferential problem is then to combine those two sources of information so that the final estimate targets the human preference quantity \(\theta = \mathbb{E}[Y]\) rather than the raw judge output alone. The figure therefore provides the transition from the motivating application to the estimator formulas introduced next.
 
 \begin{figure}[htbp]
 \centering
@@ -100,7 +100,7 @@ Then the efficient influence function for the mean target $\theta=\mathbb{E}[Y]$
 +
 \frac{R}{\pi}\{Y-\mu(\widehat{Y})\},
 \]
-where $O=(R,RY,\widehat{Y})$. The corresponding efficient estimator therefore has the generic residual-correction form
+where $O=(R, RY, \widehat{Y})$ denotes the observed data, with $RY$ the observed-outcome component. The corresponding efficient estimator therefore has the generic residual-correction form
 \[
 \widehat{\theta}(\mu)
 =

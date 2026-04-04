@@ -1,6 +1,6 @@
 \chapter{Supplementary Optimization Diagnostics} \label{chap:appendix-b}
 
-This appendix records the later log-loss-focused modeling pass that followed the main predictive analysis in Chapter~\ref{chap:protein_results}. The goal of that pass was narrow: train an attention model whose checkpoint selection explicitly targets validation log loss and then test whether a three-seed ensemble of such models should replace the original frozen ensemble. The resulting comparison is useful because it separates two goals that are related but not identical in this thesis: calibrated probability loss on the one hand, and ranking- and planning-oriented surrogate quality on the other.
+This appendix records a supplementary log-loss-focused modeling pass conducted after the main predictive analysis in Chapter~\ref{chap:protein_results}. The goal of that pass was specific: train an attention model whose checkpoint selection explicitly targets validation log loss and then test whether a three-seed ensemble of such models should replace the original frozen ensemble. The resulting comparison is useful because it separates two goals that are related but not identical in this thesis: calibrated probability loss on the one hand, and ranking- and planning-oriented surrogate quality on the other.
 
 The frozen surrogate used for inference in Chapter~\ref{chap:protein_results} is a seed-averaged ensemble, so it does not have a single epoch-by-epoch optimization path. For that reason, the optimization curve here is shown for the log-loss-optimized single-attention run, while the ensemble-level comparison is summarized in tables. Figure~\ref{fig:appb_training_loss_curve} tracks train and validation loss across epochs, and the first table in this appendix reports the final split-level loss summary at the selected checkpoint. The held-out test split is summarized only once at the selected checkpoint and is not traced across epochs, so that it remains a reporting set rather than a tuning signal.
 
@@ -11,7 +11,7 @@ The frozen surrogate used for inference in Chapter~\ref{chap:protein_results} is
 \label{fig:appb_training_loss_curve}
 \end{figure}
 
-The main use of Figure~\ref{fig:appb_training_loss_curve} is diagnostic rather than comparative. It shows whether the log-loss-optimized attention model reaches a stable region before early stopping and whether the validation trajectory supports the selected checkpoint. In this appendix, the validation curve is the relevant companion to the training curve because model selection is based on validation behavior, not on the held-out test split.
+The main use of Figure~\ref{fig:appb_training_loss_curve} is diagnostic rather than comparative. It shows whether the log-loss-optimized attention model reaches a stable region before early stopping and whether the validation trajectory supports the selected checkpoint. In this appendix, the validation curve is the relevant companion to the training curve because model selection is based on validation behavior rather than on the held-out test split.
 
 \MaybeInput{generated_tables/appendix_b_loss_summary.tex}
 

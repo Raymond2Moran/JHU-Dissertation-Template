@@ -4,7 +4,7 @@
 
 This thesis brings together two methodological foundations and one applied extension. The first is that noisy or surrogate labels can be corrected efficiently with a small gold-standard calibration set \parencite{llmjudge_eif}. The second is that prediction quality can be translated into labeled-sample planning through prediction-powered power analysis \parencite{ppi_power}. The applied extension is that these ideas remain useful in protein--protein interaction prediction, provided that the predictive and inferential components are kept distinct and then linked through a stable prediction-to-inference handoff.
 
-In this application, that pipeline culminates in a sequence-plus-text ESM2-3B attention ensemble. This model provides the strongest protein-edge surrogate examined here and supports stable prediction-powered summaries on both the internal Intra benchmark and the external BIOGRID-human test split. The main conclusion is therefore not that prediction replaces statistical correction, but that a strong surrogate can make correction and planning substantially more label-efficient when the inferential target is kept explicit.
+In this application, that pipeline culminates in a sequence-plus-text ESM2-3B attention ensemble. This model provides the strongest protein-edge surrogate in the study and supports stable prediction-powered summaries on both the internal Intra benchmark and the external BIOGRID-human test split. The main conclusion is therefore not that prediction replaces statistical correction, but that a strong surrogate can make correction and planning substantially more label-efficient when the inferential target is kept explicit.
 
 \section{Main Findings}
 
@@ -15,7 +15,7 @@ Three conclusions are most important.
     \item \textbf{Independence assumptions matter in graph-structured PPI data.} The published i.i.d. planning formulas are still useful, but their apparent sample-size savings should be interpreted as baseline results rather than dependence-robust guarantees.
 \end{enumerate}
 
-One negative result is also informative. A follow-up rho-focused tuning campaign, including modified losses, alternative early-stopping criteria, reduced hard-negative pressure, and post-hoc calibration, did not produce a replacement surrogate that beat the frozen attention ensemble without sacrificing ranking performance. This suggests that, in the present setting, representation quality and evaluation design matter more than small head-level tuning changes.
+A complementary negative result is also informative. A supplementary tuning campaign, including a log-loss-focused ensemble comparison as well as alternative losses, early-stopping criteria, reduced hard-negative pressure, and post-hoc calibration, did not produce a replacement surrogate that beat the frozen attention ensemble without sacrificing ranking performance. This suggests that, in the present setting, representation quality and evaluation design matter more than small head-level tuning changes.
 
 \section{Limitations}
 

@@ -1,12 +1,16 @@
 \chap{Abstract} 
 
+Prediction-powered inference studies how machine-learning predictions can be used to support valid statistical inference when gold-standard labels are available only on a limited calibration subset. This thesis examines that problem from three connected angles: efficient correction with noisy surrogate labels, design-stage planning for prediction-powered studies, and a protein--protein interaction application in which prediction and inference are linked through a frozen surrogate model. The first methodological foundation revisits recent work on noisy LLM-as-a-judge evaluation and places prediction-powered correction in the broader literature on misclassification correction, surrogate-assisted estimation, and semiparametric efficiency. The second foundation summarizes recent prediction-powered power-analysis results, emphasizing how surrogate quality enters asymptotic variance and labeled-sample planning through pilot \(\rho^2\).
 
-%%%% your abstract goes here (word limit: 350)
-[This is the abstract of the thesis.]
+The applied part of the thesis develops a leakage-aware protein-edge prediction workflow using processed Intra and BIOGRID-human benchmarks, per-protein sequence and text embeddings, pairwise feature construction, and neural prediction heads. The strongest surrogate obtained in this study is a frozen three-seed attention ensemble built from sequence and UniProt text representations. That ensemble is then used as the prediction layer for downstream PPI and \texttt{PPI++} estimation. Empirically, the corrected estimates remain close to their full-data references across the main held-out test splits even when the labeled calibration budget is small, which indicates that the surrogate is strong enough to support stable downstream correction. The thesis also examines prediction-powered planning in this setting. The published i.i.d. formulas provide a useful baseline, but the protein application shows that apparent sample-size gains should be interpreted cautiously because shared-protein edges violate strict independence. To address this gap, the thesis adds a dependence-sensitive design-effect analysis rather than treating the i.i.d. planning theory as universally valid.
+
+Taken together, the thesis argues that prediction-powered inference should be viewed not only as a post hoc bias-correction device, but as a broader workflow linking surrogate construction, calibration, and study planning. In the protein application considered here, that workflow is effective, but its validity depends on careful benchmark design, explicit separation between prediction and inference, and transparent sensitivity analysis for departures from the idealized theory.
+
+\par\medskip
 
 
 %% list of keywords seperated by comma
-\keywords{Biostatistics, Statistical Inference, LLM-as-a-Judge, Prediction-Powered Inference, Protein-Protein Interaction, Power Analysis , Dissertation.}
+\keywords{Biostatistics, prediction-powered inference, \texttt{PPI++}, LLM-as-a-judge, protein--protein interaction, power analysis, surrogate-assisted inference}
 
 
 %%%%  committee members (add it right after the abstract w/o page break)
