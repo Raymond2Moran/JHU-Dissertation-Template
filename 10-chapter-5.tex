@@ -8,7 +8,7 @@ The main surrogate in this study is the sequence-plus-text ESM2-3B attention ens
 
 \MaybeInput{generated_tables/chap5_predictive_metrics.tex}
 
-The original frozen ensemble still performs best on the in-domain test split and remains the surrogate carried into the later inference and planning sections. Relative to the best MLP baseline, the gain is modest but consistent. The more important empirical point is not that attention radically changes the task, but that a strong prediction head combined with seed averaging yields the most reliable surrogate for the downstream inference layer. The rest of the chapter should therefore be read as an analysis built on a stable predictive foundation rather than on a narrowly optimized benchmark winner.
+The original frozen ensemble still performs best on the in-domain test split and remains the surrogate carried into the later inference and planning sections. Relative to the best MLP baseline, the improvement is limited but consistent. The more important empirical point is not that attention radically changes the task, but that a strong prediction head combined with seed averaging yields the most reliable surrogate for the downstream inference layer. The rest of the chapter should therefore be read as an analysis built on a stable predictive foundation rather than on a narrowly optimized benchmark winner.
 
 The log-loss-optimized ensemble sharpens one side of the tradeoff but not the whole model-selection problem. It lowers log loss on all three key comparison splits and improves Brier on the external test split, but it also degrades the in-domain PR-AUC markedly and reduces the pilot \(\rho^2\) used in the planning story. For that reason, it does not replace the original frozen ensemble under the balanced replacement rule adopted for this thesis. Appendix~\ref{chap:appendix-b} reports the corresponding optimization diagnostics and the side-by-side single-run and ensemble comparisons in full.
 
@@ -53,7 +53,7 @@ Chapter~\ref{chap:foundation_power} emphasized that, in the one-sample mean sett
 
 \MaybeInput{generated_tables/chap5_rho_story.tex}
 
-Table~\ref{tab:chap5_rho_story} shows that the ordering is monotone but modest. The pilot $\rho_{Y\hat p}^2$ values rise from 0.0266 for the sequence-only logreg model to 0.1056 for the frozen attention ensemble, and the required labeled sample size falls accordingly. For example, at $\Delta = 0.05$, the classical baseline requires 785 labels, whereas the sequence-only logreg model requires 771, the sequence-only MLP requires 740, the sequence-plus-text MLP requires 745, the representative single-attention model requires 730, and the frozen attention ensemble requires 726. At $\Delta = 0.10$, the same ordering is 197, 193, 185, 187, 183, and 182. The gains are not dramatic, but the pattern reproduces the same logic as the real-data studies in \textcite{ppi_power}: stronger pilot agreement between truth and surrogate yields lower required labeled sample size.
+Table~\ref{tab:chap5_rho_story} shows that the ordering is monotone, but the increase is moderate. The pilot $\rho_{Y\hat p}^2$ values rise from 0.0266 for the sequence-only logreg model to 0.1056 for the frozen attention ensemble, and the required labeled sample size falls accordingly. For example, at $\Delta = 0.05$, the classical baseline requires 785 labels, whereas the sequence-only logreg model requires 771, the sequence-only MLP requires 740, the sequence-plus-text MLP requires 745, the representative single-attention model requires 730, and the frozen attention ensemble requires 726. At $\Delta = 0.10$, the same ordering is 197, 193, 185, 187, 183, and 182. The gains are not dramatic, but the pattern reproduces the same logic as the real-data studies in \textcite{ppi_power}: stronger pilot agreement between truth and surrogate yields lower required labeled sample size.
 
 What matters in this section is the monotone gradient rather than any one absolute number. The planning story from Chapter~\ref{chap:foundation_power} carries over directly: stronger pilot agreement translates into smaller labeled-sample requirements, even when the application sits in a moderate-\(\rho^2\) regime rather than in an idealized near-deterministic one.
 
@@ -71,11 +71,11 @@ independent labeled edges. Equivalently, the relevant variance is inflated by th
 
 In statistical terms, the design effect is a variance-inflation factor relative to the published i.i.d.\ planning formulas. Throughout this section, I use \(\mathrm{deff}\) for the reported sensitivity parameter shown in figures and tables, and \(d_{\lambda}\) for its fixed-\(\lambda\) mathematical version inside the derivation below. When the unit is specialized from a generic index \(i\) to a protein edge, I write \(e = (u,v)\) for an edge between proteins \(u\) and \(v\), and later use notation such as \(Y_e\), \(f_e\), and \(\psi_e^{\lambda}\) for edge-level outcomes, surrogate scores, and influence contributions.
 
-I do not attempt to estimate the true design effect of the protein graph from first principles. Instead, I report a sensitivity analysis based on
+Here, to reflect the dependencies of protein-proten interactions, I report a sensitivity analysis based on
 \[
 \mathrm{deff} \in \{1.00, 1.25, 1.50, 2.00\},
 \]
-which spans no inflation, mild inflation, moderate inflation, and a conservative doubling of the i.i.d.\ variance. The purpose of this grid is not to assert that one of these values is already known to be correct for the protein graph. The purpose is to show how quickly the apparent planning gain would shrink if shared-protein dependence inflates uncertainty by a plausible multiplicative factor.
+which spans no inflation, mild inflation, moderate inflation, and doubling of the i.i.d.\ variance. This grid is not intended to suggest that the correct value is already known for the protein-protein interaction network. Rather, it shows how quickly the apparent planning gain shrinks when shared-protein dependence inflates uncertainty by a plausible multiplicative factor.
 
 \subsection[Variance Under Shared-Protein Dependence]{Variance Decomposition Under Shared-Protein Dependence}
 
@@ -307,7 +307,7 @@ n_{\mathrm{req}}^{\mathrm{iid}}(\lambda),
 as claimed.
 \end{proof}
 
-Theorem~\ref{thm:deff-inflation} is intentionally modest. It does not claim that one scalar can capture every form of graph dependence. It proves a narrower statement: once the extra covariance induced by shared-protein dependence is represented by a nonnegative scalar inflation on the labeled residual term, the linear sample-size inflation rule used in the current sensitivity-analysis code is algebraically exact rather than heuristic.
+Theorem~\ref{thm:deff-inflation} is intentionally limited in scope. It does not claim that one scalar can capture every form of graph dependence. It proves a narrower statement: once the extra covariance induced by shared-protein dependence is represented by a nonnegative scalar inflation on the labeled residual term, the linear sample-size inflation rule used in the current sensitivity-analysis code is algebraically exact rather than heuristic.
 
 The plain-language interpretation is straightforward. If \(d_{\lambda}=1.50\), then the labeled residual variance is 50\% larger than the i.i.d.\ formula suggests, and \(n\) labeled edges behave like only \(n/1.50\) independent edges for the purpose of this planning calculation. That is why the sensitivity curves move upward as \(\mathrm{deff}\) increases: the estimator is not being changed, but the same nominal labeled sample is treated as carrying less effective information.
 
@@ -322,4 +322,4 @@ The substantive implication is straightforward. The i.i.d. formulas remain usefu
 
 \section{Chapter Summary}
 
-The protein results support a coherent three-layer message. First, the attention-ensemble branch is the strongest surrogate examined in this study. Second, the predictions from that surrogate are good enough that PPI/\texttt{PPI++} estimates remain stable under modest calibration budgets. Third, the published power formulas provide a useful baseline, but graph-induced dependence should be treated as a real caveat in PPI applications rather than ignored. Existing PPI-prediction papers are still useful points of comparison, but only when their evaluation protocols are interpreted with the same caution demanded by the pair-input benchmarking literature \parencite{lee2023, park2012, bernett2024}.
+The protein results support a coherent three-layer message. First, the attention-ensemble branch is the strongest surrogate examined in this study. Second, the predictions from that surrogate are good enough that PPI/\texttt{PPI++} estimates remain stable under limited calibration budgets. Third, the published power formulas provide a useful baseline, but graph-induced dependence should be treated as a real caveat in PPI applications rather than ignored. Existing PPI-prediction papers are still useful points of comparison, but only when their evaluation protocols are interpreted with the same caution demanded by the pair-input benchmarking literature \parencite{lee2023, park2012, bernett2024}.
