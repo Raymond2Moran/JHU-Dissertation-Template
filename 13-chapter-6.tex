@@ -2,9 +2,9 @@
 
 \section{What This Thesis Shows}
 
-This thesis brings together two methodological foundations and one applied extension. The first is that noisy or surrogate labels can be corrected efficiently with a small gold-standard calibration set \parencite{llmjudge_eif}. The second is that prediction quality can be translated into labeled-sample planning through prediction-powered power analysis \parencite{ppi_power}. The applied extension is that these ideas remain useful in protein--protein interaction prediction, provided that the predictive and inferential components are kept distinct and then linked through a stable prediction-to-inference handoff.
+This thesis brings together two methodological foundations and one applied extension. The first is that noisy or surrogate labels can be corrected efficiently with a small gold-standard calibration set \parencite{llmjudge_eif}. The second is that prediction quality can be translated into labeled-sample planning through prediction-powered power analysis \parencite{ppi_power}. The applied extension is that these ideas remain useful in protein--protein interaction prediction, provided that the predictive and inferential components are kept distinct and linked through a stable prediction-to-inference handoff.
 
-In this application, that pipeline culminates in a sequence-plus-text ESM2-3B attention ensemble. This model provides the strongest protein-edge surrogate in the study and supports stable prediction-powered summaries on both the internal Intra benchmark and the external BIOGRID-human test split. The main conclusion is therefore not that prediction replaces statistical correction, but that a strong surrogate can make correction and planning substantially more label-efficient when the inferential target is kept explicit.
+In this application, that pipeline culminates in a sequence-plus-text ESM2-3B attention ensemble. This model provides the strongest protein-edge surrogate in the study and supports stable prediction-powered summaries on both the internal Intra benchmark and the external BIOGRID-human test split. The main conclusion is not that prediction replaces statistical correction, but that a strong surrogate can make correction and planning substantially more label-efficient when the inferential target is kept explicit.
 
 \section{Main Findings}
 
@@ -29,7 +29,7 @@ Several limitations remain.
 
 \section{Future Directions}
 
-The most useful next steps are therefore methodological and practical at the same time.
+The most useful next steps are both methodological and practical.
 \begin{enumerate}
     \item Develop dependence-robust variance theory for shared-protein edge data instead of relying only on design-effect sensitivity.
     \item Extend the planning layer to additional estimands beyond the current mean/proportion target, especially metrics more directly tied to predictive ranking performance.
