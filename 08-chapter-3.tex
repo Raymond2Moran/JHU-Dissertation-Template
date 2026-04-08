@@ -2,86 +2,73 @@
 
 This chapter provides the second methodological foundation for the thesis. It builds on the preprint \emph{Power Analysis for Prediction-Powered Inference} \parencite{ppi_power} and takes up the next step in the sequence developed in Chapters~\ref{chap:introduction} and~\ref{chap:foundation_llm}. The original PPI and \texttt{PPI++} papers define the estimator family, and the noisy-surrogate chapter clarifies how that family relates to efficient calibration. The present chapter turns to design: once a prediction-powered estimator has been specified, how many labeled observations are needed to achieve a desired level of statistical power?
 
-For the remainder of the thesis, I use the one-sample i.i.d.\ planning formulas from that paper as the baseline design theory. Later chapters specialize those formulas to the protein application, use pilot \(\rho^2\) as the main planning summary, and then add a dependence-sensitive extension when graph structure makes the i.i.d.\ assumption questionable. A new full power theorem for dependent protein-edge data is outside the scope of this thesis.
+For the remainder of the thesis, I use the one-sample independent and identically distributed (i.i.d.) planning formulas from that paper as the baseline design theory. Later chapters specialize those formulas to the protein application, use pilot \(\rho^2\) as the main planning summary, and then add a dependence-sensitive extension when graph structure makes the i.i.d.\ assumption questionable. A new full power theorem for dependent protein-edge data is outside the scope of this thesis.
 
 \section{Mean-Type Planning Setup}
 
-The planning problem in \textcite{ppi_power} is stated for a scalar estimand such as a mean or proportion. I continue the thesis-wide notation from Section~\ref{sec:global_notation}: \(\theta = \mathbb{E}[Y_i]\) denotes the target parameter, \(f_i=f(X_i)\) denotes the surrogate prediction, \(L\) is the labeled calibration sample of size \(n\), and \(U\) is the large prediction-only sample of size \(N\). The starting point is exactly the same one-sample mean estimator family introduced by PPI and \texttt{PPI++}; what changes is that this chapter treats its asymptotic variance as the object to be inverted for design.
+The planning problem in \textcite{ppi_power} is stated for a scalar estimand such as a mean or proportion. I continue the thesis-wide notation from Section~\ref{sec:global_notation}: \(\theta = \mathbb{E}[Y_i]\) denotes the target parameter, \(f_i=f(X_i)\) denotes the surrogate prediction, \(L\) is the labeled calibration sample of size \(n\), and \(U\) is the large prediction-only sample of size \(N\). The focus of this chapter is design rather than point estimation: once the estimator family has been fixed, how should its variance be converted into labeled-sample requirements?
 
-Two additional planning symbols are used repeatedly in this chapter. First, \(\Delta\) denotes a target absolute difference in the mean-type estimand, so the power calculations concern a difference in a mean or proportion rather than PR-AUC or ROC-AUC directly. Second, \(\rho_{Yf} = \Corr(Y,f)\) denotes the surrogate--truth correlation, and \(\rho_{Yf}^2\) is the corresponding coefficient of determination. This quantity is the main summary of surrogate quality in the one-sample planning formulas because it controls how strongly prediction quality reduces the labeled-sample requirement.
-For the one-sample mean setting, the basic PPI estimator is
-\[
-\widehat{\theta}_{\mathrm{PPI}}
-=
-\overline{f}_{U}
-+
-\frac{1}{n}\sum_{i \in L}(Y_i-f_i),
-\]
-which is unbiased because $\theta = \mathbb{E}[f_i] + \mathbb{E}[Y_i-f_i]$.
+Two additional planning symbols are used repeatedly in this chapter. First, \(\Delta\) denotes a target absolute difference in the mean-type estimand, so the power calculations concern a difference in a mean or proportion rather than precision-recall area under the curve (PR-AUC) or receiver operating characteristic area under the curve (ROC-AUC) directly. Second, \(\rho_{Yf} = \Corr(Y,f)\) denotes the surrogate--truth correlation, and \(\rho_{Yf}^2\) is the corresponding coefficient of determination. This quantity is the main summary of surrogate quality in the one-sample planning formulas because it controls how strongly prediction quality reduces the labeled-sample requirement.
 
-Power-tuned PPI introduces the one-parameter family
-\[
-\widehat{\theta}_{\lambda}
-=
-\overline{Y}_{L}
-+
-\lambda(\overline{f}_{U}-\overline{f}_{L}),
-\]
-where $\lambda=1$ recovers vanilla PPI. Under the working i.i.d.\ setup of \textcite{ppi_power}, $\widehat{\theta}_{\lambda}$ remains unbiased for any fixed $\lambda$ that is independent of the labeled outcomes. The main design question is therefore not bias correction, but variance reduction.
+The starting point is the same one-sample mean estimator family defined in Equations~\eqref{eq:ppi_mean} and~\eqref{eq:ppi_pp_mean}. In this chapter, the main change is that the variance of Equation~\eqref{eq:ppi_pp_mean} is treated as the design object rather than the point estimator itself. Under the working i.i.d.\ setup of \textcite{ppi_power}, Equation~\eqref{eq:ppi_pp_mean} remains unbiased for any fixed $\lambda$ that is independent of the labeled outcomes, and vanilla PPI is recovered by setting $\lambda=1$. The main design question is therefore not bias correction, but variance reduction.
 
 \subsection{Variance Expansion and the Role of \texorpdfstring{$\lambda$}{lambda}}
 
-Suppressing the unit index inside variance and covariance operators, the large-sample variance of the mean-type PPI/\texttt{PPI++} estimator can be written as
-\[
-\mathrm{Var}(\widehat{\theta}_{\lambda}) \approx
+Suppressing the unit index inside variance and covariance operators, and treating \(n\) and \(N\) as fixed under the working i.i.d.\ sampling model, the variance of Equation~\eqref{eq:ppi_pp_mean} can be written exactly as
+\begin{equation}
+\mathrm{Var}(\widehat{\theta}_{\lambda}) =
 \frac{\mathrm{Var}(Y - \lambda f)}{n}
 +
 \frac{\lambda^2 \mathrm{Var}(f)}{N}.
-\]
+\label{eq:var_theta_lambda}
+\end{equation}
 Expanding the first term gives the equivalent form
 \[
 \mathrm{Var}(\widehat{\theta}_{\lambda})
-\approx
+=
 \frac{\mathrm{Var}(Y)}{n}
 +
 \lambda^2 \mathrm{Var}(f)\left(\frac{1}{n}+\frac{1}{N}\right)
 -
 \frac{2\lambda\,\mathrm{Cov}(Y,f)}{n}.
 \]
-This display makes the role of $\lambda$ concrete. A larger $\lambda$ puts more weight on the prediction-only sample, which can help if $f$ is strongly correlated with $Y$, but can hurt if the added prediction variability dominates the covariance gain. The optimal balance is obtained by minimizing the variance with respect to $\lambda$.
+Equations~\eqref{eq:var_theta_lambda} and the expansion above are exact under the stated i.i.d.\ working assumptions with fixed \(n\) and \(N\). Approximation enters only later, when the chapter moves to the large-\(N\) rule of thumb and to plug-in planning calculations based on estimated pilot quantities. This display makes the role of $\lambda$ concrete. A larger $\lambda$ puts more weight on the prediction-only sample, which can help if $f$ is strongly correlated with $Y$, but can hurt if the added prediction variability dominates the covariance gain. The optimal balance is obtained by minimizing the variance with respect to $\lambda$.
 
 Differentiating the variance expression and setting the derivative to zero yields
-\[
+\begin{equation}
 \lambda^\star
 =
 \frac{\mathrm{Cov}(Y,f)}
 {\mathrm{Var}(f)\left(1+\frac{n}{N}\right)}.
-\]
-If the labeled-to-unlabeled ratio is defined as \(r = \frac{n}{N}\), then the oracle tuning parameter can be written more compactly as
+\label{eq:lambda_star}
+\end{equation}
+If the labeled-to-unlabeled ratio is defined as \(r = \frac{n}{N}\), then the oracle tuning parameter in Equation~\eqref{eq:lambda_star} can be written more compactly as
 \[
 \lambda^\star
 =
 \frac{\mathrm{Cov}(Y,f)}
 {\mathrm{Var}(f)(1+r)}.
 \]
-Substituting $\lambda^\star$ back into the variance formula gives
-\[
+Substituting \(\lambda^\star\) from Equation~\eqref{eq:lambda_star} back into Equation~\eqref{eq:var_theta_lambda} gives
+\begin{equation}
 \mathrm{Var}(\widehat{\theta}_{\lambda^\star})
-\approx
+=
 \frac{\mathrm{Var}(Y)}{n}
 -
 \frac{\mathrm{Cov}(Y,f)^2}{\mathrm{Var}(f)}
 \frac{N}{n(n+N)}.
-\]
+\label{eq:var_theta_lambda_star}
+\end{equation}
 Writing $\rho_{Yf} = \mathrm{Corr}(Y,f)$ yields the equivalent expression
-\[
+\begin{equation}
 \mathrm{Var}(\widehat{\theta}_{\lambda^\star})
-\approx
+=
 \frac{\mathrm{Var}(Y)}{n}
 \left(
 1-\frac{\rho_{Yf}^2}{1+r}
 \right).
-\]
+\label{eq:var_theta_lambda_star_rho}
+\end{equation}
 This is the key planning formula in the one-sample mean setting. It shows explicitly that stronger predictions reduce the labeled-sample requirement through the squared correlation between the surrogate and the truth. In that sense, the chapter converts the main qualitative message of PPI and \texttt{PPI++} into a design formula: if better predictions reduce residual variance after calibration, then they should also reduce the number of gold-standard labels needed for a target analysis. When $N$ is much larger than $n$, so that $r \approx 0$, the expression reduces to the familiar rule-of-thumb
 \[
 \mathrm{Var}(\widehat{\theta}_{\lambda^\star})
@@ -109,12 +96,13 @@ The key object is the target variance scale \(S^2 = \left( \frac{\delta}{z_{1-\a
 \mathrm{Var}(\widehat{\theta}_{\lambda}) \le S^2.
 \]
 If $\lambda$ is treated as fixed, this inequality can be rearranged directly to give
-\[
+\begin{equation}
 n_{\mathrm{req}}(\lambda)
 =
 \frac{\mathrm{Var}(Y-\lambda f)}
 {S^2-\lambda^2\mathrm{Var}(f)/N},
-\]
+\label{eq:n_req_lambda}
+\end{equation}
 provided the denominator is positive. This expression clarifies the three planning modes used later in the thesis:
 \begin{enumerate}
     \item vanilla PPI fixes $\lambda=1$,
@@ -157,7 +145,7 @@ The first case study uses the pancreas single-cell RNA-seq atlas of \textcite{ba
 The second application uses NHANES 2017--2018 data \parencite{nhanes2020} and treats mean systolic blood pressure as the estimand of interest. After merging the demographic, anthropometric, and examination files, the paper retains \(4{,}990\) adults with complete covariates and at least one systolic blood-pressure measurement. The outcome is the mean systolic blood pressure \(Y\), and the predictors include age, sex, race, body-mass index, and waist circumference. The split is \(1{,}247\) training observations, \(748\) pilot observations, and \(2{,}995\) evaluation observations, with evaluation mean \(\theta_{\mathrm{eval}}=125.9\) mmHg. Three surrogates are compared: an age-only linear model, a richer clinical linear model, and a clinical random forest. Here the pilot \(\rho_{Yf}^2\) values are much lower, around \(0.22\) to \(0.26\), so the design gains are correspondingly limited. For a target shift of \(\Delta=4\) mmHg and \(N=2{,}000\), the classical design requires \(187\) labeled patients, while the three surrogate-based designs require \(149\), \(144\), and \(142\) labeled patients, with held-out power between \(0.81\) and \(0.85\). The example is useful because it shows a middle regime: the prediction-powered gain is real, but the gain is incremental rather than transformative when pilot \(\rho^2\) is only moderate.
 
 \paragraph{ISIC melanoma prevalence.}
-The third application uses the ISIC 2020 dermoscopy challenge data \parencite{rotemberg2021patient}. This example shifts from a continuous outcome back to a rare binary outcome and is therefore especially relevant to the classification settings considered later in the thesis. The dataset contains \(33{,}126\) images from \(2{,}056\) patients, with melanoma prevalence about \(1.8\%\). Because multiple images can come from the same patient, the split is performed at the patient level to avoid leakage across repeated lesions. The resulting image counts are \(8{,}609\) for training, \(5{,}090\) for the pilot split, and \(19{,}427\) for evaluation, corresponding to \(514\), \(308\), and \(1{,}234\) patients, respectively. The evaluation prevalence is \(\theta_{\mathrm{eval}}=0.018\). The paper compares a metadata-only logistic model, a logistic model based on principal components of thumbnail images, and a logistic model fit on CLIP image embeddings. On the held-out evaluation split, their AUROCs are about \(0.72\), \(0.79\), and \(0.83\), so the image-based surrogates do discriminate better than the metadata baseline. Yet the planning gains remain very small. For \(\Delta=0.01\) and \(N=10{,}000\), the classical design requires \(1{,}334\) labeled images, while the three surrogate-based designs require \(1{,}299\), \(1{,}310\), and \(1{,}296\) labeled images. The reason is that pilot \(\rho_{Yf}^2\) stays below about \(0.05\) for all three models. In other words, the application shows that visibly better discrimination does not automatically translate into large prediction-powered gains when the estimand is a rare prevalence.
+The third application uses the ISIC 2020 dermoscopy challenge data \parencite{rotemberg2021patient}. This example shifts from a continuous outcome back to a rare binary outcome and is therefore especially relevant to the classification settings considered later in the thesis. The dataset contains \(33{,}126\) images from \(2{,}056\) patients, with melanoma prevalence about \(1.8\%\). Because multiple images can come from the same patient, the split is performed at the patient level to avoid leakage across repeated lesions. The resulting image counts are \(8{,}609\) for training, \(5{,}090\) for the pilot split, and \(19{,}427\) for evaluation, corresponding to \(514\), \(308\), and \(1{,}234\) patients, respectively. The evaluation prevalence is \(\theta_{\mathrm{eval}}=0.018\). The paper compares a metadata-only logistic model, a logistic model based on principal components of thumbnail images, and a logistic model fit on CLIP image embeddings. On the held-out evaluation split, their areas under the receiver operating characteristic curve (AUROCs) are about \(0.72\), \(0.79\), and \(0.83\), so the image-based surrogates do discriminate better than the metadata baseline. Yet the planning gains remain very small. For \(\Delta=0.01\) and \(N=10{,}000\), the classical design requires \(1{,}334\) labeled images, while the three surrogate-based designs require \(1{,}299\), \(1{,}310\), and \(1{,}296\) labeled images. The reason is that pilot \(\rho_{Yf}^2\) stays below about \(0.05\) for all three models. In other words, the application shows that visibly better discrimination does not automatically translate into large prediction-powered gains when the estimand is a rare prevalence.
 
 Taken together, the three applications define three distinct planning regimes. The Baron example is a high-\(\rho^2\) regime in which strong surrogates substantially reduce the labeled-sample requirement. The NHANES example is a moderate-\(\rho^2\) regime in which the gains are genuine but measured. The ISIC example is a low-\(\rho^2\) regime in which even improved classifier discrimination leaves the design close to classical. That comparison matters for the thesis because it identifies the right planning quantity. Generic predictive summaries such as AUROC or PR-AUC are not, by themselves, the driver of prediction-powered sample-size savings. In the one-sample mean-type setting, the design gain is governed by agreement between truth and surrogate on the pilot split, summarized here by \(\rho_{Yf}^2\). Chapter~\ref{chap:protein_results} carries exactly that lesson into the protein application by comparing frozen surrogates through their pilot \(\rho^2\) values and then translating those values into required labeled sample sizes.
 

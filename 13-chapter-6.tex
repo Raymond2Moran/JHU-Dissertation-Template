@@ -11,8 +11,8 @@ In this application, that pipeline culminates in a sequence-plus-text ESM2-3B at
 Three conclusions are most important.
 \begin{enumerate}
     \item \textbf{Strong surrogates can be built for protein-edge prediction.} The best-performing model in this study is not a single classical classifier but a merged-pool neural attention ensemble using both sequence and text information.
-    \item \textbf{Prediction-powered inference works well once the surrogate is strong.} For the frozen best model, PPI/\texttt{PPI++} estimates on the main test splits remain close to the full-data references even when the calibration budget is limited.
-    \item \textbf{Independence assumptions matter in graph-structured PPI data.} The published i.i.d. planning formulas are still useful, but their apparent sample-size savings should be interpreted as baseline results rather than dependence-robust guarantees.
+    \item \textbf{Prediction-powered inference works well once the surrogate is strong.} For the frozen best model, prediction-powered inference and \texttt{PPI++} estimates on the main test splits remain close to the full-data references even when the calibration budget is limited.
+    \item \textbf{Independence assumptions matter in graph-structured protein-protein interaction data.} The published i.i.d. planning formulas are still useful, but their apparent sample-size savings should be interpreted as baseline results rather than dependence-robust guarantees.
 \end{enumerate}
 
 A complementary negative result is also informative. A supplementary tuning campaign, including a log-loss-focused ensemble comparison as well as alternative losses, early-stopping criteria, reduced hard-negative pressure, and post-hoc calibration, did not produce a replacement surrogate that beat the frozen attention ensemble without sacrificing ranking performance. This suggests that, in the present setting, representation quality and evaluation design matter more than small head-level tuning changes.
@@ -33,7 +33,7 @@ The most useful next steps are both methodological and practical.
 \begin{enumerate}
     \item Develop dependence-robust variance theory for shared-protein edge data instead of relying only on design-effect sensitivity.
     \item Extend the planning layer to additional estimands beyond the current mean/proportion target, especially metrics more directly tied to predictive ranking performance.
-    \item Improve external validation by incorporating additional experimentally curated PPI resources and more systematic negative-edge construction.
+    \item Improve external validation by incorporating additional experimentally curated protein-protein interaction resources and more systematic negative-edge construction.
     \item Explore stronger surrogate architectures and more explicit calibration strategies, including adaptive labeling rules informed by prediction-powered variance diagnostics.
 \end{enumerate}
 

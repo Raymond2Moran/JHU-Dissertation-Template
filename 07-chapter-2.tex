@@ -1,8 +1,8 @@
 \chapter{Methodological Foundation I: Efficient Inference for Noisy LLM-as-a-Judge Evaluation} \label{chap:foundation_llm}
 
-This chapter provides the first methodological foundation for the thesis. It builds on the preprint \emph{Efficient Inference for Noisy LLM-as-a-Judge Evaluation} \parencite{llmjudge_eif}, but its role here is broader than summarizing that paper. The aim is to clarify how prediction-powered correction relates to measurement error, surrogate outcomes, and semiparametric efficiency when the cheap label is itself noisy or biased. The starting point remains the PPI/\texttt{PPI++} estimator family; the added question is how that family should be interpreted when the auxiliary signal is not a clean prediction target.
+This chapter provides the first methodological foundation for the thesis. It builds on the preprint \emph{Efficient Inference for Noisy LLM-as-a-Judge Evaluation} \parencite{llmjudge_eif}, but its role here is broader than summarizing that paper. The aim is to clarify how prediction-powered correction relates to measurement error, surrogate outcomes, and semiparametric efficiency when the cheap label is itself noisy or biased. Here and throughout this chapter, LLM abbreviates large language model. The starting point remains the original prediction-powered inference and \texttt{PPI++} estimator family; the added question is how that family should be interpreted when the auxiliary signal is not a clean prediction target.
 
-For the remainder of the thesis, I adopt three elements of that paper unchanged: the residual-correction viewpoint, the efficient-influence-function interpretation, and the distinction between direct misclassification correction and flexible surrogate calibration. What changes in later chapters is the scientific context. Here the motivating example is LLM-as-a-judge evaluation; in the protein chapters the same statistical structure is reused with continuous edge-level surrogate scores. A full domain-specific treatment of LLM evaluation is outside the scope of this thesis.
+For the remainder of the thesis, I adopt three elements of that paper unchanged: the residual-correction viewpoint, the efficient influence function (EIF) interpretation, and the distinction between direct misclassification correction and flexible surrogate calibration. What changes in later chapters is the scientific context. Here the motivating example is LLM-as-a-judge evaluation; in the protein chapters the same statistical structure is reused with continuous edge-level surrogate scores. A full domain-specific treatment of LLM evaluation is outside the scope of this thesis.
 
 \section{Global Statistical Setup and Notation}
 \label{sec:global_notation}
@@ -29,21 +29,23 @@ The primary mean-type target in the thesis is
 \]
     When the surrogate is model-based rather than directly observed, I use \(f_i = f(X_i)\) as the generic prediction notation. With that convention, the same estimator formulas can be written without changing statistical meaning when moving from noisy judge labels to protein-edge prediction scores.
     \item \textbf{Prediction-powered estimator family.} In the mean-setting, the original PPI estimator is
-\[
+\begin{equation}
 \widehat{\theta}_{\mathrm{PPI}}
 =
 \overline{f}_{U}
 +
 \frac{1}{n}\sum_{i \in L}(Y_i-f_i),
-\]
+\label{eq:ppi_mean}
+\end{equation}
 and the one-parameter \texttt{PPI++} family is
-\[
+\begin{equation}
 \widehat{\theta}_{\lambda}
 =
 \overline{Y}_{L}
 +
 \lambda(\overline{f}_{U}-\overline{f}_{L}).
-\]
+\label{eq:ppi_pp_mean}
+\end{equation}
     Here \(\lambda\) is the tuning parameter that controls how strongly the prediction-only sample enters the corrected estimator. Later chapters distinguish three common cases: vanilla PPI with \(\lambda = 1\), estimated-lambda \texttt{PPI++} with \(\hat{\lambda}\) estimated from pilot or calibration data, and oracle-lambda \texttt{PPI++} with \(\lambda\) chosen to minimize the working asymptotic variance.
 \end{itemize}
 
@@ -77,38 +79,31 @@ Figure~\ref{fig:foundation1_workflow} summarizes the same structure in the origi
 
 \section{Efficient Estimation Viewpoint}
 
-With the workflow in Figure~\ref{fig:foundation1_workflow} in view, the cleanest way to see the relationship between the original PPI papers and the noisy-surrogate extension is to start from the estimator family itself. Using the generic surrogate notation $f_i$, prediction-powered inference can be written as a residual-correction estimator. In the simplest mean-setting,
-\[
-\widehat{\theta}_{\mathrm{PPI}} = \overline{f}_{U} + \frac{1}{n} \sum_{i \in L} \{Y_i - f_i\},
-\]
-where $f_i$ is the surrogate prediction, $L$ denotes the labeled calibration set, and $U$ denotes the large unlabeled set. \texttt{PPI++} introduces a tuning parameter $\lambda$,
-\[
-\widehat{\theta}_{\lambda} = \overline{Y}_{L} + \lambda\, (\overline{f}_{U} - \overline{f}_{L}),
-\]
-which can improve efficiency when the surrogate is strong \parencite{ppi_framework, ppi_pp}. The LLM-as-a-judge preprint keeps this same estimator family in view, but asks a sharper question: when the cheap label is noisy, when is the working choice $f_i\approx Y_i$ good enough, and when should one instead target the full regression function $\mu(\widehat{Y})=\mathbb{E}[Y\mid \widehat{Y}]$?
+With the workflow in Figure~\ref{fig:foundation1_workflow} in view, the cleanest way to see the relationship between the original PPI papers and the noisy-surrogate extension is to start from the estimator family itself. Using the generic surrogate notation $f_i$, the residual-correction estimator and its tuned one-parameter extension are already given in Equations~\eqref{eq:ppi_mean} and~\eqref{eq:ppi_pp_mean}. The LLM-as-a-judge preprint keeps this same estimator family in view, but asks a sharper question: when the cheap label is noisy, when is the working choice $f_i\approx Y_i$ good enough, and when should one instead target the full regression function $\mu(\widehat{Y})=\mathbb{E}[Y\mid \widehat{Y}]$?
 
 The contribution of \textcite{llmjudge_eif} is to place these estimators in an efficient-influence-function framework rooted in semiparametric missing-data theory \parencite{robins1995, tsiatis2006}. That perspective explains when simple correction rules are efficient, when they are suboptimal, and why a stronger surrogate typically leads to shorter confidence intervals after calibration. For the purposes of this thesis, the main takeaway is that better prediction quality helps twice: it improves point prediction, and it also improves downstream inferential efficiency.
 
 \subsection{Key Formulas for Mean Estimation with a Surrogate Label}
 
-The efficient-influence-function perspective can be written explicitly. Let $R$ be the indicator that the gold-standard label is observed, with $\Pr(R=1)=\pi$, and suppose $R$ is independent of $(Y,\widehat{Y})$. Define \(\mu(\widehat{Y}) = \mathbb{E}[Y \mid \widehat{Y}]\).
-Then the efficient influence function for the mean target $\theta=\mathbb{E}[Y]$ takes the form
-\[
+Following Proposition~5 of \textcite{llmjudge_eif}, the efficient-influence-function perspective can be written explicitly. Let $R$ be the indicator that the gold-standard label is observed, with $\Pr(R=1)=\pi$, and suppose $R$ is independent of $(Y,\widehat{Y})$. Define \(\mu(\widehat{Y}) = \mathbb{E}[Y \mid \widehat{Y}]\). Then the efficient influence function for the mean target $\theta=\mathbb{E}[Y]$ takes the form
+\begin{equation}
 \phi(O)
 =
 \mu(\widehat{Y}) - \theta
 +
 \frac{R}{\pi}\{Y-\mu(\widehat{Y})\},
-\]
+\label{eq:eif_mean}
+\end{equation}
 where $O=(R, RY, \widehat{Y})$ denotes the observed data, with $RY$ the observed-outcome component. The corresponding efficient estimator therefore has the generic residual-correction form
-\[
+\begin{equation}
 \widehat{\theta}(\mu)
 =
 \frac{1}{N}\sum_{i \in U}\mu(\widehat{Y}_i)
 +
 \frac{1}{n}\sum_{i \in L}\{Y_i-\mu(\widehat{Y}_i)\}.
-\]
-This equation is the bridge between the semiparametric theory and the practical estimators used later in the thesis. Standard PPI is obtained by the working choice $\mu(\widehat{Y}_i) \approx f_i$, whereas \texttt{PPI++} uses the linear approximation $\mu(\widehat{Y}_i) \approx \lambda f_i$ \parencite{ppi_framework, ppi_pp, llmjudge_eif}. In the binary judge setting, the simple special case $f_i=\widehat{Y}_i$ recovers the most familiar form of the estimator. Detailed algebra for these identities is summarized in Appendix~\ref{chap:appendix-a}. The accompanying noisy-surrogate demonstrations and estimator implementations are also available in the R package \texttt{debiasLLMReporting} \parencite{debias_pkg}.
+\label{eq:eif_estimator}
+\end{equation}
+Equation~\eqref{eq:eif_mean} is the efficient influence function itself, and Equation~\eqref{eq:eif_estimator} is the corresponding bridge from semiparametric theory to the practical estimators used later in the thesis. Standard PPI is obtained by the working choice $\mu(\widehat{Y}_i) \approx f_i$, whereas \texttt{PPI++} uses the linear approximation $\mu(\widehat{Y}_i) \approx \lambda f_i$ \parencite{ppi_framework, ppi_pp, llmjudge_eif}. In the binary judge setting, the simple special case $f_i=\widehat{Y}_i$ recovers the most familiar form of the estimator. Detailed algebra for these identities is summarized in Appendix~\ref{chap:appendix-a}. The accompanying noisy-surrogate demonstrations and estimator implementations are also available in the R package \texttt{debiasLLMReporting} \parencite{debias_pkg}.
 
 \subsection{Binary Misclassification View and Rogan--Gladen}
 
@@ -128,10 +123,11 @@ which simplifies to
 p = (q_0+q_1-1)\theta + (1-q_0).
 \]
 Solving for $\theta$ yields the Rogan--Gladen identity
-\[
+\begin{equation}
 \theta = \frac{p+q_0-1}{q_0+q_1-1}.
-\]
-This is the classical correction formula against which residual-correction estimators such as PPI and \texttt{PPI++} are compared in the LLM-as-a-judge paper \parencite{rogan_gladen, llmjudge_eif}. In the protein chapters, I do not use this binary misclassification model directly, but it remains a useful conceptual reference point.
+\label{eq:rogan_gladen_identity}
+\end{equation}
+Equation~\eqref{eq:rogan_gladen_identity} is the classical correction formula against which residual-correction estimators such as PPI and \texttt{PPI++} are compared in the LLM-as-a-judge paper \parencite{rogan_gladen, llmjudge_eif}. In the protein chapters, I do not use this binary misclassification model directly, but it remains a useful conceptual reference point.
 
 \section{Bridge to the Protein Application}
 
