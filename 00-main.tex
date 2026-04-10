@@ -174,7 +174,7 @@
 %%%% BIBLIOGRAPHIC PACKAGE (change the style or other options if you need to)
 %% Author-year bibliography
 \usepackage[
-  backend=biber,
+  backend=bibtex,
   style=authoryear,
   sorting=nyt,
   maxcitenames=2,
@@ -272,6 +272,17 @@
       \fbox{\parbox{0.85\textwidth}{\small Missing figure file: \texttt{#2}. Upload the generated figure to Overleaf or regenerate the thesis assets locally.}}%
     }%
   }%
+}
+
+\newcommand{\chaptersummary}[1]{%
+  \begingroup
+  \begin{center}
+    \begin{minipage}{0.92\textwidth}
+      \small\itshape\singlespacing #1
+    \end{minipage}
+  \end{center}
+  \endgroup
+  \vspace{0.5\baselineskip}
 }
 
 
@@ -655,6 +666,7 @@
 \include{09-chapter-4}
 \include{10-chapter-5}
 \include{13-chapter-6}
+%\include{14-endpoint-clustered-simulation}
 
 %% add more main text technical chapters if you have
 

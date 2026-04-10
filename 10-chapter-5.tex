@@ -1,6 +1,7 @@
 \chapter{Protein Results, Prediction-Powered Inference, and Dependence Sensitivity} \label{chap:protein_results}
+\chaptersummary{With the surrogate fixed, the application chapter has three jobs: evaluate predictive performance, use the same predictions for corrected inference, and study how sample-size planning changes under both i.i.d. and dependence-sensitive assumptions. The main empirical result is that the surrogate supports stable prediction-powered estimates, while the size of the planning gains remains sensitive to how dependence across edges is handled.}
 
-This chapter reports the protein-specific empirical results. Unless otherwise noted, I retain the global notation from Section~\ref{sec:global_notation}; when the unit is specialized to an interaction edge, I replace the generic index \(i\) by an edge index \(e = (u,v)\). The discussion is organized in three layers. First, it summarizes the predictive performance of the main surrogate. Second, it shows how the frozen surrogate scores are carried into prediction-powered inference and \texttt{PPI++} estimation. Third, it examines power/sample-size planning under the published i.i.d. formulas and then adds a dependence-sensitive extension motivated by shared-protein edges.
+Predictive metrics such as PR-AUC, log loss, and Brier score summarize the quality of the surrogate itself, whereas the later sections focus on corrected estimands, uncertainty quantification, and required labeled sample size. Unless otherwise noted, I retain the global notation from Section~\ref{sec:global_notation}; when the unit is specialized to an interaction edge, I replace the generic index \(i\) by an edge index \(e = (u,v)\).
 
 \section[Prediction Layer]{Prediction Layer: Mainline Performance}
 
@@ -10,13 +11,13 @@ The main surrogate in this study is the sequence-plus-text ESM2-3B attention ens
 
 The original frozen ensemble still performs best on the in-domain test split and remains the surrogate carried into the later inference and planning sections. Relative to the best MLP baseline, the improvement is limited but consistent. The more important empirical point is not that attention radically changes the task, but that a strong prediction head combined with seed averaging yields the most reliable surrogate for the downstream inference layer. Accordingly, the later sections treat this model as the working surrogate rather than as a narrowly optimized benchmark winner.
 
-The log-loss-optimized ensemble sharpens one side of the tradeoff but not the whole model-selection problem. It lowers log loss on all three key comparison splits and improves Brier on the external test split, but it also degrades the in-domain PR-AUC markedly and reduces the pilot \(\rho^2\) used in the planning story. For that reason, it does not replace the original frozen ensemble under the balanced replacement rule adopted for this thesis. Appendix~\ref{chap:appendix-b} reports the corresponding optimization diagnostics and the side-by-side single-run and ensemble comparisons in full.
+The log-loss-optimized ensemble sharpens one side of the tradeoff but not the whole model-selection problem. It lowers log loss on all three key comparison splits and improves Brier on the external test split, but it also degrades the in-domain PR-AUC markedly and reduces the pilot \(\rho_{Y\hat p}^2\) used in the planning story. For that reason, it does not replace the original frozen ensemble under the balanced replacement rule adopted for this thesis. Appendix~\ref{chap:appendix-b} reports the corresponding optimization diagnostics and the side-by-side single-run and ensemble comparisons in full.
 
 This interpretation is consistent with the recent protein-interaction prediction literature. Deep sequence models and protein-language-model-based approaches can achieve strong within-dataset performance, but their apparent gains are strongly shaped by benchmark design, negative sampling, and leakage control \parencite{dscript2021, xcapt52024, park2012, bernett2024}. For that reason, the thesis treats the predictive pipeline primarily as a source of a high-quality surrogate for downstream inference, not as a claim of universal state-of-the-art performance against every published protein-interaction benchmark.
 
 \section[Inference Layer]{Inference Layer: Canonical Export and Prediction-Powered Estimation}
 
-All inference in this thesis is driven by the frozen prediction set rather than by raw model outputs. Predictions are first stabilized through seed averaging, then standardized for inference, and only then passed to the correction layer. This separation mirrors the statistical distinction emphasized in the prediction-powered literature: prediction and inference are related, but they are not the same object \parencite{ppi_framework, ppi_pp, llmjudge_eif}. The predictor supplies a scalable surrogate, whereas the calibration set corrects the residual bias and enables uncertainty quantification.
+All inference in this thesis is driven by the ensemble predictions rather than by raw model outputs. Once model selection is complete, the three attention seeds are averaged and written to a canonical prediction file. From that point onward, the predictions based on the ensemble are fixed, and the downstream inference layer takes them as given input rather than revisiting model fitting. This separation mirrors the statistical distinction emphasized in the prediction-powered literature: prediction and inference are related, but they are not the same object \parencite{ppi_framework, ppi_pp, llmjudge_eif}. The predictor supplies a scalable surrogate, whereas the calibration set corrects the residual bias and enables uncertainty quantification.
 
 Table~\ref{tab:chap5_ppi_core} gives a compact view of the main mean-type summaries on the two held-out test splits. Even at small calibration budgets, the estimated prevalence, accuracy, and Brier functionals remain close to the full-data references. This pattern indicates that the frozen surrogate is strong enough to support stable correction with limited labels. Appendix~\ref{chap:appendix-a} reports the corresponding interval estimates for the same rows.
 
@@ -32,7 +33,7 @@ Tables~\ref{tab:chap5_confusion_intra} and~\ref{tab:chap5_confusion_biogrid} ext
 
 Across these tables, the agreement is not confined to one convenient summary. Precision, recall, F1, specificity, and false-positive rate all remain close to their full-data targets. That breadth matters for the later planning discussion: the surrogate is not only predictive, but also compatible with calibration across several derived functionals.
 
-A notable empirical result is that vanilla prediction-powered inference and \texttt{PPI++} are close to one another in this frozen run. This does not imply that the tuning parameter is unimportant in general. Rather, it indicates that the surrogate is already strong enough that the additional gain from tuning $\lambda$ is moderate for these mean-type targets, which is qualitatively in line with the theory behind \texttt{PPI++} \parencite{ppi_pp, ppi_power}.
+One empirical pattern is that vanilla prediction-powered inference and \texttt{PPI++} are close to one another in this frozen run. This does not imply that the tuning parameter is unimportant in general. Rather, it indicates that the surrogate is already strong enough that the additional gain from tuning $\lambda$ is moderate for these mean-type targets, which is qualitatively in line with the theory behind \texttt{PPI++} \parencite{ppi_pp, ppi_power}.
 
 \section[I.I.D. Planning Baseline]{Planning Layer: I.I.D. Power and Sample-Size Baseline}
 
@@ -45,17 +46,17 @@ The analysis in this thesis uses the planning formulas from Chapter~\ref{chap:fo
 \label{fig:chap5_power_iid}
 \end{figure}
 
-Making the classical baseline explicit is important for interpretation. At $\Delta = 0.10$, the required labeled sample sizes are 197 for the classical estimator, 286 for vanilla PPI, 186 for estimated-lambda \texttt{PPI++}, and 182 for oracle-lambda \texttt{PPI++}. At $\Delta = 0.05$, the corresponding values are 785, 1155, 743, and 727; at $\Delta = 0.02$, they are 4906, 7844, 4649, and 4567. The comparison is therefore clear: vanilla PPI is not automatically better than the label-only baseline, whereas the tuned \texttt{PPI++} variants do deliver the expected sample-size reduction in this setting \parencite{ppi_power}. The result is informative, but the gain is moderate rather than transformative.
+Making the classical baseline explicit is important for interpretation. At $\Delta = 0.10$, the required labeled sample sizes are 197 for the classical estimator, 286 for vanilla PPI, 186 for estimated-lambda \texttt{PPI++}, and 182 for oracle-lambda \texttt{PPI++}. At $\Delta = 0.05$, the corresponding values are 785, 1155, 743, and 727; at $\Delta = 0.02$, they are 4906, 7844, 4649, and 4567. The pattern is clear: vanilla PPI is not automatically better than the label-only baseline, whereas the tuned \texttt{PPI++} variants do deliver the expected sample-size reduction in this setting \parencite{ppi_power}. The gain is real, but it is moderate rather than transformative.
 
-\subsection[Protein $\rho^2$ Planning]{Protein-Side \texorpdfstring{$\rho^2$}{rho2} Planning Story}
+\subsection[Protein \texorpdfstring{$\rho_{Y\hat p}^2$}{rho2} Planning]{Protein-Side \texorpdfstring{$\rho_{Y\hat p}^2$}{rho2} Planning Story}
 
-Chapter~\ref{chap:foundation_power} emphasized that, in the one-sample mean setting, pilot $\rho_{Yf}^2$ is the key summary of surrogate quality for planning. The protein application shows the same qualitative pattern. Using the Intra validation split as the pilot set, I constructed a small surrogate-strength gradient from the completed model runs used in this study: a sequence-only logreg model, a sequence-only MLP, a sequence-plus-text MLP, the representative single-attention run, and the frozen attention ensemble.
+Chapter~\ref{chap:foundation_power} used the generic notation \(\rho_{Yf}^2\) for pilot agreement between truth and surrogate. In the protein application, the surrogate is the exported edge-level probability \(\hat p_e\), so the corresponding application-specific quantity is \(\rho_{Y\hat p}^2\). Using the Intra validation split as the pilot set, I constructed a small surrogate-strength gradient from the completed model runs used in this study: a sequence-only logreg model, a sequence-only MLP, a sequence-plus-text MLP, the representative single-attention run, and the frozen attention ensemble.
 
 \MaybeInput{generated_tables/chap5_rho_story.tex}
 
 Table~\ref{tab:chap5_rho_story} shows that the ordering is monotone, but the increase is moderate. The pilot $\rho_{Y\hat p}^2$ values rise from 0.0266 for the sequence-only logreg model to 0.1056 for the frozen attention ensemble, and the required labeled sample size falls accordingly. For example, at $\Delta = 0.05$, the classical baseline requires 785 labels, whereas the sequence-only logreg model requires 771, the sequence-only MLP requires 740, the sequence-plus-text MLP requires 745, the representative single-attention model requires 730, and the frozen attention ensemble requires 726. At $\Delta = 0.10$, the same ordering is 197, 193, 185, 187, 183, and 182. The gains are not dramatic, but the pattern reproduces the same logic as the real-data studies in \textcite{ppi_power}: stronger pilot agreement between truth and surrogate yields lower required labeled sample size.
 
-The monotone gradient matters more here than any single absolute number. The planning story from Chapter~\ref{chap:foundation_power} carries over directly: stronger pilot agreement translates into smaller labeled-sample requirements, even when the application sits in a moderate-\(\rho^2\) regime rather than in an idealized near-deterministic one.
+The monotone gradient matters more here than any single absolute number. The planning story from Chapter~\ref{chap:foundation_power} carries over directly: stronger pilot agreement translates into smaller labeled-sample requirements, even when the application sits in a moderate-\(\rho_{Y\hat p}^2\) regime rather than in an idealized near-deterministic one.
 
 This surrogate-strength comparison is more informative than the later supplementary tuning pass. After the frozen ensemble had been established, I ran a dedicated search over alternative losses, early-stopping criteria, hard-negative settings, and post-hoc calibration. That search did not produce a replacement surrogate that improved calibration-oriented metrics enough to displace the frozen ensemble without sacrificing the ranking and planning behavior needed later in the chapter. A cautious reading is therefore more appropriate: the existing model gradient is already sufficient to show the protein-side planning story, and the main leverage appears to come from representation quality and evaluation design rather than from small head-level tuning changes.
 
@@ -63,13 +64,13 @@ This surrogate-strength comparison is more informative than the later supplement
 
 The published formulas above assume independent observations. Protein-edge data, however, are naturally graph-structured. If two edges share a protein, then their features, predicted scores, and even validation labels can be correlated. In that setting, two labeled edges need not contribute two fully independent pieces of information. If many labeled edges share proteins, then the raw labeled sample size can overstate the amount of independent information actually available for planning. The concern is not purely abstract: the pair-input evaluation literature repeatedly shows that dependence across constituent objects can distort performance estimation if the benchmark design ignores it \parencite{park2012, bernett2024}.
 
-This section therefore adds a dependence-sensitive extension rather than silently treating the published formulas as universally correct. The central sensitivity parameter is the design effect, written \(\mathrm{deff}\). Informally, \(\mathrm{deff}\) is a penalty factor for non-independence. If the i.i.d.\ planning calculation says that \(n\) labeled edges are sufficient, then \(\mathrm{deff}>1\) says that those \(n\) edges behave like only
+This section therefore adds a dependence-sensitive extension rather than silently treating the published formulas as universally correct. The main sensitivity parameter reported in this chapter is the design effect, written \(\mathrm{deff}\). Informally, \(\mathrm{deff}\) is a penalty factor for non-independence. If the i.i.d.\ planning calculation says that \(n\) labeled edges are sufficient, then \(\mathrm{deff}>1\) says that those \(n\) edges behave like only
 \[
 n_{\mathrm{eff}} = \frac{n}{\mathrm{deff}}
 \]
 independent labeled edges. Equivalently, the relevant variance is inflated by the factor \(\mathrm{deff}\). For example, \(\mathrm{deff}=1.25\) means 25\% larger variance and about 80\% as much effective labeled information, \(\mathrm{deff}=1.50\) means 50\% larger variance and \(n_{\mathrm{eff}} = 2n/3\), and \(\mathrm{deff}=2.00\) means doubled variance and only half as many effective independent labels.
 
-Formally, the design effect is a variance-inflation factor relative to the published i.i.d.\ planning formulas. Throughout this section, I use \(\mathrm{deff}\) for the reported sensitivity parameter shown in figures and tables, and \(d_{\lambda}\) for its fixed-\(\lambda\) mathematical version inside the derivation below. When the unit is specialized from a generic index \(i\) to a protein edge, I write \(e = (u,v)\) for an edge between proteins \(u\) and \(v\), and later use notation such as \(Y_e\), \(f_e\), and \(\psi_e^{\lambda}\) for edge-level outcomes, surrogate scores, and influence contributions.
+Throughout the figures and tables, I report \(\mathrm{deff}\) as the chosen sensitivity value. In the algebra below, I write \(d_{\lambda}\) for the fixed-\(\lambda\) version of the same idea, because the inflation can in principle depend on the estimator being used. The thesis does not estimate \(d_{\lambda}\) from a full dependence model for the protein-protein interaction network. It is used only as a sensitivity parameter applied to the published i.i.d.\ baseline.
 
 To reflect dependence in the protein--protein interaction network, I report a sensitivity analysis based on
 \[
@@ -79,29 +80,41 @@ which spans no inflation, mild inflation, moderate inflation, and doubling of th
 
 \subsection[Variance Under Shared-Protein Dependence]{Variance Decomposition Under Shared-Protein Dependence}
 
-For a fixed tuning parameter $\lambda$, the mean-type prediction-powered estimator can be written as
+For a fixed tuning parameter \(\lambda\), write the mean-type prediction-powered estimator as
 \[
 \widehat{\theta}_{\lambda}
 =
 \bar{Y}_{L} + \lambda(\bar{f}_{U} - \bar{f}_{L})
 =
-\frac{1}{n}\sum_{e \in L}(Y_e - \lambda f_e)
-+
-\frac{\lambda}{N}\sum_{e \in U} f_e,
+\bar{R}^{\lambda}_{L} + \bar{G}^{\lambda}_{U},
 \]
-where $L$ is the labeled calibration set with size $n$ and $U$ is the prediction-only set with size $N$. Define the labeled residual term and prediction-only term by
+where
 \[
-R_e^{\lambda} = Y_e - \lambda f_e,
+R_e^{\lambda}=Y_e-\lambda f_e,
 \qquad
-G_e^{\lambda} = \lambda f_e.
+G_e^{\lambda}=\lambda f_e,
 \]
-Then
+and \(L\) and \(U\) denote the labeled and prediction-only edge sets of sizes \(n\) and \(N\). The estimator itself is unchanged under dependence; the issue is how its variance should be interpreted when edges are no longer independent.
+
+Because \(\bar{R}^{\lambda}_{L}=n^{-1}\sum_{e\in L}R_e^{\lambda}\) and \(\bar{G}^{\lambda}_{U}=N^{-1}\sum_{e\in U}G_e^{\lambda}\), the usual variance-of-averages identities give
 \[
-\widehat{\theta}_{\lambda} = \bar{R}^{\lambda}_{L} + \bar{G}^{\lambda}_{U},
+\Var(\bar{R}^{\lambda}_{L})
+=
+\frac{1}{n^2}\sum_{e,e' \in L}\Cov(R_e^{\lambda}, R_{e'}^{\lambda}),
+\qquad
+\Var(\bar{G}^{\lambda}_{U})
+=
+\frac{1}{N^2}\sum_{e,e' \in U}\Cov(G_e^{\lambda}, G_{e'}^{\lambda}),
 \]
-so the variance decomposes as
+and
 \[
-\Var(\widehat{\theta}_{\lambda})
+\Cov(\bar{R}^{\lambda}_{L},\bar{G}^{\lambda}_{U})
+=
+\frac{1}{nN}\sum_{e \in L}\sum_{e' \in U}\Cov(R_e^{\lambda}, G_{e'}^{\lambda}).
+\]
+The denominators \(n^2\), \(N^2\), and \(nN\) therefore come directly from averaging \(n\) labeled edges and \(N\) prediction-only edges before taking variances and cross-covariances. Summing these three pieces yields the dependence-aware variance
+\[
+\Var_{\mathrm{dep}}(\widehat{\theta}_{\lambda})
 =
 \Var(\bar{R}^{\lambda}_{L})
 +
@@ -110,47 +123,15 @@ so the variance decomposes as
 2\Cov(\bar{R}^{\lambda}_{L}, \bar{G}^{\lambda}_{U}).
 \]
 
-Under the i.i.d. approximation used in the published power formulas, off-diagonal covariances vanish and one recovers
+Under the published i.i.d.\ approximation, the off-diagonal covariance terms vanish and one recovers
 \[
 \Var_{\mathrm{iid}}(\widehat{\theta}_{\lambda})
-\approx
-\frac{\Var(R^{\lambda})}{n}
-+
-\frac{\Var(G^{\lambda})}{N}
 =
 \frac{\Var(Y-\lambda f)}{n}
 +
 \frac{\lambda^2 \Var(f)}{N}.
 \]
-Expanding the labeled residual term gives
-\[
-\Var(Y-\lambda f)
-=
-\Var(Y) + \lambda^2 \Var(f) - 2\lambda \Cov(Y,f).
-\]
-For graph-structured protein-edge data, however, the cross-edge covariance terms do not generally vanish. If $A_{ee'} = 1$ indicates that edges $e$ and $e'$ share at least one protein, then the dependence-aware variance can be written as
-\[
-\Var_{\mathrm{dep}}(\widehat{\theta}_{\lambda})
-=
-\frac{1}{n^2}\sum_{e,e' \in L}\Cov(R_e^{\lambda}, R_{e'}^{\lambda})
-+
-\frac{1}{N^2}\sum_{u,u' \in U}\Cov(G_u^{\lambda}, G_{u'}^{\lambda})
-+
-\frac{2}{nN}\sum_{e \in L}\sum_{u \in U}\Cov(R_e^{\lambda}, G_u^{\lambda}),
-\]
-where the off-diagonal summands are concentrated on edge pairs with $A_{ee'} = 1$. This makes the key point explicit: the estimator is unchanged, but the variance is inflated by shared-protein dependence. The design effect is a compact way to summarize the contribution of those extra covariance terms when one does not want to model the full dependence graph explicitly.
-
-\subsection[Design Effect and Sample Size]{Design-Effect Approximation and Sample-Size Inflation}
-
-To obtain a tractable first-order sensitivity analysis, suppose the main effect of dependence is to inflate the labeled residual component while leaving the prediction-only term approximately unchanged because $N$ is large. This approximation has an immediate effective-sample-size interpretation. If dependence reduces the information content of the labeled sample from \(n\) independent edges to an effective sample size \(n_{\mathrm{eff},\lambda} = n/d_{\lambda}\), then
-\[
-\frac{\Var(Y-\lambda f)}{n_{\mathrm{eff},\lambda}}
-=
-d_{\lambda}\frac{\Var(Y-\lambda f)}{n}.
-\]
-So the same quantity can be read in two equivalent ways: either dependence inflates the labeled residual variance by \(d_{\lambda}\), or it shrinks the effective number of independent labeled edges to \(n/d_{\lambda}\). The goal is not to prove a new general dependent-edge theorem. Rather, the goal is to show that once the omitted covariance terms are summarized by a single nonnegative inflation factor, the sample-size inflation rule used in the code follows exactly.
-
-Let
+Rather than model every omitted cross-edge covariance term explicitly, the thesis summarizes their net contribution by the excess variance
 \[
 D_{\lambda}
 =
@@ -160,89 +141,15 @@ D_{\lambda}
 \frac{\Var(Y-\lambda f)}{n}
 +
 \frac{\lambda^2 \Var(f)}{N}
-\right\}
+\right\}.
 \]
-denote the excess variance beyond the published i.i.d. baseline. If $\Var(Y-\lambda f)>0$ and $D_{\lambda}\ge 0$, define the design effect by
+If \(\Var(Y-\lambda f)>0\) and \(D_{\lambda}\ge 0\), the corresponding fixed-\(\lambda\) design effect is
 \[
 d_{\lambda}
 =
-1+\frac{n D_{\lambda}}{\Var(Y-\lambda f)}.
+1+\frac{nD_{\lambda}}{\Var(Y-\lambda f)}.
 \]
-This representation makes precise what the chapter means by a design effect: it is the scalar that absorbs the omitted dependence-induced covariance terms into the labeled residual variance.
-
-\begin{theorem}[Design-effect representation and sample-size inflation]
-\label{thm:deff-inflation}
-Fix $\lambda \in \mathbb{R}$ and suppose $\Var(Y-\lambda f)>0$. Let
-\[
-S^2
-=
-\left(
-\frac{\Delta}{z_{1-\alpha/2} + z_{1-\beta}}
-\right)^2
-\]
-for a two-sided Wald design targeting absolute difference $\Delta$ at significance level $\alpha$ and power $1-\beta$. Assume $D_{\lambda}\ge 0$ and $S^2 > \lambda^2 \Var(f)/N$. Then:
-\begin{enumerate}
-    \item the dependence-aware variance can be written exactly as
-    \[
-    \Var_{\mathrm{dep}}(\widehat{\theta}_{\lambda})
-    =
-    d_{\lambda}\frac{\Var(Y-\lambda f)}{n}
-    +
-    \frac{\lambda^2 \Var(f)}{N},
-    \qquad d_{\lambda}\ge 1;
-    \]
-    \item the smallest \emph{real-valued} labeled sample size satisfying the Wald planning inequality
-    \[
-    \Var_{\mathrm{dep}}(\widehat{\theta}_{\lambda}) \le S^2
-    \]
-    is
-    \[
-    n_{\mathrm{req}}^{\mathrm{dep}}(\lambda; d_{\lambda})
-    =
-    \frac{
-    d_{\lambda}\Var(Y-\lambda f)
-    }{
-    S^2 - \lambda^2 \Var(f)/N
-    };
-    \]
-    \item if
-    \[
-    n_{\mathrm{req}}^{\mathrm{iid}}(\lambda)
-    =
-    \frac{
-    \Var(Y-\lambda f)
-    }{
-    S^2 - \lambda^2 \Var(f)/N
-    }
-    \]
-    denotes the corresponding i.i.d. planning target, then
-    \[
-    n_{\mathrm{req}}^{\mathrm{dep}}(\lambda; d_{\lambda})
-    =
-    d_{\lambda}\, n_{\mathrm{req}}^{\mathrm{iid}}(\lambda).
-    \]
-\end{enumerate}
-If an integer sample size is required in practice, one takes the ceiling of the real-valued expression above.
-\end{theorem}
-
-\begin{proof}
-By the definition of $D_{\lambda}$,
-\[
-\Var_{\mathrm{dep}}(\widehat{\theta}_{\lambda})
-=
-\frac{\Var(Y-\lambda f)}{n}
-+
-\frac{\lambda^2 \Var(f)}{N}
-+
-D_{\lambda}.
-\]
-Substituting
-\[
-D_{\lambda}
-=
-\frac{(d_{\lambda}-1)\Var(Y-\lambda f)}{n},
-\]
-which follows directly from the definition of $d_{\lambda}$, gives
+This gives the dependence-aware variance in the compact form
 \[
 \Var_{\mathrm{dep}}(\widehat{\theta}_{\lambda})
 =
@@ -250,66 +157,36 @@ d_{\lambda}\frac{\Var(Y-\lambda f)}{n}
 +
 \frac{\lambda^2 \Var(f)}{N}.
 \]
-Because $D_{\lambda}\ge 0$ and $\Var(Y-\lambda f)>0$, the same definition implies $d_{\lambda}\ge 1$, proving part (1).
 
-For part (2), impose the Wald planning inequality
+\subsection[Design Effect and Sample Size]{Design-Effect Approximation and Sample-Size Inflation}
+
+The sample-size calculation is based on the variance threshold implied by the target effect size, significance level, and power. Write
 \[
-d_{\lambda}\frac{\Var(Y-\lambda f)}{n}
-+
-\frac{\lambda^2 \Var(f)}{N}
-\le S^2.
+S^2
+=
+\left(
+\frac{\Delta}{z_{1-\alpha/2}+z_{1-\beta}}
+\right)^2,
 \]
-Since $S^2 > \lambda^2 \Var(f)/N$, subtracting the prediction-only term preserves positivity:
+the required variance condition is simply
 \[
-d_{\lambda}\frac{\Var(Y-\lambda f)}{n}
-\le
-S^2 - \lambda^2 \Var(f)/N.
+\Var_{\mathrm{dep}}(\widehat{\theta}_{\lambda}) \le S^2.
 \]
-Multiplying both sides by $n$ and dividing by the positive quantity $S^2 - \lambda^2 \Var(f)/N$ yields
+Substituting the design-effect form above and solving for \(n\) gives
 \[
-n
-\ge
-\frac{
-d_{\lambda}\Var(Y-\lambda f)
-}{
-S^2 - \lambda^2 \Var(f)/N
-}.
-\]
-Hence the smallest real-valued $n$ satisfying the inequality is exactly
-\[
-n_{\mathrm{req}}^{\mathrm{dep}}(\lambda; d_{\lambda})
+n_{\mathrm{req}}^{\mathrm{dep}}(\lambda;d_{\lambda})
 =
 \frac{
 d_{\lambda}\Var(Y-\lambda f)
 }{
-S^2 - \lambda^2 \Var(f)/N
-},
-\]
-which proves part (2).
-
-For part (3), set $d_{\lambda}=1$ in the same expression to obtain the i.i.d. target
-\[
-n_{\mathrm{req}}^{\mathrm{iid}}(\lambda)
+S^2-\lambda^2\Var(f)/N
+}
 =
-\frac{
-\Var(Y-\lambda f)
-}{
-S^2 - \lambda^2 \Var(f)/N
-}.
+d_{\lambda}\,n_{\mathrm{req}}^{\mathrm{iid}}(\lambda),
 \]
-Factoring this term from the dependence-sensitive expression gives
-\[
-n_{\mathrm{req}}^{\mathrm{dep}}(\lambda; d_{\lambda})
-=
-d_{\lambda}\,
-n_{\mathrm{req}}^{\mathrm{iid}}(\lambda),
-\]
-as claimed.
-\end{proof}
+provided \(S^2>\lambda^2\Var(f)/N\). If an integer sample size is required in practice, one takes the ceiling of the real-valued expression.
 
-Theorem~\ref{thm:deff-inflation} is intentionally limited in scope. It does not claim that one scalar can capture every form of graph dependence. It proves a narrower statement: once the extra covariance induced by shared-protein dependence is represented by a nonnegative scalar inflation on the labeled residual term, the linear sample-size inflation rule used in the current sensitivity-analysis code is algebraically exact rather than heuristic.
-
-The plain-language interpretation is straightforward. If \(d_{\lambda}=1.50\), then the labeled residual variance is 50\% larger than the i.i.d.\ formula suggests, and \(n\) labeled edges behave like only \(n/1.50\) independent edges for the purpose of this planning calculation. That is why the sensitivity curves move upward as \(\mathrm{deff}\) increases: the estimator is not being changed, but the same nominal labeled sample is treated as carrying less effective information.
+This identity is the basis of the dependence-sensitive planning curves reported below. The algebra is written with \(d_{\lambda}\) because the inflation is attached to a fixed \(\lambda\). The plots and tables instead use the simpler symbol \(\mathrm{deff}\) for the chosen scenario values. In other words, \(\mathrm{deff}\) is the reported sensitivity parameter, while \(d_{\lambda}\) is the notation used in the derivation to show how the same inflation rescales the published i.i.d.\ formula. Appendix~\ref{sec:appendix_deff} gives the short derivation behind these identities.
 
 \begin{figure}[ht]
 \centering

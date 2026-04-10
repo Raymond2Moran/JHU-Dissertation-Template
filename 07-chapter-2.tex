@@ -1,6 +1,9 @@
 \chapter{Methodological Foundation I: Efficient Inference for Noisy LLM-as-a-Judge Evaluation} \label{chap:foundation_llm}
+\chaptersummary{Cheap labels that are noisy or biased need not be useless for inference. This chapter shows how a smaller gold-standard subset can still support corrected estimation and explains why that correction fits naturally within the PPI and \texttt{PPI++} framework.}
 
-This chapter provides the first methodological foundation for the thesis. It builds on the preprint \emph{Efficient Inference for Noisy LLM-as-a-Judge Evaluation} \parencite{llmjudge_eif}, but its role here is broader than summarizing that paper. The aim is to clarify how prediction-powered correction relates to measurement error, surrogate outcomes, and semiparametric efficiency when the cheap label is itself noisy or biased. Here and throughout this chapter, LLM abbreviates large language model. The starting point remains the original prediction-powered inference and \texttt{PPI++} estimator family; the added question is how that family should be interpreted when the auxiliary signal is not a clean prediction target.
+The motivating example for this chapter is LLM-as-a-judge evaluation, where human preferences are observed on only a labeled subset while a cheaper judge label is observed much more broadly. The inferential target is still the human quantity of interest, not the raw judge output alone.
+
+This chapter is anchored in the preprint \emph{Efficient Inference for Noisy LLM-as-a-Judge Evaluation} \parencite{llmjudge_eif}, but its role here is broader than a paper summary. Here and throughout this chapter, LLM abbreviates large language model. The starting point remains the original prediction-powered inference estimator family together with its tuned extension \texttt{PPI++}, where the weight \(\lambda\) controls how strongly the prediction-only sample enters the corrected estimator.
 
 For the remainder of the thesis, I adopt three elements of that paper unchanged: the residual-correction viewpoint, the efficient influence function (EIF) interpretation, and the distinction between direct misclassification correction and flexible surrogate calibration. What changes in later chapters is the scientific context. Here the motivating example is LLM-as-a-judge evaluation; in the protein chapters the same statistical structure is reused with continuous edge-level surrogate scores. A full domain-specific treatment of LLM evaluation is outside the scope of this thesis.
 
@@ -11,7 +14,7 @@ This section fixes the notation used throughout the remainder of the thesis. The
 
 \begin{itemize}
     \item \textbf{Unit-level quantities.} Index generic units by \(i\). Let \(X_i\) denote the raw input or feature vector, \(Y_i\) the gold-standard outcome, and \(\widehat{Y}_i\) a cheap observed surrogate label when such a label is directly recorded. In the LLM-as-a-judge setting of \textcite{llmjudge_eif}, \(\widehat{Y}_i\) is the cheap judge label itself. In later chapters I use the shorthand \(f_i = f(X_i)\) for a generic model-based surrogate prediction; in the protein application, the unit is usually an edge and \(f_i\) is the predicted interaction score.
-    \item \textbf{Observed-label indicator and sample split.} Let \(R_i \in \{0,1\}\) indicate whether the gold-standard label \(Y_i\) is observed, and write \(\pi = \Pr(R_i = 1)\). The data are partitioned into a labeled calibration set \(L = \{i : R_i = 1\}\) of size \(n\), on which both the gold label and the surrogate are observed, and a large prediction-only set \(U = \{i : R_i = 0\}\) of size \(N\), on which the surrogate is available at scale. When later chapters speak of a pilot set, calibration set, or labeled subset, they refer to this same object \(L\) unless otherwise stated.
+    \item \textbf{Labeled and prediction-only (unlabeled) samples.} Let \(R_i \in \{0,1\}\) indicate whether the gold-standard label \(Y_i\) is observed, and write \(\pi = \Pr(R_i = 1)\). The data are partitioned into a labeled calibration set \(L = \{i : R_i = 1\}\) of size \(n\), on which both the gold label and the surrogate are observed, and a large prediction-only set \(U = \{i : R_i = 0\}\) of size \(N\), on which the surrogate is available at scale. When later chapters speak of a pilot set, calibration set, or labeled subset, they refer to this same object \(L\) unless otherwise stated.
     \item \textbf{Target parameter and sample averages.} For any quantity \(A_i\), write
 \[
 \overline{A}_{L} = \frac{1}{n}\sum_{i \in L} A_i,
@@ -22,7 +25,7 @@ The primary mean-type target in the thesis is
 \[
 \theta = \mathbb{E}[Y_i].
 \]
-    For a binary outcome, \(\theta\) is a prevalence or positive-rate parameter; for a continuous outcome, \(\theta\) is an ordinary mean. This convention is retained in the power-analysis and protein-application chapters.
+    For a binary outcome, \(\theta\) is a prevalence or positive-rate parameter; for a continuous outcome, \(\theta\) is an ordinary mean. This notation is consistent in the remaining chapters.
     \item \textbf{Calibration and surrogate notation.} When the cheap label is treated through an explicit regression or calibration function, write
 \[
 \mu(\widehat{Y}_i) = \mathbb{E}[Y_i \mid \widehat{Y}_i].
@@ -53,13 +56,15 @@ This setup can also be viewed as a missing-data problem: the target outcome \(Y_
 
 \section{Relationship to Earlier Statistical Literature}
 
-Chapter~\ref{chap:introduction} has already situated the thesis in the broader literature on imperfect diagnostics, missing data, and semiparametric efficiency. For the purposes of this chapter, the narrower point is that \textcite{llmjudge_eif} brings those traditions into a single formal frame for modern surrogate-assisted evaluation problems. Rogan--Gladen-style misclassification correction represents the classical diagnostic-test view \parencite{rogan_gladen}; missing-data arguments supply the partial-label sampling structure \parencite{rubin1976, robins1995, tsiatis2006}; and efficient influence functions describe the best first-order use of auxiliary information under the working model \parencite{eif_ref, tsiatis2006}. The paper matters because it makes those relationships explicit rather than leaving them as separate methodological stories.
+Chapter~\ref{chap:introduction} has already situated the thesis in the broader literature on imperfect diagnostics, missing data, and semiparametric efficiency. For the purposes of this chapter, the narrower point is that \textcite{llmjudge_eif} brings those traditions into a single formal frame for modern surrogate-assisted evaluation problems. Rogan--Gladen-style misclassification correction represents the classical diagnostic-test view \parencite{rogan_gladen}; missing-data arguments supply the partial-label sampling structure \parencite{rubin1976, robins1995, tsiatis2006}; and efficient influence functions describe the best first-order use of auxiliary information under the working model \parencite{eif_ref, tsiatis2006}. The value of the paper is that it makes those relationships explicit rather than leaving them as separate methodological stories.
 
-That connection matters for the rest of the thesis. In protein-edge prediction, the cheap label is not a binary judge produced by an LLM but a model-based prediction score for an interaction edge. Even so, the statistical skeleton is the same: the inexpensive signal is observed broadly, the expensive signal is observed only on a smaller labeled subset, and the inferential problem is how to combine them efficiently.
+That same connection carries into the rest of the thesis. In protein-edge prediction, the cheap label is not a binary judge produced by an LLM but a model-based prediction score for an interaction edge. Even so, the statistical skeleton is the same: the inexpensive signal is observed broadly, the expensive signal is observed only on a smaller labeled subset, and the inferential problem is how to combine them efficiently.
 
-\section{Why This Paper Matters for the Thesis}
 
-The importance of \textcite{llmjudge_eif} for this thesis is conceptual rather than domain-specific. In the protein application, the surrogate is not an LLM judge score but a learned edge-prediction score produced by a neural model. The structure is nevertheless the same:
+\section{Relevance for the Thesis}
+
+For the purposes of this thesis, the value of \textcite{llmjudge_eif} is conceptual: in Chapter~\ref{chap:protein_results}, the surrogate is not an LLM judge score but a learned prediction score for an interaction edge. Even so, the underlying statistical structure is the same:
+
 \begin{enumerate}
     \item the surrogate is available at scale,
     \item the gold label is expensive, and
@@ -73,7 +78,7 @@ Figure~\ref{fig:foundation1_workflow} summarizes the same structure in the origi
 \begin{figure}[htbp]
 \centering
 \MaybeIncludeGraphics[width=0.95\textwidth]{LLM-as-a-Judge_thesis.pdf}
-\caption[Noisy LLM-as-a-judge workflow]{Workflow for the noisy LLM-as-a-judge setting that motivates the first methodological foundation. Prompts induce pairwise model comparisons; human preferences \(Y_i\) are observed on a labeled subset; LLM-judge labels \(\widehat{Y}_i\) are observed on the full sample; and estimators such as EIF, PPI, \texttt{PPI++}, and Rogan--Gladen use the labeled subset to correct the cheap labels when estimating \(\theta = \mathbb{E}[Y]\).}
+\caption[Noisy LLM-as-a-judge workflow]{Workflow for the noisy LLM-as-a-judge setting that motivates the first methodological foundation.}
 \label{fig:foundation1_workflow}
 \end{figure}
 
@@ -129,6 +134,6 @@ Solving for $\theta$ yields the Rogan--Gladen identity
 \end{equation}
 Equation~\eqref{eq:rogan_gladen_identity} is the classical correction formula against which residual-correction estimators such as PPI and \texttt{PPI++} are compared in the LLM-as-a-judge paper \parencite{rogan_gladen, llmjudge_eif}. In the protein chapters, I do not use this binary misclassification model directly, but it remains a useful conceptual reference point.
 
-\section{Bridge to the Protein Application}
+\section{Implications for the Protein Application}
 
 The rest of the thesis uses the same general template in a different scientific setting. The protein-edge predictor produces the surrogate, the experimentally labeled subset provides calibration, and prediction-powered procedures deliver corrected summaries with uncertainty quantification. The next chapter adds the second methodological foundation needed for that pipeline: labeled-sample planning and power analysis under prediction-powered inference \parencite{ppi_power}.

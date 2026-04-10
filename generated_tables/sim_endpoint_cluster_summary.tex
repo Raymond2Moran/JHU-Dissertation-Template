@@ -1,0 +1,18 @@
+\begin{table}[ht]
+\centering
+\small
+\begin{tabularx}{\textwidth}{@{}lccccccc@{}}
+\toprule
+Estimator & $\tau$ & Prevalence & Pilot $\rho^2$ & $\lambda^{\star}$ & i.i.d. SE & Endpoint SE & SE ratio \\
+\midrule
+Labeled mean & 0.00 & 0.134 & 0.052 & -- & 0.024 & 0.024 & 0.990 \\
+PPI++ & 0.00 & 0.134 & 0.052 & 0.425 & 0.024 & 0.024 & 1.005 \\
+Labeled mean & 0.50 & 0.148 & 0.093 & -- & 0.025 & 0.026 & 1.020 \\
+PPI++ & 0.50 & 0.148 & 0.093 & 0.529 & 0.024 & 0.025 & 1.032 \\
+Labeled mean & 1.00 & 0.185 & 0.202 & -- & 0.027 & 0.030 & 1.082 \\
+PPI++ & 1.00 & 0.185 & 0.202 & 0.695 & 0.025 & 0.027 & 1.110 \\
+\bottomrule
+\end{tabularx}
+\caption[Summary of simulated endpoint-clustered results at n=200]{Summary of the simulation output at labeled sample size $n=200$. The SE ratio is the endpoint-clustered standard error divided by the corresponding i.i.d. standard error.}
+\label{tab:sim_endpoint_cluster_summary}
+\end{table}

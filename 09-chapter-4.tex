@@ -1,8 +1,9 @@
 \chapter{Protein-Interaction Prediction: Data, Features, and Predictive Pipeline} \label{chap:protein_pipeline}
+\chaptersummary{The protein application begins by defining what counts as a positive interaction in this study and by building the surrogate used later for inference. This chapter describes the benchmark splits, the representation choices, and the predictive pipeline that turns protein pairs into a fixed edge-level score as predictive outcomes.}
 
-This chapter develops the prediction layer used in the protein application. It is not a software walkthrough. Instead, the aim is to describe the scientific data sources, leakage-aware split design, protein representations, pair-feature construction, model families, and final surrogate that are later carried into prediction-powered inference. The predictive path studied here is the sequence-plus-text attention-ensemble workflow, but the chapter is organized around the methodological choices behind that workflow rather than around software internals.
+The biological task is narrow and concrete: given a pair of proteins, predict whether that pair is treated by the benchmark as a physical protein--protein interaction. Positive edges therefore correspond to curated physical interactions, while negative edges are either benchmark-defined negatives or sampled non-positive pairs. The point here is not to catalog implementation details. It is to show how that biological task is turned into a leakage-aware prediction problem whose output can be carried into the later inferential analysis.
 
-Figure~\ref{fig:chap4_pipeline_overview} summarizes the predictive pipeline at a high level. Protein sequences and UniProt text descriptions are first converted into protein-level embeddings, then transformed into edge-level pair features, and finally passed to a small family of predictive heads. The discussion follows the same order. It begins with split design and benchmark construction, then turns to protein representations and pair features, and finally explains why the frozen three-seed attention ensemble is the surrogate carried forward into the inference chapters.
+The predictive pipeline then follows a simple sequence. Protein sequences and UniProt text descriptions are encoded into protein-level embeddings, those embeddings are converted into pairwise edge features, several prediction heads are compared, and a fixed three-seed attention ensemble is taken forward as the default surrogate. Figure~\ref{fig:chap4_pipeline_overview} summarizes that workflow. The discussion follows the same order: split design and benchmark construction first, protein representations and pair features second, and the final surrogate handoff last.
 
 \begin{figure}[htbp]
 \centering
@@ -67,7 +68,7 @@ The predictive unit is an edge, so protein-level embeddings must be converted in
 \[
 [u+v,\; |u-v|,\; u \odot v,\; \cos(u,v)],
 \]
-applied to the sequence block, the text block, or the concatenated sequence-plus-text block. This choice is pragmatic. It is simple enough to support controlled ablations and downstream uncertainty analysis, while still giving the neural heads access to nonlinear interactions among summary operators. The implementation realizes this construction explicitly after the embedding stage, but the statistical object that matters here is the resulting pair-level surrogate input.
+applied to the sequence block, the text block, or the concatenated sequence-plus-text block. Each operator contributes a different summary of the pair. The sum \(u+v\) captures pooled shared signal or joint magnitude, \(|u-v|\) captures elementwise mismatch, \(u \odot v\) captures coordinate-wise interaction or alignment, and \(\cos(u,v)\) adds one global directional-similarity score. The first three operators are vector-valued feature blocks, whereas the cosine term is appended as a scalar summary. This choice is pragmatic. It is simple enough to support controlled ablations and downstream uncertainty analysis, while still giving the neural heads access to nonlinear interactions among complementary summary operators. The implementation realizes this construction explicitly after the embedding stage, but the statistical object that matters here is the resulting pair-level surrogate input.
 
 In Figure~\ref{fig:chap4_pipeline_overview}, this is the step labeled feature construction. The important point is that the unit has changed: the raw scientific objects are individual proteins, but the predictive target is an edge. The feature map therefore has to convert two protein-level representations into one edge-level surrogate input.
 
@@ -90,13 +91,13 @@ For the \texttt{seq\_text} setting, the attention model does not treat the full 
 
 \section[Frozen Model and Handoff]{Frozen Best Model and Prediction Handoff}
 
-The frozen best surrogate in this study is
+The final surrogate carried into the later chapters is
 \begin{center}
 \texttt{seq\_text + esm2\_3b + attention ensemble}.
 \end{center}
 It is built by training three attention models with different random seeds and averaging their predicted probabilities. On the held-out test splits, the ensemble achieves PR-AUC 0.715 on Intra and PR-AUC 0.799 on BIOGRID-human, making it the strongest practical surrogate used in the later inference layer.
 
-The predictive and inferential workflows are connected through an explicit export contract. Training produces seed-level predictions, the ensemble step averages those probabilities, and a canonical export step converts the result into a stable schema for the inference layer. This separation is important because it keeps the prediction problem and the inference problem distinct: the neural model supplies the surrogate score, while prediction-powered procedures use a smaller labeled subset to correct and quantify uncertainty.
+The predictive and inferential workflows are connected through an explicit export contract. Training produces seed-level predictions, the ensemble step averages those probabilities, and a canonical export step writes the resulting edge-level probabilities to a stable file schema for the inference layer. In this thesis, ``frozen'' means that model selection has ended and that this exported prediction object is treated as fixed input thereafter. This separation is important because it keeps the prediction problem and the inference problem distinct: the neural model supplies the surrogate score, while prediction-powered procedures use a smaller labeled subset to correct and quantify uncertainty.
 
 \section{Chapter Summary}
 

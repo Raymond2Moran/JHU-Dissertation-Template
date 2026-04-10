@@ -1,17 +1,18 @@
 \chapter{Conclusion and Discussion} \label{chap:conclusion}
+\chaptersummary{The final chapter brings the methodological and applied parts of the thesis back together. The overall picture is that strong surrogates can support more label-efficient estimation and planning, but the size and interpretation of those gains depend on surrogate quality and on whether independence assumptions are credible in the protein setting.}
 
-\section{What This Thesis Shows}
+\section{Overview}
 
-This thesis brings together two methodological foundations and one applied extension. The first is that noisy or surrogate labels can be corrected efficiently with a small gold-standard calibration set \parencite{llmjudge_eif}. The second is that prediction quality can be translated into labeled-sample planning through prediction-powered power analysis \parencite{ppi_power}. The applied extension is that these ideas remain useful in protein--protein interaction prediction, provided that the predictive and inferential components are kept distinct and linked through a stable prediction-to-inference handoff.
+The thesis brings together two methodological foundations and one applied extension. The first is that noisy or surrogate labels can be corrected efficiently with a small gold-standard calibration set \parencite{llmjudge_eif}. The second is that prediction quality can be translated into labeled-sample planning through prediction-powered power analysis \parencite{ppi_power}. The applied extension is that these ideas remain useful in protein--protein interaction prediction, provided that the predictive and inferential components are kept distinct and linked through a stable prediction-to-inference handoff.
 
-In this application, that pipeline culminates in a sequence-plus-text ESM2-3B attention ensemble. This model provides the strongest protein-edge surrogate in the study and supports stable prediction-powered summaries on both the internal Intra benchmark and the external BIOGRID-human test split. The main conclusion is not that prediction replaces statistical correction, but that a strong surrogate can make correction and planning substantially more label-efficient when the inferential target is kept explicit.
+In the protein application, the final surrogate is a sequence-plus-text ESM2-3B attention ensemble. This model provides the strongest protein-edge surrogate in the study and supports stable prediction-powered summaries on both the internal Intra benchmark and the external BIOGRID-human test split. The main conclusion is not that prediction replaces statistical correction, but that a strong surrogate can make correction and planning substantially more label-efficient when the inferential target is kept explicit.
 
 \section{Main Findings}
 
 Three conclusions are most important.
 \begin{enumerate}
     \item \textbf{Strong surrogates can be built for protein-edge prediction.} The best-performing model in this study is not a single classical classifier but a merged-pool neural attention ensemble using both sequence and text information.
-    \item \textbf{Prediction-powered inference works well once the surrogate is strong.} For the frozen best model, prediction-powered inference and \texttt{PPI++} estimates on the main test splits remain close to the full-data references even when the calibration budget is limited.
+    \item \textbf{Prediction-powered inference works well once the surrogate is strong.} For the final model carried into the inference layer, prediction-powered inference and \texttt{PPI++} estimates on the main test splits remain close to the full-data references even when the calibration budget is limited.
     \item \textbf{Independence assumptions matter in graph-structured protein-protein interaction data.} The published i.i.d. planning formulas are still useful, but their apparent sample-size savings should be interpreted as baseline results rather than dependence-robust guarantees.
 \end{enumerate}
 
@@ -19,24 +20,21 @@ A complementary negative result is also informative. A supplementary tuning camp
 
 \section{Limitations}
 
-Several limitations remain.
+Several limitations remain for the study:
 \begin{enumerate}
     \item The dependence extension is implemented as a sensitivity analysis rather than a full dependence-robust asymptotic theory.
     \item The power analysis currently targets mean/proportion-type estimands derived from classification summaries, not direct differences in PR-AUC or ROC-AUC.
     \item External robustness still depends on how the BIOGRID dataset is mapped, filtered, and paired with negatives.
+    \item The surrogate quality in the protein application remains small for the inferential targets studied. The \(\rho_{Y\hat p}^2\) is small on the pilot sample, so the gains from prediction-powered planning and tuned \texttt{PPI++} are limited.
+    \item The current predictive pipeline relies on sequence and UniProt text representations and may miss structural or context-specific biological information that could improve the surrogate for downstream inference.
     \item The best surrogate is computationally expensive, which limits the ease of broader hyperparameter exploration or repeated resampling experiments.
 \end{enumerate}
 
 \section{Future Directions}
 
-The most useful next steps are both methodological and practical.
-\begin{enumerate}
-    \item Develop dependence-robust variance theory for shared-protein edge data instead of relying only on design-effect sensitivity.
-    \item Extend the planning layer to additional estimands beyond the current mean/proportion target, especially metrics more directly tied to predictive ranking performance.
-    \item Improve external validation by incorporating additional experimentally curated protein-protein interaction resources and more systematic negative-edge construction.
-    \item Explore stronger surrogate architectures and more explicit calibration strategies, including adaptive labeling rules informed by prediction-powered variance diagnostics.
-\end{enumerate}
+The most useful next steps are both methodological and practical. Methodologically, the work could be extended by developing dependence-robust variance theory for shared-protein edge data and by broadening the planning layer beyond the current mean- and proportion-type targets. On the applied side, the analysis could be strengthened through broader external validation, more systematic negative-edge construction, and stronger surrogate models with more explicit calibration strategies.
+
 
 \section{Closing Remarks}
 
-At a practical level, the thesis yields a reproducible workflow that links protein-edge prediction, a standardized prediction handoff, prediction-powered inference, and study planning. At a conceptual level, the message is equally important: strong AI/ML predictions do not remove the need for statistical calibration, but when used carefully they can substantially reduce the amount of gold-standard labeling required for valid scientific reporting.
+At a practical level, the thesis yields a reproducible workflow that links protein-edge prediction, a standardized prediction handoff, prediction-powered inference, and study planning. At a conceptual level, the message is equally important: strong machine-learning predictions do not remove the need for statistical calibration, but when used carefully they can substantially reduce the amount of gold-standard labeling required for stable estimation and uncertainty quantification.

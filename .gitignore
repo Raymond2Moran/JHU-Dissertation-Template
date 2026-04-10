@@ -12,3 +12,7 @@
 *.lua
 *.timestamp
 *.xmpi
+*-blx.bib
+*.fdb_latexmk
+*.fls
+*.xdv
