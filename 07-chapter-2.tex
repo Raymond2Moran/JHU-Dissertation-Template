@@ -1,7 +1,7 @@
 \chapter{Methodological Foundation I: Efficient Inference for Noisy LLM-as-a-Judge Evaluation} \label{chap:foundation_llm}
 \chaptersummary{Cheap labels that are noisy or biased need not be useless for inference. This chapter shows how a smaller gold-standard subset can still support corrected estimation and explains why that correction fits naturally within the PPI and \texttt{PPI++} framework.}
 
-The motivating example for this chapter is LLM-as-a-judge evaluation, where human preferences are observed on only a labeled subset while a cheaper judge label is observed much more broadly. The inferential target is still the human quantity of interest, not the raw judge output alone.
+The motivating example for this chapter is LLM-as-a-judge evaluation, where human preferences are observed on only a labeled subset while a cheaper judge label is observed much more broadly. The inferential target is still the human quantity of interest, rather than the raw output alone.
 
 This chapter is anchored in the preprint \emph{Efficient Inference for Noisy LLM-as-a-Judge Evaluation} \parencite{llmjudge_eif}, but its role here is broader than a paper summary. Here and throughout this chapter, LLM abbreviates large language model. The starting point remains the original prediction-powered inference estimator family together with its tuned extension \texttt{PPI++}, where the weight \(\lambda\) controls how strongly the prediction-only sample enters the corrected estimator.
 
