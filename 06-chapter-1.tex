@@ -47,7 +47,7 @@ The biological scope of that application is intentionally narrower than the phra
 
 This setting is a useful test case for prediction-powered methods because it has the two features that matter most for the rest of the thesis. First, physical interaction labels are biologically important and expensive to validate, so labeled data are meaningfully scarce. Second, modern sequence and annotation models can still produce large numbers of candidate interaction scores. That combination makes protein--protein interaction prediction a natural place to ask whether a strong surrogate can improve downstream estimation and planning without replacing statistical calibration.
 
-\section[Related Work]{Related Works}
+\section[Related Work]{Related Work}
 
 \subsection[Prediction-Powered Inference and Efficiency]{Prediction-Powered Inference and Efficient Estimation}
 
@@ -59,13 +59,13 @@ The noisy-surrogate extension in \textcite{llmjudge_eif} clarifies how predictio
 
 Most of the early prediction-powered literature is retrospective: given a predictor and a labeled subset, how should one estimate a target parameter efficiently? The planning literature asks the prospective version of the same question: before labels are collected, how does surrogate quality translate into statistical power and required labeled sample size? \textcite{ppi_power} provides the main answer used in this thesis by showing, in the one-sample i.i.d. setting, how agreement between truth and surrogate enters the asymptotic variance and the resulting labeled-sample formulas.
 
-This design perspective is essential to the thesis because it extends the value of a surrogate beyond retrospective correction. Chapter~\ref{chap:foundation_power} treats the published i.i.d. formulas as the baseline theory. The later protein chapters then ask a narrower and more practical question: how far can those formulas be carried into a graph-structured biological setting, where dependencies between protein-protein interactions (edges) are plausible?
+This design perspective is essential to the thesis because it extends the value of a surrogate beyond retrospective correction. Chapter~\ref{chap:foundation_power} treats the published i.i.d. formulas as the baseline theory. The later protein chapters then ask a narrower and more practical question: how far can those formulas be carried into a graph-structured biological setting, where dependencies between protein--protein interactions (edges) are plausible?
 
 \subsection[Protein-Interaction Prediction]{Protein-Interaction Prediction and Benchmark Design}
 
 The protein application draws on a separate literature on interactome resources and protein-interaction prediction. Curated resources such as BioGRID and UniProt are essential both for building datasets and for interpreting predicted interactions downstream \parencite{biogrid2019, uniprot2025}. On the predictive side, the field has moved from hand-engineered features toward deep sequence models, protein language model embeddings, and hybrid architectures that combine several information sources \parencite{sun2017, dscript2021, prottrans2022, lin2023, lee2023}.
 
-Previous studies show that strong single-protein representations are now practically attainable. Moreover, the quality of evaluations of the protein-pairs is highly sensitive to split construction and negative-edge design \parencite{park2012, bernett2024}. To reflect this, we used two datasets in the thesis: the Intra benchmark with its predefined negatives, the BIOGRID-human benchmark with randomly sampled non-positive pairs, and cross-dataset comparisons are interpreted cautiously because the labellings criteria should not be treated equally.
+Previous studies show that strong single-protein representations are now practically attainable. They also show that evaluation in protein-pair prediction is highly sensitive to split construction and negative-edge design \parencite{park2012, bernett2024}. This thesis follows that lesson directly. It uses the Intra benchmark with its predefined negatives, the BIOGRID-human benchmark with randomly sampled non-positive pairs, and it interprets cross-dataset comparisons cautiously because the label semantics are not identical.
 
 Taken together, this thesis is not simply a review of semiparametric efficiency, a benchmark analysis of protein–protein interaction prediction, or a reproduction of recent methods. Rather, its contribution is to bring prediction-powered inference, prediction-powered planning, and leakage-aware protein-edge modeling into one coherent inferential framework, while clarifying both the aspects that transfer naturally and the aspects that require additional care in the protein-interaction setting.  
 
