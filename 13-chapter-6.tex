@@ -20,21 +20,14 @@ A complementary negative result is also informative. A supplementary tuning camp
 
 \section{Limitations}
 
-Several limitations remain for the study:
-\begin{enumerate}
-    \item The dependence extension is implemented as a sensitivity analysis rather than a full dependence-robust asymptotic theory.
-    \item The power analysis currently targets mean/proportion-type estimands derived from classification summaries, not direct differences in PR-AUC or ROC-AUC.
-    \item External robustness still depends on how the BIOGRID dataset is mapped, filtered, and paired with negatives.
-    \item The surrogate quality in the protein application remains small for the inferential targets studied. The \(\rho_{Y\hat p}^2\) is small on the pilot sample, so the gains from prediction-powered planning and tuned \texttt{PPI++} are limited.
-    \item The current predictive pipeline relies on sequence and UniProt text representations and may miss structural or context-specific biological information that could improve the surrogate for downstream inference.
-    \item The best surrogate is computationally expensive, which limits the ease of broader hyperparameter exploration or repeated resampling experiments.
-\end{enumerate}
+Several limitations remain. First, prediction-powered inference and planning are applied here only through their published i.i.d.\ formulations. Because protein--protein interaction data are naturally graph-structured, shared-endpoint dependence across observed edges may affect the variance calculations and sample-size formulas used in this chapter. Second, the planning analysis is restricted to mean- and proportion-type estimands, such as prevalence and related classification summaries, rather than to direct differences in predictive metrics such as PR-AUC or ROC-AUC. Third, the external robustness results still depend on the way the BIOGRID benchmark is mapped, filtered, and paired with negative examples. Fourth, in the protein application the surrogate remains only moderately informative for the inferential targets studied: the pilot \(\rho_{Y\hat p}^2\) values are small, so the gains from prediction-powered planning and tuned \texttt{PPI++} are correspondingly limited. Fifth, the predictive pipeline is based on sequence and UniProt text representations and may miss structural, mechanistic, or context-specific biological information that could improve surrogate quality for downstream inference. Finally, the strongest surrogate examined in this thesis is computationally expensive, which limits the scope for broader hyperparameter exploration and repeated resampling experiments.
+
 
 \section{Future Directions}
 
-The most useful next steps are both methodological and practical. Methodologically, the work could be extended by developing dependence-robust variance theory for shared-protein edge data and by broadening the planning layer beyond the current mean- and proportion-type targets. On the applied side, the analysis could be strengthened through broader external validation, more systematic negative-edge construction, and stronger surrogate models with more explicit calibration strategies.
+Several directions would strengthen this line of work. On the methodological side, an important next step is to extend prediction-powered inference and planning beyond the current i.i.d.\ setting by developing asymptotic theory, variance estimators, and sample-size formulas adapted to graph-dependent edge observations. It would also be useful to broaden the planning layer beyond mean- and proportion-type targets to include other functionals more directly tied to predictive evaluation. On the applied side, the protein analysis could be strengthened through broader external validation, more systematic and biologically informed negative-edge construction, and improved surrogate models with stronger calibration and richer biological representations, including structural information where available.
 
 
 \section{Closing Remarks}
 
-At a practical level, the thesis yields a reproducible workflow that links protein-edge prediction, a standardized prediction handoff, prediction-powered inference, and study planning. At a conceptual level, the message is equally important: strong machine-learning predictions do not remove the need for statistical calibration, but when used carefully they can substantially reduce the amount of gold-standard labeling required for stable estimation and uncertainty quantification.
+At a practical level, this thesis develops a reproducible workflow linking protein-edge prediction, a standardized surrogate handoff, prediction-powered inference, and study planning. At a conceptual level, the main message is equally important: strong machine-learning predictions do not eliminate the need for statistical calibration, but when used carefully they can support stable corrected estimation and reduce gold-standard labeling requirements. At the same time, those gains should be interpreted within the limits of the current theory, especially when prediction-powered methods are transported into graph-structured biological settings.

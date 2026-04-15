@@ -1,5 +1,6 @@
-\chapter{Protein Results, Prediction-Powered Inference, and Dependence Sensitivity} \label{chap:protein_results}
-\chaptersummary{With the surrogate fixed, the application chapter has three jobs: evaluate predictive performance, use the same predictions for corrected inference, and study how sample-size planning changes under both i.i.d. and dependence-sensitive assumptions. The main empirical result is that the surrogate supports stable prediction-powered estimates, while the size of the planning gains remains sensitive to how dependence across edges is handled.}
+\chapter{Protein Results, Prediction-Powered Inference, and Sample-Size Planning}
+\label{chap:protein_results}
+\chaptersummary{With the surrogate fixed, the application chapter has three jobs: evaluate predictive performance, use the same predictions for corrected inference, and study sample-size planning under the published i.i.d. prediction-powered formulas. The main empirical result is that the surrogate supports stable prediction-powered estimates, while the planning gains in this protein setting are real but moderate and should be interpreted with caution, especially considering edge dependencies introduced by the graph-like structure.}
 
 Predictive metrics such as PR-AUC, log loss, and Brier score summarize the quality of the surrogate itself, whereas the later sections focus on corrected estimands, uncertainty quantification, and required labeled sample size. Unless otherwise noted, I retain the global notation from Section~\ref{sec:global_notation}; when the unit is specialized to an interaction edge, I replace the generic index \(i\) by an edge index \(e = (u,v)\).
 
@@ -46,7 +47,7 @@ The analysis in this thesis uses the planning formulas from Chapter~\ref{chap:fo
 \label{fig:chap5_power_iid}
 \end{figure}
 
-Making the classical baseline explicit is important for interpretation. At $\Delta = 0.10$, the required labeled sample sizes are 197 for the classical estimator, 286 for vanilla PPI, 186 for estimated-lambda \texttt{PPI++}, and 182 for oracle-lambda \texttt{PPI++}. At $\Delta = 0.05$, the corresponding values are 785, 1155, 743, and 727; at $\Delta = 0.02$, they are 4906, 7844, 4649, and 4567. The pattern is clear: vanilla PPI is not automatically better than the label-only baseline, whereas the tuned \texttt{PPI++} variants do deliver the expected sample-size reduction in this setting \parencite{ppi_power}. The gain is real, but it is moderate rather than transformative.
+Making the classical baseline explicit is important for interpretation. At $\Delta = 0.10$, the required labeled sample sizes are 197 for the classical estimator, 286 for vanilla PPI, 186 for estimated-lambda \texttt{PPI++}, and 182 for oracle-lambda \texttt{PPI++}. At $\Delta = 0.05$, the corresponding values are 785, 1155, 743, and 727; at $\Delta = 0.02$, they are 4906, 7844, 4649, and 4567. The pattern is clear: vanilla PPI is not automatically better than the label-only baseline, whereas the tuned \texttt{PPI++} variants do deliver the expected sample-size reduction in this setting \parencite{ppi_power}. This behavior is consistent with the surrogate-strength results in Table~\ref{tab:chap5_rho_story}. The pilot agreement between truth and surrogate remains modest, so the estimated tuning weights stay close to zero, indicating that the procedure should place limited trust in the predicted labels. In that case, vanilla PPI can be inefficient relative to the classical estimator, while tuned \texttt{PPI++} recovers a more favorable bias-variance tradeoff.
 
 \subsection[Protein \texorpdfstring{$\rho_{Y\hat p}^2$}{rho2} Planning]{Protein-Side \texorpdfstring{$\rho_{Y\hat p}^2$}{rho2} Planning Story}
 
@@ -54,149 +55,152 @@ Chapter~\ref{chap:foundation_power} used the generic notation \(\rho_{Yf}^2\) fo
 
 \MaybeInput{generated_tables/chap5_rho_story.tex}
 
-Table~\ref{tab:chap5_rho_story} shows that the ordering is monotone, but the increase is moderate. The pilot $\rho_{Y\hat p}^2$ values rise from 0.0266 for the sequence-only logreg model to 0.1056 for the frozen attention ensemble, and the required labeled sample size falls accordingly. For example, at $\Delta = 0.05$, the classical baseline requires 785 labels, whereas the sequence-only logreg model requires 771, the sequence-only MLP requires 740, the sequence-plus-text MLP requires 745, the representative single-attention model requires 730, and the frozen attention ensemble requires 726. At $\Delta = 0.10$, the same ordering is 197, 193, 185, 187, 183, and 182. The gains are not dramatic, but the pattern reproduces the same logic as the real-data studies in \textcite{ppi_power}: stronger pilot agreement between truth and surrogate yields lower required labeled sample size.
+Table~\ref{tab:chap5_rho_story} shows that the pilot $\rho_{Y\hat p}^2$ values rise from 0.0266 for the sequence-only logreg model to 0.1056 for the frozen attention ensemble, and the required labeled sample size falls accordingly. For example, at $\Delta = 0.05$, the classical baseline requires 785 labels, whereas the sequence-only logreg model requires 771, the sequence-only MLP requires 740, the sequence-plus-text MLP requires 745, the representative single-attention model requires 730, and the frozen attention ensemble requires 726. At $\Delta = 0.10$, the same ordering is 197, 193, 185, 187, 183, and 182. The gains are not dramatic, but the pattern reproduces the same logic as the real-data studies in \textcite{ppi_power}: stronger pilot agreement between truth and surrogate yields lower required labeled sample size.
 
 The monotone gradient matters more here than any single absolute number. The planning story from Chapter~\ref{chap:foundation_power} carries over directly: stronger pilot agreement translates into smaller labeled-sample requirements, even when the application sits in a moderate-\(\rho_{Y\hat p}^2\) regime rather than in an idealized near-deterministic one.
 
 This surrogate-strength comparison is more informative than the later supplementary tuning pass. After the frozen ensemble had been established, I ran a dedicated search over alternative losses, early-stopping criteria, hard-negative settings, and post-hoc calibration. That search did not produce a replacement surrogate that improved calibration-oriented metrics enough to displace the frozen ensemble without sacrificing the ranking and planning behavior needed later in the chapter. A cautious reading is therefore more appropriate: the existing model gradient is already sufficient to show the protein-side planning story, and the main leverage appears to come from representation quality and evaluation design rather than from small head-level tuning changes.
 
-\section[Dependence Sensitivity]{Dependence Sensitivity for Shared-Protein Edges}
+% \section[Dependence Sensitivity]{Dependence Sensitivity for Shared-Protein Edges}
 
-The published formulas above assume independent observations. Protein-edge data, however, are naturally graph-structured. If two edges share a protein, then their features, predicted scores, and even validation labels can be correlated. In that setting, two labeled edges need not contribute two fully independent pieces of information. If many labeled edges share proteins, then the raw labeled sample size can overstate the amount of independent information actually available for planning. The concern is not purely abstract: the pair-input evaluation literature repeatedly shows that dependence across constituent objects can distort performance estimation if the benchmark design ignores it \parencite{park2012, bernett2024}.
+% The published formulas above assume independent observations. Protein-edge data, however, are naturally graph-structured. If two edges share a protein, then their features, predicted scores, and even validation labels can be correlated. In that setting, two labeled edges need not contribute two fully independent pieces of information. If many labeled edges share proteins, then the raw labeled sample size can overstate the amount of independent information actually available for planning. The concern is not purely abstract: the pair-input evaluation literature repeatedly shows that dependence across constituent objects can distort performance estimation if the benchmark design ignores it \parencite{park2012, bernett2024}.
 
-This section therefore adds a dependence-sensitive extension rather than silently treating the published formulas as universally correct. The main sensitivity parameter reported in this chapter is the design effect, written \(\mathrm{deff}\). Informally, \(\mathrm{deff}\) is a penalty factor for non-independence. If the i.i.d.\ planning calculation says that \(n\) labeled edges are sufficient, then \(\mathrm{deff}>1\) says that those \(n\) edges behave like only
-\[
-n_{\mathrm{eff}} = \frac{n}{\mathrm{deff}}
-\]
-independent labeled edges. Equivalently, the relevant variance is inflated by the factor \(\mathrm{deff}\). For example, \(\mathrm{deff}=1.25\) means 25\% larger variance and about 80\% as much effective labeled information, \(\mathrm{deff}=1.50\) means 50\% larger variance and \(n_{\mathrm{eff}} = 2n/3\), and \(\mathrm{deff}=2.00\) means doubled variance and only half as many effective independent labels.
+% This section therefore adds a dependence-sensitive extension rather than silently treating the published formulas as universally correct. The main sensitivity parameter reported in this chapter is the design effect, written \(\mathrm{deff}\). Informally, \(\mathrm{deff}\) is a penalty factor for non-independence. If the i.i.d.\ planning calculation says that \(n\) labeled edges are sufficient, then \(\mathrm{deff}>1\) says that those \(n\) edges behave like only
+% \[
+% n_{\mathrm{eff}} = \frac{n}{\mathrm{deff}}
+% \]
+% independent labeled edges. Equivalently, the relevant variance is inflated by the factor \(\mathrm{deff}\). For example, \(\mathrm{deff}=1.25\) means 25\% larger variance and about 80\% as much effective labeled information, \(\mathrm{deff}=1.50\) means 50\% larger variance and \(n_{\mathrm{eff}} = 2n/3\), and \(\mathrm{deff}=2.00\) means doubled variance and only half as many effective independent labels.
 
-Throughout the figures and tables, I report \(\mathrm{deff}\) as the chosen sensitivity value. In the algebra below, I write \(d_{\lambda}\) for the fixed-\(\lambda\) version of the same idea, because the inflation can in principle depend on the estimator being used. The thesis does not estimate \(d_{\lambda}\) from a full dependence model for the protein-protein interaction network. It is used only as a sensitivity parameter applied to the published i.i.d.\ baseline.
+% Throughout the figures and tables, I report \(\mathrm{deff}\) as the chosen sensitivity value. In the algebra below, I write \(d_{\lambda}\) for the fixed-\(\lambda\) version of the same idea, because the inflation can in principle depend on the estimator being used. The thesis does not estimate \(d_{\lambda}\) from a full dependence model for the protein-protein interaction network. It is used only as a sensitivity parameter applied to the published i.i.d.\ baseline.
 
-To reflect dependence in the protein--protein interaction network, I report a sensitivity analysis based on
-\[
-\mathrm{deff} \in \{1.00, 1.25, 1.50, 2.00\},
-\]
-which spans no inflation, mild inflation, moderate inflation, and doubling of the i.i.d.\ variance. This grid is not intended to suggest that the correct value is already known for the protein-protein interaction network. Rather, it shows how quickly the apparent planning gain shrinks when shared-protein dependence inflates uncertainty by a plausible multiplicative factor.
+% To reflect dependence in the protein--protein interaction network, I report a sensitivity analysis based on
+% \[
+% \mathrm{deff} \in \{1.00, 1.25, 1.50, 2.00\},
+% \]
+% which spans no inflation, mild inflation, moderate inflation, and doubling of the i.i.d.\ variance. This grid is not intended to suggest that the correct value is already known for the protein-protein interaction network. Rather, it shows how quickly the apparent planning gain shrinks when shared-protein dependence inflates uncertainty by a plausible multiplicative factor.
 
-\subsection[Variance Under Shared-Protein Dependence]{Variance Decomposition Under Shared-Protein Dependence}
+% \subsection[Variance Under Shared-Protein Dependence]{Variance Decomposition Under Shared-Protein Dependence}
 
-For a fixed tuning parameter \(\lambda\), write the mean-type prediction-powered estimator as
-\[
-\widehat{\theta}_{\lambda}
-=
-\bar{Y}_{L} + \lambda(\bar{f}_{U} - \bar{f}_{L})
-=
-\bar{R}^{\lambda}_{L} + \bar{G}^{\lambda}_{U},
-\]
-where
-\[
-R_e^{\lambda}=Y_e-\lambda f_e,
-\qquad
-G_e^{\lambda}=\lambda f_e,
-\]
-and \(L\) and \(U\) denote the labeled and prediction-only edge sets of sizes \(n\) and \(N\). The estimator itself is unchanged under dependence; the issue is how its variance should be interpreted when edges are no longer independent.
+% For a fixed tuning parameter \(\lambda\), write the mean-type prediction-powered estimator as
+% \[
+% \widehat{\theta}_{\lambda}
+% =
+% \bar{Y}_{L} + \lambda(\bar{f}_{U} - \bar{f}_{L})
+% =
+% \bar{R}^{\lambda}_{L} + \bar{G}^{\lambda}_{U},
+% \]
+% where
+% \[
+% R_e^{\lambda}=Y_e-\lambda f_e,
+% \qquad
+% G_e^{\lambda}=\lambda f_e,
+% \]
+% and \(L\) and \(U\) denote the labeled and prediction-only edge sets of sizes \(n\) and \(N\). The estimator itself is unchanged under dependence; the issue is how its variance should be interpreted when edges are no longer independent.
 
-Because \(\bar{R}^{\lambda}_{L}=n^{-1}\sum_{e\in L}R_e^{\lambda}\) and \(\bar{G}^{\lambda}_{U}=N^{-1}\sum_{e\in U}G_e^{\lambda}\), the usual variance-of-averages identities give
-\[
-\Var(\bar{R}^{\lambda}_{L})
-=
-\frac{1}{n^2}\sum_{e,e' \in L}\Cov(R_e^{\lambda}, R_{e'}^{\lambda}),
-\qquad
-\Var(\bar{G}^{\lambda}_{U})
-=
-\frac{1}{N^2}\sum_{e,e' \in U}\Cov(G_e^{\lambda}, G_{e'}^{\lambda}),
-\]
-and
-\[
-\Cov(\bar{R}^{\lambda}_{L},\bar{G}^{\lambda}_{U})
-=
-\frac{1}{nN}\sum_{e \in L}\sum_{e' \in U}\Cov(R_e^{\lambda}, G_{e'}^{\lambda}).
-\]
-The denominators \(n^2\), \(N^2\), and \(nN\) therefore come directly from averaging \(n\) labeled edges and \(N\) prediction-only edges before taking variances and cross-covariances. Summing these three pieces yields the dependence-aware variance
-\[
-\Var_{\mathrm{dep}}(\widehat{\theta}_{\lambda})
-=
-\Var(\bar{R}^{\lambda}_{L})
-+
-\Var(\bar{G}^{\lambda}_{U})
-+
-2\Cov(\bar{R}^{\lambda}_{L}, \bar{G}^{\lambda}_{U}).
-\]
+% Because \(\bar{R}^{\lambda}_{L}=n^{-1}\sum_{e\in L}R_e^{\lambda}\) and \(\bar{G}^{\lambda}_{U}=N^{-1}\sum_{e\in U}G_e^{\lambda}\), the usual variance-of-averages identities give
+% \[
+% \Var(\bar{R}^{\lambda}_{L})
+% =
+% \frac{1}{n^2}\sum_{e,e' \in L}\Cov(R_e^{\lambda}, R_{e'}^{\lambda}),
+% \qquad
+% \Var(\bar{G}^{\lambda}_{U})
+% =
+% \frac{1}{N^2}\sum_{e,e' \in U}\Cov(G_e^{\lambda}, G_{e'}^{\lambda}),
+% \]
+% and
+% \[
+% \Cov(\bar{R}^{\lambda}_{L},\bar{G}^{\lambda}_{U})
+% =
+% \frac{1}{nN}\sum_{e \in L}\sum_{e' \in U}\Cov(R_e^{\lambda}, G_{e'}^{\lambda}).
+% \]
+% The denominators \(n^2\), \(N^2\), and \(nN\) therefore come directly from averaging \(n\) labeled edges and \(N\) prediction-only edges before taking variances and cross-covariances. Summing these three pieces yields the dependence-aware variance
+% \[
+% \Var_{\mathrm{dep}}(\widehat{\theta}_{\lambda})
+% =
+% \Var(\bar{R}^{\lambda}_{L})
+% +
+% \Var(\bar{G}^{\lambda}_{U})
+% +
+% 2\Cov(\bar{R}^{\lambda}_{L}, \bar{G}^{\lambda}_{U}).
+% \]
 
-Under the published i.i.d.\ approximation, the off-diagonal covariance terms vanish and one recovers
-\[
-\Var_{\mathrm{iid}}(\widehat{\theta}_{\lambda})
-=
-\frac{\Var(Y-\lambda f)}{n}
-+
-\frac{\lambda^2 \Var(f)}{N}.
-\]
-Rather than model every omitted cross-edge covariance term explicitly, the thesis summarizes their net contribution by the excess variance
-\[
-D_{\lambda}
-=
-\Var_{\mathrm{dep}}(\widehat{\theta}_{\lambda})
--
-\left\{
-\frac{\Var(Y-\lambda f)}{n}
-+
-\frac{\lambda^2 \Var(f)}{N}
-\right\}.
-\]
-If \(\Var(Y-\lambda f)>0\) and \(D_{\lambda}\ge 0\), the corresponding fixed-\(\lambda\) design effect is
-\[
-d_{\lambda}
-=
-1+\frac{nD_{\lambda}}{\Var(Y-\lambda f)}.
-\]
-This gives the dependence-aware variance in the compact form
-\[
-\Var_{\mathrm{dep}}(\widehat{\theta}_{\lambda})
-=
-d_{\lambda}\frac{\Var(Y-\lambda f)}{n}
-+
-\frac{\lambda^2 \Var(f)}{N}.
-\]
+% Under the published i.i.d.\ approximation, the off-diagonal covariance terms vanish and one recovers
+% \[
+% \Var_{\mathrm{iid}}(\widehat{\theta}_{\lambda})
+% =
+% \frac{\Var(Y-\lambda f)}{n}
+% +
+% \frac{\lambda^2 \Var(f)}{N}.
+% \]
+% Rather than model every omitted cross-edge covariance term explicitly, the thesis summarizes their net contribution by the excess variance
+% \[
+% D_{\lambda}
+% =
+% \Var_{\mathrm{dep}}(\widehat{\theta}_{\lambda})
+% -
+% \left\{
+% \frac{\Var(Y-\lambda f)}{n}
+% +
+% \frac{\lambda^2 \Var(f)}{N}
+% \right\}.
+% \]
+% If \(\Var(Y-\lambda f)>0\) and \(D_{\lambda}\ge 0\), the corresponding fixed-\(\lambda\) design effect is
 
-\subsection[Design Effect and Sample Size]{Design-Effect Approximation and Sample-Size Inflation}
+% \[
+% d_{\lambda}
+% =
+% 1+\frac{nD_{\lambda}}{\Var(Y-\lambda f)}.
+% \]
+% This gives the dependence-aware variance in the compact form
+% \[
+% \Var_{\mathrm{dep}}(\widehat{\theta}_{\lambda})
+% =
+% d_{\lambda}\frac{\Var(Y-\lambda f)}{n}
+% +
+% \frac{\lambda^2 \Var(f)}{N}.
+% \]
 
-The sample-size calculation is based on the variance threshold implied by the target effect size, significance level, and power. Write
-\[
-S^2
-=
-\left(
-\frac{\Delta}{z_{1-\alpha/2}+z_{1-\beta}}
-\right)^2,
-\]
-the required variance condition is simply
-\[
-\Var_{\mathrm{dep}}(\widehat{\theta}_{\lambda}) \le S^2.
-\]
-Substituting the design-effect form above and solving for \(n\) gives
-\[
-n_{\mathrm{req}}^{\mathrm{dep}}(\lambda;d_{\lambda})
-=
-\frac{
-d_{\lambda}\Var(Y-\lambda f)
-}{
-S^2-\lambda^2\Var(f)/N
-}
-=
-d_{\lambda}\,n_{\mathrm{req}}^{\mathrm{iid}}(\lambda),
-\]
-provided \(S^2>\lambda^2\Var(f)/N\). If an integer sample size is required in practice, one takes the ceiling of the real-valued expression.
+% \subsection[Design Effect and Sample Size]{Design-Effect Approximation and Sample-Size Inflation}
 
-This identity is the basis of the dependence-sensitive planning curves reported below. The algebra is written with \(d_{\lambda}\) because the inflation is attached to a fixed \(\lambda\). The plots and tables instead use the simpler symbol \(\mathrm{deff}\) for the chosen scenario values. In other words, \(\mathrm{deff}\) is the reported sensitivity parameter, while \(d_{\lambda}\) is the notation used in the derivation to show how the same inflation rescales the published i.i.d.\ formula. Appendix~\ref{sec:appendix_deff} gives the short derivation behind these identities.
+% The sample-size calculation is based on the variance threshold implied by the target effect size, significance level, and power. Write
+% \[
+% S^2
+% =
+% \left(
+% \frac{\Delta}{z_{1-\alpha/2}+z_{1-\beta}}
+% \right)^2,
+% \]
+% the required variance condition is simply
+% \[
+% \Var_{\mathrm{dep}}(\widehat{\theta}_{\lambda}) \le S^2.
+% \]
+% Substituting the design-effect form above and solving for \(n\) gives
+% \[
+% n_{\mathrm{req}}^{\mathrm{dep}}(\lambda;d_{\lambda})
+% =
+% \frac{
+% d_{\lambda}\Var(Y-\lambda f)
+% }{
+% S^2-\lambda^2\Var(f)/N
+% }
+% =
+% d_{\lambda}\,n_{\mathrm{req}}^{\mathrm{iid}}(\lambda),
+% \]
+% provided \(S^2>\lambda^2\Var(f)/N\). If an integer sample size is required in practice, one takes the ceiling of the real-valued expression.
 
-\begin{figure}[ht]
-\centering
-\MaybeIncludeGraphics[width=0.93\textwidth]{chap5_required_n_dependence_curves.png}
-\caption[Dependence-sensitive planning curves]{Dependence-sensitive planning curves obtained by inflating the i.i.d. labeled-sample requirement with a design effect. The design effect is used as a sensitivity parameter for shared-protein edge dependence, with \texttt{deff = 1.00} corresponding to the published i.i.d. baseline.}
-\label{fig:chap5_power_dependence}
-\end{figure}
+% This identity is the basis of the dependence-sensitive planning curves reported below. The algebra is written with \(d_{\lambda}\) because the inflation is attached to a fixed \(\lambda\). The plots and tables instead use the simpler symbol \(\mathrm{deff}\) for the chosen scenario values. In other words, \(\mathrm{deff}\) is the reported sensitivity parameter, while \(d_{\lambda}\) is the notation used in the derivation to show how the same inflation rescales the published i.i.d.\ formula. Appendix~\ref{sec:appendix_deff} gives the short derivation behind these identities.
 
-The implication is straightforward. The i.i.d. formulas remain useful as a baseline, but they should be read as optimistic when shared-protein dependence is non-negligible. The stronger the local dependence, the less dramatic the apparent label savings from prediction-powered inference and \texttt{PPI++} become. This is the main protein-specific extension of the chapter: the point estimator is unchanged, but the variance interpretation and the planning conclusions become dependence-sensitive.
+% \begin{figure}[ht]
+% \centering
+% \MaybeIncludeGraphics[width=0.93\textwidth]{chap5_required_n_dependence_curves.png}
+% \caption[Dependence-sensitive planning curves]{Dependence-sensitive planning curves obtained by inflating the i.i.d. labeled-sample requirement with a design effect. The design effect is used as a sensitivity parameter for shared-protein edge dependence, with \texttt{deff = 1.00} corresponding to the published i.i.d. baseline.}
+% \label{fig:chap5_power_dependence}
+% \end{figure}
+
+% The implication is straightforward. The i.i.d. formulas remain useful as a baseline, but they should be read as optimistic when shared-protein dependence is non-negligible. The stronger the local dependence, the less dramatic the apparent label savings from prediction-powered inference and \texttt{PPI++} become. This is the main protein-specific extension of the chapter: the point estimator is unchanged, but the variance interpretation and the planning conclusions become dependence-sensitive.
+
+A limitation of the present chapter is that prediction-powered inference and planning are applied only through their published i.i.d.\ formulations. Protein–protein interaction data are inherently graph-structured, and two observed edges may be dependent when they share an endpoint protein or otherwise inherit common biological or benchmark-level structure. For that reason, the variance approximations and power formulas used here are best understood as those currently available from the PPI and \texttt{PPI++} literature, rather than as results specifically justified for shared edge dependence. A fully satisfactory treatment would require a new asymptotic framework for graph-dependent edge observations, along with dependence-robust variance estimators and planning formulas adapted to that setting. Extending prediction-powered inference in that direction is a natural and important topic for future research.
 
 \section{Chapter Summary}
 
-The protein results support a coherent three-layer message. First, the attention-ensemble branch is the strongest surrogate examined in this study. Second, the predictions from that surrogate are good enough that prediction-powered inference and \texttt{PPI++} estimates remain stable under limited calibration budgets. Third, the published power formulas provide a useful baseline, but graph-induced dependence should be treated as a real caveat in protein-protein interaction applications rather than ignored. Existing protein-interaction prediction papers are still useful points of comparison, but only when their evaluation protocols are interpreted with the same caution demanded by the pair-input benchmarking literature \parencite{lee2023, park2012, bernett2024}.
+The protein results support a coherent three-layer message. First, the attention-ensemble branch is the strongest surrogate examined in this study. Second, the predictions from that surrogate are good enough that prediction-powered inference and \texttt{PPI++} estimates remain stable under limited calibration budgets. Third, the published i.i.d.\ power formulas provide a useful planning baseline, but they are not specifically justified for graph-dependent edge observations in protein--protein interaction data. Existing protein-interaction prediction papers are still useful points of comparison, but only when their evaluation protocols are interpreted with the same caution demanded by the pair-input benchmarking literature \parencite{lee2023, park2012, bernett2024}.

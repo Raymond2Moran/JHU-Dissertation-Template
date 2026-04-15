@@ -238,128 +238,128 @@ n_{\mathrm{req}}^{\mathrm{oracle}}
 \]
 This makes the design logic explicit: stronger predictions, represented by larger $\rho_{Yf}^2$, shift the required labeled sample size downward.
 
-\section{Dependence-Sensitive Variance Decomposition and Sample-Size Inflation}
-\label{sec:appendix_deff}
+% \section{Dependence-Sensitive Variance Decomposition and Sample-Size Inflation}
+% \label{sec:appendix_deff}
 
-Chapter~\ref{chap:protein_results} keeps the published i.i.d.\ planning formulas as the baseline and then introduces a design-effect sensitivity analysis for shared-protein dependence. This section records the short algebra behind that sensitivity rule.
+% Chapter~\ref{chap:protein_results} keeps the published i.i.d.\ planning formulas as the baseline and then introduces a design-effect sensitivity analysis for shared-protein dependence. This section records the short algebra behind that sensitivity rule.
 
-For a fixed tuning parameter \(\lambda\), write
-\[
-\widehat{\theta}_{\lambda}
-=
-\bar{R}^{\lambda}_{L}+\bar{G}^{\lambda}_{U},
-\qquad
-R_e^{\lambda}=Y_e-\lambda f_e,
-\qquad
-G_e^{\lambda}=\lambda f_e,
-\]
-where \(L\) is the labeled edge set with size \(n\) and \(U\) is the prediction-only edge set with size \(N\). Because \(\bar{R}^{\lambda}_{L}=n^{-1}\sum_{e\in L}R_e^{\lambda}\) and \(\bar{G}^{\lambda}_{U}=N^{-1}\sum_{e\in U}G_e^{\lambda}\),
-\[
-\Var(\bar{R}^{\lambda}_{L})
-=
-\frac{1}{n^2}\sum_{e,e' \in L}\Cov(R_e^{\lambda}, R_{e'}^{\lambda}),
-\qquad
-\Var(\bar{G}^{\lambda}_{U})
-=
-\frac{1}{N^2}\sum_{e,e' \in U}\Cov(G_e^{\lambda}, G_{e'}^{\lambda}),
-\]
-and
-\[
-\Cov(\bar{R}^{\lambda}_{L},\bar{G}^{\lambda}_{U})
-=
-\frac{1}{nN}\sum_{e \in L}\sum_{e' \in U}\Cov(R_e^{\lambda}, G_{e'}^{\lambda}).
-\]
-Therefore
-\[
-\Var_{\mathrm{dep}}(\widehat{\theta}_{\lambda})
-=
-\Var(\bar{R}^{\lambda}_{L})
-+
-\Var(\bar{G}^{\lambda}_{U})
-+
-2\Cov(\bar{R}^{\lambda}_{L}, \bar{G}^{\lambda}_{U}).
-\]
+% For a fixed tuning parameter \(\lambda\), write
+% \[
+% \widehat{\theta}_{\lambda}
+% =
+% \bar{R}^{\lambda}_{L}+\bar{G}^{\lambda}_{U},
+% \qquad
+% R_e^{\lambda}=Y_e-\lambda f_e,
+% \qquad
+% G_e^{\lambda}=\lambda f_e,
+% \]
+% where \(L\) is the labeled edge set with size \(n\) and \(U\) is the prediction-only edge set with size \(N\). Because \(\bar{R}^{\lambda}_{L}=n^{-1}\sum_{e\in L}R_e^{\lambda}\) and \(\bar{G}^{\lambda}_{U}=N^{-1}\sum_{e\in U}G_e^{\lambda}\),
+% \[
+% \Var(\bar{R}^{\lambda}_{L})
+% =
+% \frac{1}{n^2}\sum_{e,e' \in L}\Cov(R_e^{\lambda}, R_{e'}^{\lambda}),
+% \qquad
+% \Var(\bar{G}^{\lambda}_{U})
+% =
+% \frac{1}{N^2}\sum_{e,e' \in U}\Cov(G_e^{\lambda}, G_{e'}^{\lambda}),
+% \]
+% and
+% \[
+% \Cov(\bar{R}^{\lambda}_{L},\bar{G}^{\lambda}_{U})
+% =
+% \frac{1}{nN}\sum_{e \in L}\sum_{e' \in U}\Cov(R_e^{\lambda}, G_{e'}^{\lambda}).
+% \]
+% Therefore
+% \[
+% \Var_{\mathrm{dep}}(\widehat{\theta}_{\lambda})
+% =
+% \Var(\bar{R}^{\lambda}_{L})
+% +
+% \Var(\bar{G}^{\lambda}_{U})
+% +
+% 2\Cov(\bar{R}^{\lambda}_{L}, \bar{G}^{\lambda}_{U}).
+% \]
 
-Under the i.i.d.\ approximation, the off-diagonal covariance terms vanish and one recovers
-\[
-\Var_{\mathrm{iid}}(\widehat{\theta}_{\lambda})
-=
-\frac{\Var(Y-\lambda f)}{n}
-+
-\frac{\lambda^2 \Var(f)}{N}.
-\]
-Let
-\[
-D_{\lambda}
-=
-\Var_{\mathrm{dep}}(\widehat{\theta}_{\lambda})
--
-\left\{
-\frac{\Var(Y-\lambda f)}{n}
-+
-\frac{\lambda^2 \Var(f)}{N}
-\right\}
-\]
-denote the excess variance beyond that baseline. If \(\Var(Y-\lambda f)>0\) and \(D_{\lambda}\ge 0\), define
-\[
-d_{\lambda}
-=
-1+\frac{nD_{\lambda}}{\Var(Y-\lambda f)}.
-\]
-Substituting
-\[
-D_{\lambda}
-=
-\frac{(d_{\lambda}-1)\Var(Y-\lambda f)}{n}
-\]
-into the dependence-aware variance gives the compact representation
-\[
-\Var_{\mathrm{dep}}(\widehat{\theta}_{\lambda})
-=
-d_{\lambda}\frac{\Var(Y-\lambda f)}{n}
-+
-\frac{\lambda^2 \Var(f)}{N}.
-\]
+% Under the i.i.d.\ approximation, the off-diagonal covariance terms vanish and one recovers
+% \[
+% \Var_{\mathrm{iid}}(\widehat{\theta}_{\lambda})
+% =
+% \frac{\Var(Y-\lambda f)}{n}
+% +
+% \frac{\lambda^2 \Var(f)}{N}.
+% \]
+% Let
+% \[
+% D_{\lambda}
+% =
+% \Var_{\mathrm{dep}}(\widehat{\theta}_{\lambda})
+% -
+% \left\{
+% \frac{\Var(Y-\lambda f)}{n}
+% +
+% \frac{\lambda^2 \Var(f)}{N}
+% \right\}
+% \]
+% denote the excess variance beyond that baseline. If \(\Var(Y-\lambda f)>0\) and \(D_{\lambda}\ge 0\), define
+% \[
+% d_{\lambda}
+% =
+% 1+\frac{nD_{\lambda}}{\Var(Y-\lambda f)}.
+% \]
+% Substituting
+% \[
+% D_{\lambda}
+% =
+% \frac{(d_{\lambda}-1)\Var(Y-\lambda f)}{n}
+% \]
+% into the dependence-aware variance gives the compact representation
+% \[
+% \Var_{\mathrm{dep}}(\widehat{\theta}_{\lambda})
+% =
+% d_{\lambda}\frac{\Var(Y-\lambda f)}{n}
+% +
+% \frac{\lambda^2 \Var(f)}{N}.
+% \]
 
-Now define
-\[
-S^2
-=
-\left(
-\frac{\Delta}{z_{1-\alpha/2}+z_{1-\beta}}
-\right)^2
-\]
-for the usual two-sided Wald design targeting absolute difference \(\Delta\) at significance level \(\alpha\) and power \(1-\beta\). The planning rule is to choose the smallest labeled sample size such that
-\[
-\Var_{\mathrm{dep}}(\widehat{\theta}_{\lambda})\le S^2.
-\]
-If \(S^2>\lambda^2\Var(f)/N\), then solving this inequality for \(n\) yields
-\[
-n_{\mathrm{req}}^{\mathrm{dep}}(\lambda;d_{\lambda})
-=
-\frac{
-d_{\lambda}\Var(Y-\lambda f)
-}{
-S^2-\lambda^2\Var(f)/N
-}.
-\]
-The corresponding i.i.d.\ target is
-\[
-n_{\mathrm{req}}^{\mathrm{iid}}(\lambda)
-=
-\frac{
-\Var(Y-\lambda f)
-}{
-S^2-\lambda^2\Var(f)/N
-},
-\]
-so the dependence-sensitive requirement is simply
-\[
-n_{\mathrm{req}}^{\mathrm{dep}}(\lambda;d_{\lambda})
-=
-d_{\lambda}\,n_{\mathrm{req}}^{\mathrm{iid}}(\lambda).
-\]
-This is the linear sample-size inflation rule used in the Chapter~\ref{chap:protein_results} sensitivity curves. If an integer sample size is required in practice, one takes the ceiling of the real-valued expression above.
+% Now define
+% \[
+% S^2
+% =
+% \left(
+% \frac{\Delta}{z_{1-\alpha/2}+z_{1-\beta}}
+% \right)^2
+% \]
+% for the usual two-sided Wald design targeting absolute difference \(\Delta\) at significance level \(\alpha\) and power \(1-\beta\). The planning rule is to choose the smallest labeled sample size such that
+% \[
+% \Var_{\mathrm{dep}}(\widehat{\theta}_{\lambda})\le S^2.
+% \]
+% If \(S^2>\lambda^2\Var(f)/N\), then solving this inequality for \(n\) yields
+% \[
+% n_{\mathrm{req}}^{\mathrm{dep}}(\lambda;d_{\lambda})
+% =
+% \frac{
+% d_{\lambda}\Var(Y-\lambda f)
+% }{
+% S^2-\lambda^2\Var(f)/N
+% }.
+% \]
+% The corresponding i.i.d.\ target is
+% \[
+% n_{\mathrm{req}}^{\mathrm{iid}}(\lambda)
+% =
+% \frac{
+% \Var(Y-\lambda f)
+% }{
+% S^2-\lambda^2\Var(f)/N
+% },
+% \]
+% so the dependence-sensitive requirement is simply
+% \[
+% n_{\mathrm{req}}^{\mathrm{dep}}(\lambda;d_{\lambda})
+% =
+% d_{\lambda}\,n_{\mathrm{req}}^{\mathrm{iid}}(\lambda).
+% \]
+% This is the linear sample-size inflation rule used in the Chapter~\ref{chap:protein_results} sensitivity curves. If an integer sample size is required in practice, one takes the ceiling of the real-valued expression above.
 
 \section{Supplementary Numerical Tables for Chapter~\ref{chap:protein_results}}
 
