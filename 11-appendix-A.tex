@@ -157,22 +157,22 @@ Substituting $\lambda^\star$ into the variance gives
 \frac{\Cov(Y,f)^2}{\Var(f)}
 \frac{N}{n(n+N)}.
 \]
-If one writes \(\rho_{Yf}=\Corr(Y,f)\) and \(r=\frac{n}{N}\), then the same expression becomes
+If one writes \(\rho_{Y,f}=\Corr(Y,f)\) and \(r=\frac{n}{N}\), then the same expression becomes
 \[
 \Var(\widehat{\theta}_{\lambda^\star})
 =
 \frac{\Var(Y)}{n}
 \left(
-1-\frac{\rho_{Yf}^2}{1+r}
+1-\frac{\rho_{Y,f}^2}{1+r}
 \right).
 \]
 When $N\gg n$, so that $r\approx 0$, this becomes
 \[
 \Var(\widehat{\theta}_{\lambda^\star})
 \approx
-\frac{\Var(Y)}{n}(1-\rho_{Yf}^2),
+\frac{\Var(Y)}{n}(1-\rho_{Y,f}^2),
 \]
-which is the basis of the Chapter~\ref{chap:foundation_power} rule-of-thumb that the labeled-sample reduction behaves like an $R^2$ gain.
+which is the basis of the Chapter~\ref{chap:foundation_power} rule-of-thumb that the labeled-sample reduction behaves like a squared-correlation gain.
 
 \section{Wald Inversion and Required Labeled Sample Size}
 
@@ -212,7 +212,7 @@ For the oracle case, the tuning parameter depends on $n$ through $r=n/N$. Using 
 \[
 \frac{\Var(Y)}{n}
 \left(
-1-\frac{\rho_{Yf}^2}{1+n/N}
+1-\frac{\rho_{Y,f}^2}{1+n/N}
 \right)
 \le S^2.
 \]
@@ -222,7 +222,7 @@ S^2 n^2
 +
 \left(NS^2-\Var(Y)\right)n
 -
-\Var(Y)N(1-\rho_{Yf}^2)
+\Var(Y)N(1-\rho_{Y,f}^2)
 \ge 0.
 \]
 Therefore the required oracle labeled sample size is the smallest integer above the positive root
@@ -232,11 +232,11 @@ n_{\mathrm{req}}^{\mathrm{oracle}}
 \frac{
 \Var(Y)-NS^2
 +
-\sqrt{(NS^2-\Var(Y))^2+4S^2\Var(Y)N(1-\rho_{Yf}^2)}
+\sqrt{(NS^2-\Var(Y))^2+4S^2\Var(Y)N(1-\rho_{Y,f}^2)}
 }
 {2S^2}.
 \]
-This makes the design logic explicit: stronger predictions, represented by larger $\rho_{Yf}^2$, shift the required labeled sample size downward.
+This makes the design logic explicit: stronger predictions, represented by larger $\rho_{Y,f}^2$, shift the required labeled sample size downward.
 
 % \section{Dependence-Sensitive Variance Decomposition and Sample-Size Inflation}
 % \label{sec:appendix_deff}
