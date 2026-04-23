@@ -1,6 +1,7 @@
-\setlength{\LTleft}{0pt}
-\setlength{\LTright}{0pt}
-{\small
+\begingroup
+\setlength{\LTleft}{\fill}
+\setlength{\LTright}{\fill}
+\small
 \begin{longtable}{@{}lllrp{0.22\textwidth}p{0.22\textwidth}@{}}
 \caption[Appendix summary of core Chapter 5 inference estimates]{Full confidence-interval summary for the compact Chapter~\ref{chap:protein_results} prediction-powered inference table.}\label{tab:app_chap5_ppi_core_full}\\
 \toprule
@@ -13,23 +14,23 @@ Dataset & Budget & Metric & Truth & PPI [95\% CI] & \texttt{PPI++} [95\% CI] \\
 \endhead
 \bottomrule
 \endfoot
-Intra & 5\% & Prevalence & 0.500 & 0.499 [0.483, 0.515] & 0.499 [0.484, 0.514] \\
-Intra & 5\% & Accuracy & 0.660 & 0.660 [0.645, 0.675] & 0.660 [0.645, 0.675] \\
-Intra & 5\% & Brier & 0.340 & 0.340 [0.325, 0.355] & 0.340 [0.325, 0.355] \\
-Intra & 10\% & Prevalence & 0.500 & 0.499 [0.488, 0.511] & 0.499 [0.489, 0.510] \\
-Intra & 10\% & Accuracy & 0.660 & 0.660 [0.649, 0.670] & 0.660 [0.649, 0.670] \\
-Intra & 10\% & Brier & 0.340 & 0.341 [0.330, 0.351] & 0.341 [0.330, 0.351] \\
-Intra & 20\% & Prevalence & 0.500 & 0.500 [0.492, 0.509] & 0.500 [0.493, 0.508] \\
-Intra & 20\% & Accuracy & 0.660 & 0.661 [0.653, 0.669] & 0.661 [0.653, 0.668] \\
-Intra & 20\% & Brier & 0.340 & 0.339 [0.331, 0.347] & 0.339 [0.331, 0.347] \\
-BIOGRID & 5\% & Prevalence & 0.485 & 0.484 [0.467, 0.501] & 0.484 [0.467, 0.500] \\
-BIOGRID & 5\% & Accuracy & 0.711 & 0.710 [0.692, 0.727] & 0.710 [0.693, 0.727] \\
-BIOGRID & 5\% & Brier & 0.289 & 0.290 [0.273, 0.308] & 0.290 [0.273, 0.308] \\
-BIOGRID & 10\% & Prevalence & 0.485 & 0.486 [0.474, 0.498] & 0.486 [0.474, 0.498] \\
-BIOGRID & 10\% & Accuracy & 0.711 & 0.708 [0.696, 0.721] & 0.709 [0.696, 0.721] \\
-BIOGRID & 10\% & Brier & 0.289 & 0.291 [0.279, 0.304] & 0.291 [0.279, 0.304] \\
-BIOGRID & 20\% & Prevalence & 0.485 & 0.484 [0.476, 0.493] & 0.484 [0.476, 0.493] \\
-BIOGRID & 20\% & Accuracy & 0.711 & 0.711 [0.703, 0.720] & 0.712 [0.703, 0.720] \\
-BIOGRID & 20\% & Brier & 0.289 & 0.289 [0.280, 0.297] & 0.289 [0.280, 0.297] \\
+Intra & 5\% & Prevalence & 0.50 & 0.50 [0.48, 0.51] & 0.50 [0.48, 0.51] \\
+Intra & 5\% & Accuracy & 0.66 & 0.66 [0.64, 0.68] & 0.66 [0.64, 0.67] \\
+Intra & 5\% & Brier & 0.34 & 0.34 [0.33, 0.36] & 0.34 [0.33, 0.36] \\
+Intra & 10\% & Prevalence & 0.50 & 0.50 [0.49, 0.51] & 0.50 [0.49, 0.51] \\
+Intra & 10\% & Accuracy & 0.66 & 0.66 [0.65, 0.67] & 0.66 [0.65, 0.67] \\
+Intra & 10\% & Brier & 0.34 & 0.34 [0.33, 0.35] & 0.34 [0.33, 0.35] \\
+Intra & 20\% & Prevalence & 0.50 & 0.50 [0.49, 0.51] & 0.50 [0.49, 0.51] \\
+Intra & 20\% & Accuracy & 0.66 & 0.66 [0.65, 0.67] & 0.66 [0.65, 0.67] \\
+Intra & 20\% & Brier & 0.34 & 0.34 [0.33, 0.35] & 0.34 [0.33, 0.35] \\
+BIOGRID & 5\% & Prevalence & 0.48 & 0.48 [0.47, 0.50] & 0.48 [0.47, 0.50] \\
+BIOGRID & 5\% & Accuracy & 0.71 & 0.71 [0.69, 0.73] & 0.71 [0.69, 0.73] \\
+BIOGRID & 5\% & Brier & 0.29 & 0.29 [0.27, 0.31] & 0.29 [0.27, 0.31] \\
+BIOGRID & 10\% & Prevalence & 0.48 & 0.49 [0.47, 0.50] & 0.49 [0.47, 0.50] \\
+BIOGRID & 10\% & Accuracy & 0.71 & 0.71 [0.70, 0.72] & 0.71 [0.70, 0.72] \\
+BIOGRID & 10\% & Brier & 0.29 & 0.29 [0.28, 0.30] & 0.29 [0.28, 0.30] \\
+BIOGRID & 20\% & Prevalence & 0.48 & 0.48 [0.48, 0.49] & 0.48 [0.48, 0.49] \\
+BIOGRID & 20\% & Accuracy & 0.71 & 0.71 [0.70, 0.72] & 0.71 [0.70, 0.72] \\
+BIOGRID & 20\% & Brier & 0.29 & 0.29 [0.28, 0.30] & 0.29 [0.28, 0.30] \\
 \end{longtable}
-}
+\endgroup

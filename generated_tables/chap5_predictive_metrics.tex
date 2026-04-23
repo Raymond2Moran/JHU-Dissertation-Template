@@ -1,18 +1,19 @@
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \small
+\setlength{\tabcolsep}{4pt}
 \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}X*{5}{>{\centering\arraybackslash}X}@{}}
 \toprule
 Model & \makecell{Intra val\\PR} & \makecell{Intra test\\PR} & \makecell{Intra test\\ROC} & \makecell{BIOGRID\\PR} & \makecell{BIOGRID\\ROC} \\
 \midrule
-Seq LogReg & 0.598 & 0.616 & 0.615 & 0.761 & 0.779 \\
-Seq MLP & 0.665 & 0.681 & 0.696 & 0.776 & 0.789 \\
-Seq+Text MLP & 0.676 & 0.699 & 0.705 & 0.783 & 0.797 \\
-Seq+Text Attn & 0.687 & 0.697 & 0.710 & 0.788 & 0.800 \\
-Attn Ensemble & 0.697 & 0.715 & 0.722 & 0.799 & 0.810 \\
-Log-loss Ens. & 0.641 & 0.649 & 0.666 & 0.802 & 0.817 \\
+Seq LogReg & 0.60 & 0.62 & 0.62 & 0.76 & 0.78 \\
+Seq MLP & 0.67 & 0.68 & 0.70 & 0.78 & 0.79 \\
+Seq+Text MLP & 0.68 & 0.70 & 0.71 & 0.78 & 0.80 \\
+Seq+Text Attn & 0.69 & 0.70 & 0.71 & 0.79 & 0.80 \\
+Attn Ensemble & 0.70 & 0.72 & 0.72 & 0.80 & 0.81 \\
+Log-loss Ens. & 0.64 & 0.65 & 0.67 & 0.80 & 0.82 \\
 \bottomrule
 \end{tabularx}
-\caption[Predictive metrics for the frozen surrogate family]{Predictive benchmarking table for the frozen surrogate family used in the protein application. The original attention ensemble remains the final thesis surrogate; the log-loss-optimized ensemble is shown as a calibration-oriented contrast because it improves loss-based metrics but does not pass the balanced replacement rule.}
+\caption[Predictive metrics for the frozen surrogate family]{Predictive benchmarking table for the frozen surrogate family used in the protein application. The original attention ensemble remains the final thesis surrogate; the log-loss-optimized ensemble is shown as a calibration-oriented contrast because it improves loss-based metrics but does not pass the balanced replacement rule. Intra val denotes the in-domain validation split used for model selection and later reused as the pilot/calibration split in the Chapter~5 planning calculations.}
 \label{tab:chap5_predictive_metrics}
 \end{table}

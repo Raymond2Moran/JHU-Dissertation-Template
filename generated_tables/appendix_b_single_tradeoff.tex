@@ -5,13 +5,13 @@
 \toprule
 Split & \multicolumn{4}{c}{Old} & \multicolumn{4}{c}{New} \\
 \cmidrule(lr){2-5}\cmidrule(lr){6-9}
-& log loss & Brier & PR & rho2 & log loss & Brier & PR & rho2 \\
+& log loss & Brier & PR & $\rho^2_{Y,\hat p}$ & log loss & Brier & PR & $\rho^2_{Y,\hat p}$ \\
 \midrule
 BIOGRID test & 0.795 & 0.238 & 0.788 & 0.238 & 0.572 & 0.193 & 0.790 & 0.273 \\
 Intra test & 0.890 & 0.261 & 0.697 & 0.124 & 0.748 & 0.249 & 0.682 & 0.107 \\
 Intra val & 0.940 & 0.277 & 0.687 & 0.099 & 0.755 & 0.257 & 0.664 & 0.073 \\
 \bottomrule
 \end{tabularx}
-\caption[Single-run tradeoff under log-loss optimization]{Comparison between the earlier representative single-attention run and the later log-loss-optimized single-attention run. Lower log loss and Brier indicate better calibration-oriented performance, whereas PR-AUC and pilot rho2 summarize ranking and planning-oriented quality.}
+\caption[Single-run tradeoff under log-loss optimization]{Comparison between the earlier representative single-attention run and the later log-loss-optimized single-attention run. Lower log loss and Brier indicate better calibration-oriented performance, whereas PR-AUC and pilot $\rho^2_{Y,\hat p}$ summarize ranking and planning-oriented quality.}
 \label{tab:appb_single_tradeoff}
 \end{table}
